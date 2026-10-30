@@ -48,10 +48,10 @@ export const EvaluationDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="bento-card rounded-3xl p-6 border border-white/[0.08] shadow-2xl flex items-center justify-between">
+      <div className="bento-card rounded-3xl p-6 shadow-2xl flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
         <div>
-          <h2 className="text-lg font-semibold text-white mb-1">RAG Evaluation & Benchmark Engine</h2>
-          <p className="text-xs text-slate-400">
+          <h2 className="text-lg font-semibold t-primary mb-1">RAG Evaluation & Benchmark Engine</h2>
+          <p className="text-xs t-muted">
             Automated regression testing measuring the RAG Triad, Retrieval Quality, and Latency against versioned Golden QA datasets.
           </p>
         </div>
@@ -68,22 +68,22 @@ export const EvaluationDashboard: React.FC = () => {
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {metricCards.map((card) => (
-          <div key={card.title} className="p-5 rounded-2xl bento-card border border-white/[0.08] space-y-1.5 shadow-lg">
-            <div className="text-xs text-slate-400 flex items-center justify-between">
+          <div key={card.title} className="p-5 rounded-2xl bento-card space-y-1.5 shadow-lg" style={{ borderColor: 'var(--border)' }}>
+            <div className="text-xs t-muted flex items-center justify-between">
               <span>{card.title}</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
                 {card.status}
               </span>
             </div>
-            <div className="text-2xl font-bold text-white tracking-tight">{card.val}</div>
-            <div className="text-[11px] text-slate-500 font-mono">Target SLO: {card.target}</div>
+            <div className="text-2xl font-bold t-primary tracking-tight">{card.val}</div>
+            <div className="text-[11px] t-muted font-mono">Target SLO: {card.target}</div>
           </div>
         ))}
       </div>
 
-      <div className="bento-card rounded-3xl p-6 border border-white/[0.08] shadow-2xl space-y-3">
-        <h3 className="text-base font-semibold text-white">Continuous Quality Guardrails</h3>
-        <p className="text-xs text-slate-300 leading-relaxed">
+      <div className="bento-card rounded-3xl p-6 shadow-2xl space-y-3" style={{ borderColor: 'var(--border)' }}>
+        <h3 className="text-base font-semibold t-primary">Continuous Quality Guardrails</h3>
+        <p className="text-xs t-secondary leading-relaxed">
           OmniRAG verifies that no hallucinated claims enter production. Every generated response is evaluated for Claim-to-Evidence alignment, and unanswerable questions trigger deterministic abstentions rather than fabricated predictions.
         </p>
       </div>

@@ -246,14 +246,14 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
             <div className="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
 
             {/* Metric 1: Avg Response Time */}
-            <div className="flex items-center justify-between py-2 border-b border-white/[0.06]">
+            <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border)' }}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400">Avg. Response Time</p>
-                  <p className="text-2xl font-bold text-white tracking-tight">1.8s</p>
+                  <p className="text-xs t-muted">Avg. Response Time</p>
+                  <p className="text-2xl font-bold t-primary tracking-tight">1.8s</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
@@ -263,14 +263,14 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
             </div>
 
             {/* Metric 2: Citation Accuracy */}
-            <div className="flex items-center justify-between py-2 border-b border-white/[0.06]">
+            <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border)' }}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400">Citation Accuracy</p>
-                  <p className="text-2xl font-bold text-white tracking-tight">96.4%</p>
+                  <p className="text-xs t-muted">Citation Accuracy</p>
+                  <p className="text-2xl font-bold t-primary tracking-tight">96.4%</p>
                 </div>
               </div>
               <div className="text-[11px] font-semibold text-purple-300 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/20">
@@ -285,8 +285,8 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                   <Database className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400">Monthly Query Cost</p>
-                  <p className="text-2xl font-bold text-white tracking-tight">$24.80</p>
+                  <p className="text-xs t-muted">Monthly Query Cost</p>
+                  <p className="text-2xl font-bold t-primary tracking-tight">$24.80</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
@@ -303,13 +303,13 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                 <Zap className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs text-slate-400">Monthly Cost Efficiency</p>
-                <p className="text-sm font-semibold text-slate-200">Optimal Cloud Spend</p>
+                <p className="text-xs t-muted">Monthly Cost Efficiency</p>
+                <p className="text-sm font-semibold t-primary">Optimal Cloud Spend</p>
               </div>
             </div>
             <div className="text-right">
               <span className="text-base font-bold text-emerald-400">$3.2%</span>
-              <p className="text-[10px] text-slate-400">↑ 3.2% saved</p>
+              <p className="text-[10px] t-muted">↑ 3.2% saved</p>
             </div>
           </div>
         </div>
@@ -325,14 +325,14 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
               <Layers className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs text-slate-400">Indexed Chunks</p>
+              <p className="text-xs t-muted">Indexed Chunks</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-bold text-white">1,248</span>
+                <span className="text-xl font-bold t-primary">1,248</span>
                 <span className="text-[11px] text-emerald-400 font-medium">↑ 12%</span>
               </div>
             </div>
           </div>
-          <span className="text-[11px] text-slate-500">2 hours ago</span>
+          <span className="text-[11px] t-muted">2 hours ago</span>
         </div>
 
         <div className="bento-card rounded-2xl px-6 py-4 flex items-center justify-between">
@@ -341,9 +341,9 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
               <Cpu className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs text-slate-400">Vector Embeddings</p>
+              <p className="text-xs t-muted">Vector Embeddings</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-bold text-white">4,892</span>
+                <span className="text-xl font-bold t-primary">4,892</span>
                 <span className="text-[11px] text-emerald-400 font-medium">↑ 18%</span>
               </div>
             </div>
@@ -359,14 +359,14 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs text-slate-400">Search Queries</p>
+              <p className="text-xs t-muted">Search Queries</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-bold text-white">3,428</span>
+                <span className="text-xl font-bold t-primary">3,428</span>
                 <span className="text-[11px] text-purple-400 font-medium">99.7%</span>
               </div>
             </div>
           </div>
-          <span className="text-[11px] text-slate-400">24h Activity</span>
+          <span className="text-[11px] t-muted">24h Activity</span>
         </div>
       </div>
 
@@ -378,13 +378,13 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
         <div className="lg:col-span-3 bento-card rounded-3xl p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <h3 className="text-sm font-semibold t-primary flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-indigo-500" />
                 Recent Documents
               </h3>
               <button
                 onClick={() => onNavigateTab('documents')}
-                className="text-[11px] text-indigo-300 hover:text-indigo-200 bento-chip px-2 py-1 rounded-md transition-colors"
+                className="text-[11px] text-indigo-400 hover:text-indigo-300 bento-chip px-2 py-1 rounded-md transition-colors"
               >
                 View
               </button>
@@ -392,13 +392,13 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
 
             <div className="space-y-3">
               {/* Doc 1 */}
-              <div className="p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] transition-all flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center text-xs font-bold shrink-0">
                   PDF
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-slate-200 truncate">Q3 Financial Report 2024</p>
-                  <p className="text-[10px] text-slate-400">PDF · 42 pages · 2h ago</p>
+                  <p className="text-xs font-medium t-primary truncate">Q3 Financial Report 2024</p>
+                  <p className="text-[10px] t-muted">PDF · 42 pages · 2h ago</p>
                 </div>
                 <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
                   Indexed
@@ -406,13 +406,13 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
               </div>
 
               {/* Doc 2 */}
-              <div className="p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] transition-all flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold shrink-0">
                   DOCX
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-slate-200 truncate">Product Architecture Guide</p>
-                  <p className="text-[10px] text-slate-400">DOCX · 56 pages · 5h ago</p>
+                  <p className="text-xs font-medium t-primary truncate">Product Architecture Guide</p>
+                  <p className="text-[10px] t-muted">DOCX · 56 pages · 5h ago</p>
                 </div>
                 <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
                   Indexed
@@ -420,13 +420,13 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
               </div>
 
               {/* Doc 3 */}
-              <div className="p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] transition-all flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs font-bold shrink-0">
                   IMG
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-slate-200 truncate">System Design Diagrams</p>
-                  <p className="text-[10px] text-slate-400">Images · 12 files · 1d ago</p>
+                  <p className="text-xs font-medium t-primary truncate">System Design Diagrams</p>
+                  <p className="text-[10px] t-muted">Images · 12 files · 1d ago</p>
                 </div>
                 <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
                   Indexed
@@ -434,13 +434,13 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
               </div>
 
               {/* Doc 4 */}
-              <div className="p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] transition-all flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center text-xs font-bold shrink-0">
                   MD
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-slate-200 truncate">API Documentation</p>
-                  <p className="text-[10px] text-slate-400">Markdown · 18 pages · 2d ago</p>
+                  <p className="text-xs font-medium t-primary truncate">API Documentation</p>
+                  <p className="text-[10px] t-muted">Markdown · 18 pages · 2d ago</p>
                 </div>
                 <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 shrink-0 animate-pulse">
                   Processing
@@ -448,13 +448,13 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
               </div>
 
               {/* Doc 5 */}
-              <div className="p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] transition-all flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0">
                   XLSX
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-slate-200 truncate">Sales Data Analysis</p>
-                  <p className="text-[10px] text-slate-400">XLSX · 8 sheets · 3d ago</p>
+                  <p className="text-xs font-medium t-primary truncate">Sales Data Analysis</p>
+                  <p className="text-[10px] t-muted">XLSX · 8 sheets · 3d ago</p>
                 </div>
                 <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
                   Indexed
@@ -465,7 +465,7 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
 
           <button
             onClick={() => onNavigateTab('documents')}
-            className="w-full mt-4 py-2 rounded-xl bento-chip text-xs text-slate-300 hover:text-white font-medium flex items-center justify-center gap-1.5 transition-colors"
+            className="w-full mt-4 py-2 rounded-xl bento-chip text-xs t-secondary hover:t-primary font-medium flex items-center justify-center gap-1.5 transition-colors"
           >
             <span>Browse All 84 Documents</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -478,13 +478,13 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
 
           {/* Header */}
           <div>
-            <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+            <div className="flex items-center justify-between pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/30">
                   <Bot className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">AI Assistant</h3>
+                  <h3 className="text-sm font-semibold t-primary">AI Assistant</h3>
                   <div className="flex items-center gap-1.5 text-[10px] text-emerald-400">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     <span>Grounded RAG Engine Active</span>
@@ -495,7 +495,7 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onNavigateTab('chat')}
-                  className="text-xs text-indigo-300 hover:text-white bento-chip px-2.5 py-1 rounded-lg flex items-center gap-1"
+                  className="text-xs text-indigo-400 hover:text-indigo-300 bento-chip px-2.5 py-1 rounded-lg flex items-center gap-1"
                 >
                   <span>Full Screen</span>
                   <ExternalLink className="w-3 h-3" />
@@ -506,12 +506,12 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
             {/* Prompt Greeting & Quick Prompts */}
             <div className="py-5 space-y-4">
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 shrink-0">
+                <div className="w-9 h-9 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-base font-semibold text-white">How can I help you today?</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed mt-0.5">
+                  <h4 className="text-base font-semibold t-primary">How can I help you today?</h4>
+                  <p className="text-xs t-muted leading-relaxed mt-0.5">
                     I can search, analyze, and answer questions from your documents, images, tables,
                     code, and more. Try asking something like:
                   </p>
@@ -526,10 +526,10 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                     <button
                       key={idx}
                       onClick={() => handleQuickPromptClick(item.label)}
-                      className="p-2 rounded-xl bento-chip text-left hover:bg-white/[0.08] transition-all group flex items-center gap-2"
+                      className="p-2 rounded-xl bento-chip text-left hover:opacity-90 transition-all group flex items-center gap-2"
                     >
-                      <Icon className="w-3.5 h-3.5 text-indigo-400 group-hover:text-cyan-300 transition-colors shrink-0" />
-                      <span className="text-[11px] text-slate-300 group-hover:text-white truncate">
+                      <Icon className="w-3.5 h-3.5 text-indigo-400 group-hover:text-cyan-400 transition-colors shrink-0" />
+                      <span className="text-[11px] t-secondary group-hover:t-primary truncate">
                         {item.label}
                       </span>
                     </button>
@@ -577,14 +577,20 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
           </div>
 
           {/* Interactive Bottom Input Bar */}
-          <form onSubmit={handleAskAssistant} className="mt-4 pt-3 border-t border-white/[0.06]">
-            <div className="relative flex items-center bg-[#0d1024]/80 border border-white/[0.1] rounded-2xl px-3 py-2 focus-within:border-indigo-500/50 transition-all shadow-inner">
+          <form onSubmit={handleAskAssistant} className="mt-4 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+            <div
+              className="relative flex items-center rounded-2xl px-3 py-2 transition-all shadow-inner border"
+              style={{
+                background: dark ? 'rgba(13,16,36,0.8)' : 'rgba(238,240,255,0.85)',
+                borderColor: 'var(--border)',
+              }}
+            >
               <input
                 type="text"
                 value={queryInput}
                 onChange={(e) => setQueryInput(e.target.value)}
                 placeholder="Ask anything about your documents..."
-                className="w-full bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none pr-3"
+                className="w-full bg-transparent text-xs t-primary placeholder:t-muted focus:outline-none pr-3"
               />
 
               <div className="flex items-center gap-2 shrink-0">
@@ -593,7 +599,7 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                   type="button"
                   title="Attach file"
                   onClick={onOpenUploadModal}
-                  className="text-slate-400 hover:text-slate-200 p-1 rounded-md transition-colors"
+                  className="t-muted hover:t-primary p-1 rounded-md transition-colors"
                 >
                   <Paperclip className="w-3.5 h-3.5" />
                 </button>
@@ -603,14 +609,19 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                   <select
                     value={retrievalMode}
                     onChange={(e) => setRetrievalMode(e.target.value as any)}
-                    className="appearance-none bg-white/[0.05] border border-white/[0.08] text-slate-300 text-[10px] font-medium py-1 pl-2.5 pr-6 rounded-lg focus:outline-none cursor-pointer"
+                    className="appearance-none text-[10px] font-medium py-1 pl-2.5 pr-6 rounded-lg focus:outline-none cursor-pointer border bento-chip"
+                    style={{
+                      background: 'var(--bg-card)',
+                      color: 'var(--text-primary)',
+                      borderColor: 'var(--border)',
+                    }}
                   >
-                    <option value="Auto" className="bg-slate-900 text-white">Auto</option>
-                    <option value="Hybrid" className="bg-slate-900 text-white">Hybrid</option>
-                    <option value="Agentic" className="bg-slate-900 text-white">Agentic</option>
-                    <option value="Direct" className="bg-slate-900 text-white">Direct</option>
+                    <option value="Auto">Auto</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="Agentic">Agentic</option>
+                    <option value="Direct">Direct</option>
                   </select>
-                  <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <ChevronDown className="w-3 h-3 t-muted absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
 
                 {/* Send Button */}
@@ -630,11 +641,11 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
         <div className="lg:col-span-3 bento-card rounded-3xl p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <h3 className="text-sm font-semibold t-primary flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-purple-500" />
                 Recent Conversations
               </h3>
-              <span className="text-[11px] text-purple-300 bento-chip px-2 py-0.5 rounded-md">
+              <span className="text-[11px] text-purple-400 bento-chip px-2 py-0.5 rounded-md">
                 5 active
               </span>
             </div>
@@ -650,15 +661,15 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                 <div
                   key={idx}
                   onClick={() => onNavigateTab('chat')}
-                  className="p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] transition-all cursor-pointer group"
+                  className="p-3 rounded-xl bento-chip hover:opacity-90 transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-medium text-slate-200 group-hover:text-indigo-300 transition-colors truncate">
+                    <p className="text-xs font-medium t-primary group-hover:text-indigo-400 transition-colors truncate">
                       {conv.title}
                     </p>
-                    <span className="text-[10px] text-slate-400 shrink-0">{conv.msgs}</span>
+                    <span className="text-[10px] t-muted shrink-0">{conv.msgs}</span>
                   </div>
-                  <p className="text-[10px] text-slate-500 mt-1">{conv.time}</p>
+                  <p className="text-[10px] t-muted mt-1">{conv.time}</p>
                 </div>
               ))}
             </div>
@@ -666,7 +677,7 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
 
           <button
             onClick={() => onNavigateTab('chat')}
-            className="w-full mt-4 py-2 rounded-xl bento-chip text-xs text-slate-300 hover:text-white font-medium flex items-center justify-center gap-1.5 transition-colors"
+            className="w-full mt-4 py-2 rounded-xl bento-chip text-xs t-secondary hover:t-primary font-medium flex items-center justify-center gap-1.5 transition-colors"
           >
             <span>View All Conversations</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -682,11 +693,11 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
         <div className="lg:col-span-3 bento-card rounded-3xl p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <h3 className="text-sm font-semibold t-primary flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-cyan-400" />
                 Knowledge Sources
               </h3>
-              <span className="text-[10px] text-cyan-300 bento-chip px-2 py-0.5 rounded-md">
+              <span className="text-[10px] text-cyan-400 bento-chip px-2 py-0.5 rounded-md">
                 1,168 Total
               </span>
             </div>
@@ -704,8 +715,8 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                   className={`p-2 rounded-2xl bg-gradient-to-b ${src.color} border flex flex-col items-center justify-center text-center space-y-1`}
                 >
                   <span className="text-xs font-extrabold">{src.icon}</span>
-                  <span className="text-[11px] font-bold text-white">{src.count}</span>
-                  <span className="text-[8px] text-slate-400 leading-tight truncate w-full">
+                  <span className="text-[11px] font-bold t-primary">{src.count}</span>
+                  <span className="text-[8px] t-muted leading-tight truncate w-full">
                     {src.label}
                   </span>
                 </div>
@@ -713,7 +724,7 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
             </div>
           </div>
 
-          <p className="text-[11px] text-slate-400 mt-4 text-center">
+          <p className="text-[11px] t-muted mt-4 text-center">
             Automatic schema normalization across all 8 modalities
           </p>
         </div>
@@ -722,11 +733,11 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
         <div className="lg:col-span-5 bento-card rounded-3xl p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <h3 className="text-sm font-semibold t-primary flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-indigo-400" />
                 Ingestion Pipeline
               </h3>
-              <span className="text-[10px] text-indigo-300 bento-chip px-2 py-0.5 rounded-md">
+              <span className="text-[10px] text-indigo-400 bento-chip px-2 py-0.5 rounded-md">
                 Live State
               </span>
             </div>
@@ -740,10 +751,10 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
               ].map((job, idx) => (
                 <div key={idx} className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-slate-200 truncate">{job.name}</span>
-                    <span className="text-slate-400 text-[10px]">{job.pct}%</span>
+                    <span className="font-medium t-primary truncate">{job.name}</span>
+                    <span className="t-muted text-[10px]">{job.pct}%</span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-slate-800/80 overflow-hidden">
+                  <div className="h-2 w-full rounded-full overflow-hidden bento-chip" style={{ background: 'var(--border)' }}>
                     <div
                       className={`h-full rounded-full bg-gradient-to-r ${job.color} transition-all duration-500`}
                       style={{ width: `${job.pct}%` }}
@@ -754,7 +765,7 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-3 mt-2 border-t border-white/[0.06] text-[11px] text-slate-400">
+          <div className="flex items-center justify-between pt-3 mt-2 text-[11px] t-muted" style={{ borderTop: '1px solid var(--border)' }}>
             <span>Workers: 4 active Celery pods</span>
             <span className="text-cyan-400 font-mono">0 dropped jobs</span>
           </div>
@@ -764,11 +775,11 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
         <div className="lg:col-span-4 bento-card rounded-3xl p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <h3 className="text-sm font-semibold t-primary flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-purple-400" />
                 Query Analytics
               </h3>
-              <div className="flex items-center gap-1 text-[10px] text-purple-300 bento-chip px-2 py-0.5 rounded-md">
+              <div className="flex items-center gap-1 text-[10px] text-purple-400 bento-chip px-2 py-0.5 rounded-md">
                 <span>7 days</span>
                 <ChevronDown className="w-3 h-3" />
               </div>
@@ -786,20 +797,20 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                 { day: 'Jan 14', height: '100%' },
               ].map((bar, idx) => (
                 <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
-                  <div className="w-full bg-slate-800/50 rounded-t-lg h-full flex items-end overflow-hidden p-0.5">
+                  <div className="w-full rounded-t-lg h-full flex items-end overflow-hidden p-0.5 bento-chip" style={{ background: 'var(--border)' }}>
                     <div
                       className="w-full rounded-t-md bg-gradient-to-t from-indigo-600 via-purple-500 to-cyan-400 shadow-[0_0_12px_rgba(99,102,241,0.5)] group-hover:brightness-125 transition-all"
                       style={{ height: bar.height }}
                     />
                   </div>
-                  <span className="text-[9px] text-slate-500">{bar.day}</span>
+                  <span className="text-[9px] t-muted">{bar.day}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Chart Category Legend */}
-          <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-[10px] text-slate-400">
+          <div className="pt-3 flex items-center justify-between text-[10px] t-muted" style={{ borderTop: '1px solid var(--border)' }}>
             <span className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Factual (62%)
             </span>

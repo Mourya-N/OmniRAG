@@ -115,13 +115,13 @@ export const ChatExplorer: React.FC = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-140px)] animate-fade-in">
       {/* Chat Thread */}
-      <div className="lg:col-span-2 flex flex-col bento-card rounded-3xl overflow-hidden border border-white/[0.08] shadow-2xl">
-        <div className="p-4 border-b border-white/[0.08] bg-[#0d1024]/60 flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-sm font-semibold text-white">
+      <div className="lg:col-span-2 flex flex-col bento-card rounded-3xl overflow-hidden shadow-2xl">
+        <div className="p-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
+          <div className="flex items-center space-x-2 text-sm font-semibold t-primary">
             <Sparkles className="h-4 w-4 text-indigo-400" />
             <span>Grounded Dialogue Thread</span>
           </div>
-          <span className="text-[11px] text-indigo-300 font-mono bento-chip px-2.5 py-0.5 rounded-full">
+          <span className="text-[11px] text-indigo-400 font-mono bento-chip px-2.5 py-0.5 rounded-full">
             Strict Evidence Citations
           </span>
         </div>
@@ -136,14 +136,15 @@ export const ChatExplorer: React.FC = () => {
                 className={`max-w-[85%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed ${
                   msg.role === 'user'
                     ? 'bg-gradient-to-tr from-indigo-600 to-purple-600 text-white rounded-br-sm shadow-lg shadow-indigo-600/30'
-                    : 'bg-[#141834]/80 border border-white/[0.08] text-slate-200 rounded-bl-sm shadow-md'
+                    : 'bento-chip border t-primary rounded-bl-sm shadow-md'
                 }`}
+                style={msg.role === 'user' ? undefined : { borderColor: 'var(--border)' }}
               >
                 {renderContentWithCitations(msg.content, msg.citations)}
               </div>
 
               {msg.verification && (
-                <div className="mt-1 flex items-center gap-3 text-[11px] text-slate-400 px-1">
+                <div className="mt-1 flex items-center gap-3 text-[11px] t-muted px-1">
                   <span className="flex items-center gap-1 text-emerald-400">
                     <ShieldCheck className="h-3 w-3" />
                     Faithfulness: {(msg.verification.faithfulness_score * 100).toFixed(0)}%
@@ -156,20 +157,21 @@ export const ChatExplorer: React.FC = () => {
           ))}
 
           {loading && (
-            <div className="flex items-center space-x-2 text-xs text-indigo-300 py-2">
+            <div className="flex items-center space-x-2 text-xs text-indigo-400 py-2">
               <div className="h-2 w-2 rounded-full bg-indigo-500 animate-ping" />
               <span>Searching dense & sparse indexes, neural reranking context...</span>
             </div>
           )}
         </div>
 
-        <form onSubmit={handleSend} className="p-3 border-t border-white/[0.08] bg-[#0d1024]/80 flex gap-2">
+        <form onSubmit={handleSend} className="p-3 flex gap-2" style={{ borderTop: '1px solid var(--border)' }}>
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask a question across indexed documents..."
-            className="flex-1 bg-[#131733]/90 border border-white/[0.1] rounded-2xl px-4 py-2.5 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60"
+            className="flex-1 bento-chip border rounded-2xl px-4 py-2.5 text-xs sm:text-sm t-primary placeholder:t-muted focus:outline-none focus:border-indigo-500/60"
+            style={{ borderColor: 'var(--border)' }}
           />
           <button
             type="submit"
@@ -182,43 +184,43 @@ export const ChatExplorer: React.FC = () => {
       </div>
 
       {/* Visual Evidence Viewer Side Panel */}
-      <div className="bento-card rounded-3xl p-5 flex flex-col overflow-hidden border border-white/[0.08] shadow-2xl">
-        <div className="flex items-center space-x-2 border-b border-white/[0.08] pb-3 mb-3">
+      <div className="bento-card rounded-3xl p-5 flex flex-col overflow-hidden shadow-2xl">
+        <div className="flex items-center space-x-2 pb-3 mb-3" style={{ borderBottom: '1px solid var(--border)' }}>
           <BookOpen className="h-4 w-4 text-cyan-400" />
-          <h3 className="text-sm font-semibold text-white">Citation Evidence Inspector</h3>
+          <h3 className="text-sm font-semibold t-primary">Citation Evidence Inspector</h3>
         </div>
 
         {activeCitation ? (
           <div className="space-y-4 flex-1 overflow-y-auto pr-1">
-            <div className="p-4 rounded-2xl bg-[#0d1024]/80 border border-indigo-500/20">
-              <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-                <span className="font-mono text-indigo-300">Page {activeCitation.page_number}</span>
+            <div className="p-4 rounded-2xl bento-chip border" style={{ borderColor: 'var(--border)' }}>
+              <div className="flex items-center justify-between text-xs t-muted mb-2">
+                <span className="font-mono text-indigo-400">Page {activeCitation.page_number}</span>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold">
                   Verified Pass
                 </span>
               </div>
-              <div className="text-xs font-semibold text-slate-300 mb-1">Source Snippet:</div>
-              <p className="text-xs text-slate-200 leading-relaxed italic bg-indigo-950/30 p-3 rounded-xl border border-white/[0.06]">
+              <div className="text-xs font-semibold t-secondary mb-1">Source Snippet:</div>
+              <p className="text-xs t-primary leading-relaxed italic p-3 rounded-xl bento-chip border" style={{ borderColor: 'var(--border)' }}>
                 "{activeCitation.cited_snippet}"
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#0d1024]/60 border border-white/[0.06] text-xs space-y-2">
-              <div className="text-slate-300 font-semibold">Metadata Lineage:</div>
-              <div className="text-slate-400 font-mono text-[11px] truncate">
+            <div className="p-4 rounded-2xl bento-chip border text-xs space-y-2" style={{ borderColor: 'var(--border)' }}>
+              <div className="t-secondary font-semibold">Metadata Lineage:</div>
+              <div className="t-muted font-mono text-[11px] truncate">
                 Chunk ID: {activeCitation.chunk_id}
               </div>
-              <div className="text-slate-400 font-mono text-[11px] truncate">
+              <div className="t-muted font-mono text-[11px] truncate">
                 Doc ID: {activeCitation.document_id}
               </div>
-              <div className="text-slate-400 text-[11px]">
+              <div className="t-muted text-[11px]">
                 Relevance Confidence: {(activeCitation.confidence_score * 100).toFixed(1)}%
               </div>
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400 text-xs">
-            <HelpCircle className="h-8 w-8 mb-2 stroke-1 text-slate-500" />
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-6 t-muted text-xs">
+            <HelpCircle className="h-8 w-8 mb-2 stroke-1 t-muted" />
             <p>Click any citation tag [P.X] in the chat response to inspect original document grounding.</p>
           </div>
         )}
