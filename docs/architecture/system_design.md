@@ -21,50 +21,50 @@ The system is architecturally designed around six core pillars:
 
 ```mermaid
 flowchart TD
-    subgraph ClientLayer [Client & Ingestion Interfaces]
-        WebUI[Next.js / React 19 Frontend]
-        RESTClient[External API Consumers]
-        WebhookSource[Webhooks / S3 Event Triggers]
+    subgraph ClientLayer ["Client & Ingestion Interfaces"]
+        WebUI["Next.js / React 19 Frontend"]
+        RESTClient["External API Consumers"]
+        WebhookSource["Webhooks / S3 Event Triggers"]
     end
 
-    subgraph APIGateway [API & Security Gateway - FastAPI]
-        Router[API Router / v1 / v2]
-        AuthModule[Auth & Token Engine (JWT + RBAC/ABAC)]
-        AuditMiddleware[Audit & Security Log Middleware]
-        RateLimiter[Redis Rate Limiter]
+    subgraph APIGateway ["API & Security Gateway - FastAPI"]
+        Router["API Router / v1 / v2"]
+        AuthModule["Auth & Token Engine (JWT + RBAC/ABAC)"]
+        AuditMiddleware["Audit & Security Log Middleware"]
+        RateLimiter["Redis Rate Limiter"]
     end
 
-    subgraph ProcessingPipeline [Async Task & Ingestion Workers - Celery + Redis]
-        JobQueue[(Redis Broker & Dead Letter Queue)]
-        IngestionWorker[Document Ingestion Worker]
-        ParserEngine[Multimodal Parser Engine (Docling / PyMuPDF / OCR)]
-        ChunkerService[Hierarchical & Semantic Chunker]
-        EmbeddingService[Dense & Sparse Embedding Service]
+    subgraph ProcessingPipeline ["Async Task & Ingestion Workers - Celery + Redis"]
+        JobQueue[("Redis Broker & Dead Letter Queue")]
+        IngestionWorker["Document Ingestion Worker"]
+        ParserEngine["Multimodal Parser Engine (Docling / PyMuPDF / OCR)"]
+        ChunkerService["Hierarchical & Semantic Chunker"]
+        EmbeddingService["Dense & Sparse Embedding Service"]
     end
 
-    subgraph StorageLayer [Enterprise Multi-Modal Storage]
-        PostgreSQL[(PostgreSQL 16: Metadata, ACL, Lineage, Chats)]
-        QdrantDB[(Qdrant Vector DB: Dense & Sparse Vectors)]
-        RedisCache[(Redis: Semantic Cache, Sessions, Locks)]
-        BlobStore[(S3 / MinIO: Raw Files, Extracted Assets)]
+    subgraph StorageLayer ["Enterprise Multi-Modal Storage"]
+        PostgreSQL[("PostgreSQL 16: Metadata, ACL, Lineage, Chats")]
+        QdrantDB[("Qdrant Vector DB: Dense & Sparse Vectors")]
+        RedisCache[("Redis: Semantic Cache, Sessions, Locks")]
+        BlobStore[("S3 / MinIO: Raw Files, Extracted Assets")]
     end
 
-    subgraph RetrievalGeneration [Retrieval & Reasoning Engine]
-        QueryRouter[Query Classifier & Router]
-        DenseSearch[Qdrant Dense Vector Search]
-        BM25Search[Sparse / BM25 Inverted Index]
-        RRFEngine[Reciprocal Rank Fusion (RRF)]
-        Reranker[Cross-Encoder Reranker]
-        AgentGraph[Bounded Agentic Reasoning Engine]
-        LLMOrchestrator[LLM & Vision-Language Engine]
-        HallucinationDetector[Claim Extraction & Citation Validator]
+    subgraph RetrievalGeneration ["Retrieval & Reasoning Engine"]
+        QueryRouter["Query Classifier & Router"]
+        DenseSearch["Qdrant Dense Vector Search"]
+        BM25Search["Sparse / BM25 Inverted Index"]
+        RRFEngine["Reciprocal Rank Fusion (RRF)"]
+        Reranker["Cross-Encoder Reranker"]
+        AgentGraph["Bounded Agentic Reasoning Engine"]
+        LLMOrchestrator["LLM & Vision-Language Engine"]
+        HallucinationDetector["Claim Extraction & Citation Validator"]
     end
 
-    subgraph ObservabilityStack [Telemetry & Evaluation]
-        OTel[OpenTelemetry Collector]
-        Prometheus[(Prometheus Metrics)]
-        Grafana[Grafana Dashboards]
-        EvalHarness[RAG Evaluation & Benchmarking Harness]
+    subgraph ObservabilityStack ["Telemetry & Evaluation"]
+        OTel["OpenTelemetry Collector"]
+        Prometheus[("Prometheus Metrics")]
+        Grafana["Grafana Dashboards"]
+        EvalHarness["RAG Evaluation & Benchmarking Harness"]
     end
 
     WebUI --> Router
@@ -333,29 +333,29 @@ Where:
 
 ```mermaid
 flowchart LR
-    UserQuery[User Query + Tenant Context] --> QueryClassifier[Query Classifier & Router]
+    UserQuery["User Query + Tenant Context"] --> QueryClassifier["Query Classifier & Router"]
     
-    subgraph MultiStageRetrieval [Stage 1: Multi-Stage Hybrid Candidate Retrieval]
+    subgraph MultiStageRetrieval ["Stage 1: Multi-Stage Hybrid Candidate Retrieval"]
         direction TB
-        QueryClassifier -->|Dense Vector| DenseRetrieval[Qdrant HNSW Search\n(Filter: tenant_id & ACL)]
-        QueryClassifier -->|Sparse / Lexical| BM25Retrieval[BM25 / Sparse Index\n(Filter: tenant_id & ACL)]
+        QueryClassifier -->|Dense Vector| DenseRetrieval["Qdrant HNSW Search (Filter: tenant_id & ACL)"]
+        QueryClassifier -->|Sparse / Lexical| BM25Retrieval["BM25 / Sparse Index (Filter: tenant_id & ACL)"]
     end
 
-    DenseRetrieval --> TopKDense[Top-K Dense Candidates\ne.g., K=50]
-    BM25Retrieval --> TopKSparse[Top-K Sparse Candidates\ne.g., K=50]
+    DenseRetrieval --> TopKDense["Top-K Dense Candidates (K=50)"]
+    BM25Retrieval --> TopKSparse["Top-K Sparse Candidates (K=50)"]
 
-    TopKDense & TopKSparse --> RRFModule[Reciprocal Rank Fusion\n(RRF Score Calculation)]
-    RRFModule --> TopCandidateList[Merged Candidate Pool\ne.g., Top 30]
+    TopKDense & TopKSparse --> RRFModule["Reciprocal Rank Fusion (RRF Score Calculation)"]
+    RRFModule --> TopCandidateList["Merged Candidate Pool (Top 30)"]
 
-    subgraph Stage2Rerank [Stage 2: Cross-Encoder Reranking & Context Selection]
+    subgraph Stage2Rerank ["Stage 2: Cross-Encoder Reranking & Context Selection"]
         direction TB
-        TopCandidateList --> CrossEncoder[Cross-Encoder Reranker\n(Query-Doc Deep Cross-Attention)]
-        CrossEncoder --> RelevanceScores[Normalized Relevance Scoring]
-        RelevanceScores --> ContextSelector[Token-Budget Aware Context Selector]
-        ContextSelector --> ParentExpander[Parent Chunk Context Expansion]
+        TopCandidateList --> CrossEncoder["Cross-Encoder Reranker (Query-Doc Deep Cross-Attention)"]
+        CrossEncoder --> RelevanceScores["Normalized Relevance Scoring"]
+        RelevanceScores --> ContextSelector["Token-Budget Aware Context Selector"]
+        ContextSelector --> ParentExpander["Parent Chunk Context Expansion"]
     end
 
-    ParentExpander --> GroundedContext[Final Grounded Prompt Context + Citations]
+    ParentExpander --> GroundedContext["Final Grounded Prompt Context + Citations"]
 ```
 
 ---

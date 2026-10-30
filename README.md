@@ -13,42 +13,42 @@
 
 ```mermaid
 flowchart TD
-    subgraph ClientLayer [Client & Ingestion Interfaces]
-        WebUI[Enterprise React 19 Frontend]
-        RESTClient[External API Consumers]
-        WebhookSource[Webhooks / S3 Event Triggers]
+    subgraph ClientLayer ["Client & Ingestion Interfaces"]
+        WebUI["Enterprise React 19 Frontend"]
+        RESTClient["External API Consumers"]
+        WebhookSource["Webhooks / S3 Event Triggers"]
     end
 
-    subgraph APIGateway [API & Security Gateway - FastAPI]
-        Router[API Router / v1]
-        AuthModule[Auth & Token Engine (JWT + RBAC/ABAC)]
-        AuditMiddleware[Audit & Security Log Middleware]
+    subgraph APIGateway ["API & Security Gateway - FastAPI"]
+        Router["API Router / v1"]
+        AuthModule["Auth & Token Engine (JWT + RBAC/ABAC)"]
+        AuditMiddleware["Audit & Security Log Middleware"]
     end
 
-    subgraph ProcessingPipeline [Async Task & Ingestion Workers - Celery + Redis]
-        JobQueue[(Redis Broker & Task Queue)]
-        IngestionWorker[Document Ingestion Worker]
-        ParserEngine[Multimodal Parser Engine (Docling / PyMuPDF / OCR)]
-        ChunkerService[Hierarchical & Semantic Chunker]
-        EmbeddingService[Dense & Sparse Embedding Service]
+    subgraph ProcessingPipeline ["Async Task & Ingestion Workers - Celery + Redis"]
+        JobQueue[("Redis Broker & Task Queue")]
+        IngestionWorker["Document Ingestion Worker"]
+        ParserEngine["Multimodal Parser Engine (Docling / PyMuPDF / OCR)"]
+        ChunkerService["Hierarchical & Semantic Chunker"]
+        EmbeddingService["Dense & Sparse Embedding Service"]
     end
 
-    subgraph StorageLayer [Enterprise Multi-Modal Storage]
-        PostgreSQL[(PostgreSQL 16: Metadata, ACL, Lineage, Chats)]
-        QdrantDB[(Qdrant Vector DB: Dense & Sparse Vectors)]
-        RedisCache[(Redis: Semantic Cache, Sessions, Locks)]
-        BlobStore[(S3 / MinIO: Raw Files, Extracted Assets)]
+    subgraph StorageLayer ["Enterprise Multi-Modal Storage"]
+        PostgreSQL[("PostgreSQL 16: Metadata, ACL, Lineage, Chats")]
+        QdrantDB[("Qdrant Vector DB: Dense & Sparse Vectors")]
+        RedisCache[("Redis: Semantic Cache, Sessions, Locks")]
+        BlobStore[("S3 / MinIO: Raw Files, Extracted Assets")]
     end
 
-    subgraph RetrievalGeneration [Retrieval & Reasoning Engine]
-        QueryRouter[Query Classifier & Router]
-        DenseSearch[Qdrant Dense Vector Search]
-        BM25Search[Sparse / BM25 Inverted Index]
-        RRFEngine[Reciprocal Rank Fusion (RRF)]
-        Reranker[Cross-Encoder Reranker]
-        AgentGraph[Bounded Agentic Reasoning Engine]
-        LLMOrchestrator[LLM & Vision-Language Engine]
-        HallucinationDetector[Claim Extraction & Citation Validator]
+    subgraph RetrievalGeneration ["Retrieval & Reasoning Engine"]
+        QueryRouter["Query Classifier & Router"]
+        DenseSearch["Qdrant Dense Vector Search"]
+        BM25Search["Sparse / BM25 Inverted Index"]
+        RRFEngine["Reciprocal Rank Fusion (RRF)"]
+        Reranker["Cross-Encoder Reranker"]
+        AgentGraph["Bounded Agentic Reasoning Engine"]
+        LLMOrchestrator["LLM & Vision-Language Engine"]
+        HallucinationDetector["Claim Extraction & Citation Validator"]
     end
 
     WebUI --> Router
