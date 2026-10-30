@@ -12,8 +12,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import OmniRAGError
 from app.core.logging import get_logger
-from app.models.document import Document
+from app.models.document import Document, DocumentVersion
 from app.models.job import IngestionJob, IngestionStage
+from app.services.parser.registry import parse_document_content
 from app.services.storage import get_storage_backend
 
 logger = get_logger(__name__)
@@ -85,6 +86,25 @@ class IngestionPipelineRunner:
 
             # Stage 2: PARSING
             await self.update_job_stage(job, IngestionStage.PARSING)
+            canonical_doc = parse_document_content(
+                content=raw_bytes,
+                filename=doc.filename,
+                mime_type=doc.mime_type,
+                document_id=doc.id,
+            )
+
+            # Update document version metadata with extracted structural metrics
+            ver_stmt = (
+                select(DocumentVersion)
+                .where(DocumentVersion.document_id == doc.id)
+                .order_by(DocumentVersion.version_number.desc())
+            )
+            ver_res = await self.db.execute(ver_stmt)
+            latest_version = ver_res.scalars().first()
+            if latest_version:
+                latest_version.total_pages = canonical_doc.total_pages
+                latest_version.metadata_json = canonical_doc.metadata
+                await self.db.flush()
 
             # Stage 3: EXTRACTING
             await self.update_job_stage(job, IngestionStage.EXTRACTING)

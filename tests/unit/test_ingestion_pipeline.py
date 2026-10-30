@@ -1,5 +1,6 @@
 """Unit and Integration Tests for Phase 5: Asynchronous Ingestion Pipeline."""
 
+import fitz
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
@@ -39,12 +40,22 @@ async def client(test_db_session):
     app.dependency_overrides.clear()
 
 
+def create_sample_pdf_bytes() -> bytes:
+    doc = fitz.open()
+    page = doc.new_page(width=612, height=792)
+    page.insert_text((50, 72), "OmniRAG Pipeline Processing Sample", fontsize=14)
+    data = doc.tobytes()
+    doc.close()
+    return data
+
+
 @pytest.mark.asyncio
 async def test_pipeline_runner_success(test_db_session: AsyncSession):
     # Store dummy file in local storage
+    pdf_bytes = create_sample_pdf_bytes()
     storage = get_storage_backend()
     storage_key = "test_tenant/test_org/test_doc.pdf"
-    uri = await storage.put_object(storage_key, b"%PDF-1.4 sample content", "application/pdf")
+    uri = await storage.put_object(storage_key, pdf_bytes, "application/pdf")
 
     # Create document
     doc = Document(
@@ -53,7 +64,7 @@ async def test_pipeline_runner_success(test_db_session: AsyncSession):
         mime_type="application/pdf",
         storage_uri=uri,
         sha256_checksum="abcdef1234567890",
-        file_size_bytes=22,
+        file_size_bytes=len(pdf_bytes),
         status="UPLOADED",
     )
     test_db_session.add(doc)
@@ -97,7 +108,7 @@ async def test_pipeline_reprocess_api_flow(client: AsyncClient):
     auth_headers = {**headers, "X-Tenant-ID": tenant_id}
 
     # Upload document
-    pdf_content = b"%PDF-1.4\nTest document for reprocess endpoint"
+    pdf_content = create_sample_pdf_bytes()
     files = {"file": ("manual.pdf", pdf_content, "application/pdf")}
     upload_resp = await client.post(
         f"/api/v1/documents/upload?organization_id={org_id}",
