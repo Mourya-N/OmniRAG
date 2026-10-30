@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, Sparkles } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ApiService } from '../services/api';
-import { GoogleOAuthModal } from '../components/GoogleOAuthModal';
 
 interface SignUpPageProps {
   onNavigate: (page: 'login' | 'dashboard') => void;
@@ -35,10 +34,30 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
   const [role, setRole] = useState('engineer');
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [pwError, setPwError] = useState('');
-  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
 
   const dark = theme === 'dark';
+
+  const handleGoogleSignIn = async () => {
+    setPwError('');
+    setGoogleLoading(true);
+    try {
+      const redirectUri = `${window.location.origin}/auth/google/callback`;
+      const res = await ApiService.getGoogleAuthUrl(redirectUri);
+      if (res.authorization_url) {
+        window.location.href = res.authorization_url;
+      } else {
+        throw new Error('Google authorization URL was not generated.');
+      }
+    } catch (err: any) {
+      setPwError(
+        err.message ||
+        'Google OAuth 2.0 is not configured on the server. Please verify GOOGLE_CLIENT_ID in your .env file.'
+      );
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -360,12 +379,22 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
             {/* Google OAuth2 Button */}
             <button
               type="button"
-              onClick={() => setIsGoogleModalOpen(true)}
-              className="w-full py-2.5 rounded-xl bento-chip flex items-center justify-center gap-3 font-semibold text-sm t-primary hover:opacity-90 transition-all border"
+              onClick={handleGoogleSignIn}
+              disabled={googleLoading || loading}
+              className="w-full py-2.5 rounded-xl bento-chip flex items-center justify-center gap-3 font-semibold text-sm t-primary hover:opacity-90 disabled:opacity-50 transition-all border"
               style={{ borderColor: 'var(--border)' }}
             >
-              <GoogleIcon />
-              Continue with Google
+              {googleLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-indigo-500/40 border-t-indigo-500 rounded-full animate-spin" />
+                  Connecting to Google…
+                </span>
+              ) : (
+                <>
+                  <GoogleIcon />
+                  Continue with Google
+                </>
+              )}
             </button>
           </form>
 
@@ -382,17 +411,6 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
           </p>
         </div>
       </div>
-
-      {/* Google OAuth2 Account Chooser Modal */}
-      <GoogleOAuthModal
-        isOpen={isGoogleModalOpen}
-        onClose={() => setIsGoogleModalOpen(false)}
-        onSuccess={(profile) => {
-          setIsGoogleModalOpen(false);
-          localStorage.setItem('omnirag_user', JSON.stringify(profile));
-          onNavigate('dashboard');
-        }}
-      />
     </div>
   );
 };

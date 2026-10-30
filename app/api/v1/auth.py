@@ -350,31 +350,34 @@ async def get_current_user_profile(
 
 
 @router.get("/google/url", response_model=GoogleAuthUrlResponse)
-async def get_google_auth_url() -> GoogleAuthUrlResponse:
-    """Construct Google OAuth2 authorization URL with prompt=select_account."""
+async def get_google_auth_url(redirect_uri: str | None = None) -> GoogleAuthUrlResponse:
+    """Construct real Google OAuth2 authorization URL with prompt=select_account."""
     client_id = settings.GOOGLE_CLIENT_ID
-    redirect_uri = settings.GOOGLE_REDIRECT_URI
-    is_mock = not bool(client_id)
+    if not client_id:
+        raise OmniRAGError(
+            "Google OAuth 2.0 is not configured on the server. "
+            "Please configure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env file.",
+            code="GOOGLE_AUTH_NOT_CONFIGURED",
+            status_code=503,
+        )
 
-    if not is_mock:
-        base_url = "https://accounts.google.com/o/oauth2/v2/auth"
-        params = {
-            "client_id": client_id,
-            "redirect_uri": redirect_uri,
-            "response_type": "code",
-            "scope": "openid email profile",
-            "access_type": "offline",
-            "prompt": "select_account",
-        }
-        auth_url = f"{base_url}?{urllib.parse.urlencode(params)}"
-    else:
-        auth_url = "/#select-google-account?prompt=select_account"
+    target_redirect_uri = redirect_uri or settings.GOOGLE_REDIRECT_URI
+    base_url = "https://accounts.google.com/o/oauth2/v2/auth"
+    params = {
+        "client_id": client_id,
+        "redirect_uri": target_redirect_uri,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "access_type": "offline",
+        "prompt": "select_account",
+    }
+    auth_url = f"{base_url}?{urllib.parse.urlencode(params)}"
 
     return GoogleAuthUrlResponse(
         authorization_url=auth_url,
         client_id=client_id,
         prompt="select_account",
-        is_mock=is_mock,
+        configured=True,
     )
 
 
@@ -385,47 +388,69 @@ async def google_auth_callback(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
-    """Exchange Google OAuth2 credentials or chosen account for enterprise session."""
-    email: str | None = None
-    full_name: str | None = None
+    """Exchange real Google OAuth2 authorization code with Google APIs for enterprise user session."""
+    client_id = settings.GOOGLE_CLIENT_ID
+    client_secret = settings.GOOGLE_CLIENT_SECRET
 
-    # 1. Exchange real Google code if configured
-    if payload.code and settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_SECRET:
-        token_url = "https://oauth2.googleapis.com/token"
-        data = {
-            "code": payload.code,
-            "client_id": settings.GOOGLE_CLIENT_ID,
-            "client_secret": settings.GOOGLE_CLIENT_SECRET,
-            "redirect_uri": settings.GOOGLE_REDIRECT_URI,
-            "grant_type": "authorization_code",
-        }
-        async with httpx.AsyncClient() as client:
-            token_resp = await client.post(token_url, data=data)
-            if token_resp.status_code != 200:
-                raise AuthenticationError("Failed to exchange authorization code with Google")
-            tokens = token_resp.json()
-            userinfo_resp = await client.get(
+    if not client_id or not client_secret:
+        raise OmniRAGError(
+            "Google OAuth 2.0 is not configured on the server. "
+            "Please configure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env file.",
+            code="GOOGLE_AUTH_NOT_CONFIGURED",
+            status_code=503,
+        )
+
+    target_redirect_uri = payload.redirect_uri or settings.GOOGLE_REDIRECT_URI
+
+    # 1. Exchange real Google authorization code via Google's OAuth2 token endpoint
+    token_url = "https://oauth2.googleapis.com/token"
+    token_data = {
+        "code": payload.code,
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "redirect_uri": target_redirect_uri,
+        "grant_type": "authorization_code",
+    }
+    async with httpx.AsyncClient() as http_client:
+        try:
+            token_resp = await http_client.post(token_url, data=token_data, timeout=12.0)
+        except Exception as exc:
+            raise AuthenticationError(f"Failed to connect to Google OAuth2 token server: {exc}")
+
+        if token_resp.status_code != 200:
+            err_data = token_resp.json() if "application/json" in token_resp.headers.get("content-type", "") else {}
+            err_desc = err_data.get("error_description") or err_data.get("error") or token_resp.text
+            raise AuthenticationError(f"Google OAuth authorization code exchange failed: {err_desc}")
+
+        tokens = token_resp.json()
+        access_token = tokens.get("access_token")
+        if not access_token:
+            raise AuthenticationError("Google OAuth server did not return an access token")
+
+        # 2. Retrieve verified user profile from Google UserInfo endpoint
+        try:
+            userinfo_resp = await http_client.get(
                 "https://www.googleapis.com/oauth2/v3/userinfo",
-                headers={"Authorization": f"Bearer {tokens['access_token']}"},
+                headers={"Authorization": f"Bearer {access_token}"},
+                timeout=12.0,
             )
-            if userinfo_resp.status_code != 200:
-                raise AuthenticationError("Failed to retrieve Google user profile")
-            google_user = userinfo_resp.json()
-            email = google_user.get("email")
-            full_name = google_user.get("name") or (email.split("@")[0] if email else "")
-    elif payload.email:
-        email = payload.email
-        full_name = payload.full_name or (email.split("@")[0] if email else "")
-    else:
-        raise AuthenticationError("Invalid Google OAuth2 callback payload")
+        except Exception as exc:
+            raise AuthenticationError(f"Failed to connect to Google UserInfo API: {exc}")
+
+        if userinfo_resp.status_code != 200:
+            raise AuthenticationError("Failed to retrieve user profile from Google")
+
+        google_user = userinfo_resp.json()
+        email = google_user.get("email")
+        full_name = google_user.get("name") or (email.split("@")[0] if email else "")
 
     if not email:
-        raise AuthenticationError("Could not retrieve email from Google OAuth2")
+        raise AuthenticationError("Google account did not provide a verified email address")
 
-    # 2. Strict corporate work email validation (rejects @gmail.com)
+    # 3. Strict corporate work email validation (rejects @gmail.com)
     validate_work_email(email)
 
-    # 3. Lookup existing user in database
+    # 4. Lookup existing user in database
     stmt = (
         select(User)
         .where(User.email == email)
@@ -437,7 +462,7 @@ async def google_auth_callback(
     res = await db.execute(stmt)
     user = res.scalar_one_or_none()
 
-    # 4. Provision user & organization if new account
+    # 5. Provision user & organization if new account
     if not user:
         domain_part = email.split("@")[1].split(".")[0].capitalize()
         tenant_name = f"{domain_part} Workspace"

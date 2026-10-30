@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     # Google OAuth2 Configuration
     GOOGLE_CLIENT_ID: str | None = None
     GOOGLE_CLIENT_SECRET: str | None = None
-    GOOGLE_REDIRECT_URI: str = "http://localhost:5173/auth/google/callback"
+    GOOGLE_REDIRECT_URI: str = "http://localhost:3000/auth/google/callback"
 
     # Database Configuration (PostgreSQL 16)
     POSTGRES_SERVER: str = "localhost"

@@ -22,14 +22,24 @@ import { DocumentManager } from './components/DocumentManager';
 import { EvaluationDashboard } from './components/EvaluationDashboard';
 import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
+import { GoogleCallbackPage } from './pages/GoogleCallbackPage';
 import { ApiService } from './services/api';
 import { useTheme } from './contexts/ThemeContext';
 import { UserProfile } from './types';
 
-type Page = 'login' | 'signup' | 'dashboard';
+type Page = 'login' | 'signup' | 'dashboard' | 'google-callback';
 type DashTab = 'home' | 'chat' | 'search' | 'documents' | 'evaluation';
 
+const isGoogleCallback = (): boolean => {
+  return (
+    window.location.pathname.startsWith('/auth/google/callback') ||
+    window.location.hash.startsWith('#/auth/google/callback') ||
+    (window.location.search.includes('code=') && (window.location.pathname.includes('callback') || window.location.hash.includes('callback')))
+  );
+};
+
 const getInitialPage = (): Page => {
+  if (isGoogleCallback()) return 'google-callback';
   const h = window.location.hash;
   if (h === '#/signup') return 'signup';
   if (h === '#/login') return 'login';
@@ -114,6 +124,19 @@ export const App: React.FC = () => {
   const dark = theme === 'dark';
 
   // ---- Auth pages ----
+  if (currentPage === 'google-callback') {
+    return (
+      <GoogleCallbackPage
+        onSuccess={() => {
+          ApiService.getMe()
+            .then((me) => setCurrentUser(me))
+            .catch(() => {});
+          navigate('dashboard');
+        }}
+        onNavigate={(p) => navigate(p)}
+      />
+    );
+  }
   if (currentPage === 'login') {
     return <LoginPage onNavigate={(p) => navigate(p === 'signup' ? 'signup' : 'dashboard')} />;
   }

@@ -48,18 +48,16 @@ class GoogleAuthUrlResponse(BaseModel):
     """Google OAuth2 authorization URL response."""
 
     authorization_url: str
-    client_id: str | None = None
+    client_id: str
     prompt: str = "select_account"
-    is_mock: bool = False
+    configured: bool = True
 
 
 class GoogleOAuthCallbackRequest(BaseModel):
-    """Payload for exchanging Google OAuth2 code or ID token."""
+    """Payload for exchanging Google OAuth2 authorization code with Google APIs."""
 
-    code: str | None = None
-    id_token: str | None = None
-    email: EmailStr | None = None
-    full_name: str | None = None
+    code: str
+    redirect_uri: str | None = None
 
 
 class UserProfileResponse(BaseModel):

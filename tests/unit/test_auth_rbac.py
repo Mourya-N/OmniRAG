@@ -1,11 +1,14 @@
 """Unit and integration tests for Phase 3: Auth, Multi-Tenancy, and RBAC."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+import httpx
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.api.deps import get_db
+from app.core.config import settings
 from app.core.database import Base
 from app.core.exceptions import AuthenticationError, TokenExpiredError
 from app.core.security import (
@@ -301,38 +304,85 @@ async def test_login_requires_existing_account(client):
 
 @pytest.mark.asyncio
 async def test_google_oauth2_account_selection_and_work_email(client):
-    """Verify Google OAuth2 endpoint returns select_account prompt and rejects personal webmail."""
-    # 1. Fetch OAuth URL
-    url_resp = await client.get("/api/v1/auth/google/url")
-    assert url_resp.status_code == 200
-    data = url_resp.json()
-    assert data["prompt"] == "select_account"
-    assert "prompt=select_account" in data["authorization_url"]
+    """Verify Google OAuth2 endpoint returns select_account prompt and enforces corporate work email via real OAuth exchange."""
+    # 1. When unconfigured, returns 503
+    with patch.object(settings, "GOOGLE_CLIENT_ID", ""), patch.object(settings, "GOOGLE_CLIENT_SECRET", ""):
+        unconfigured_resp = await client.get("/api/v1/auth/google/url")
+        assert unconfigured_resp.status_code == 503
+        assert unconfigured_resp.json()["error"]["code"] == "GOOGLE_AUTH_NOT_CONFIGURED"
 
-    # 2. Reject personal Gmail in Google login
-    gmail_oauth = await client.post(
-        "/api/v1/auth/google/callback",
-        json={"email": "developer@gmail.com", "full_name": "Dev User"},
-    )
-    assert gmail_oauth.status_code == 400
-    assert gmail_oauth.json()["error"]["code"] == "PERSONAL_EMAIL_NOT_ALLOWED"
+    # 2. When configured, returns OAuth2 authorization URL with select_account
+    test_client_id = "test-client-id.apps.googleusercontent.com"
+    test_client_secret = "test-client-secret-xyz"
+    with patch.object(settings, "GOOGLE_CLIENT_ID", test_client_id), patch.object(settings, "GOOGLE_CLIENT_SECRET", test_client_secret):
+        url_resp = await client.get("/api/v1/auth/google/url?redirect_uri=http://localhost:3000/auth/google/callback")
+        assert url_resp.status_code == 200
+        data = url_resp.json()
+        assert data["prompt"] == "select_account"
+        assert "prompt=select_account" in data["authorization_url"]
+        assert test_client_id in data["authorization_url"]
 
-    # 3. Successful corporate Google Workspace login
-    corp_oauth = await client.post(
-        "/api/v1/auth/google/callback",
-        json={"email": "sarah.architect@cloud-native.io", "full_name": "Sarah Architect"},
-    )
-    assert corp_oauth.status_code == 200
-    res = corp_oauth.json()
-    assert "access_token" in res
-    assert "omnirag_access_token" in corp_oauth.cookies
+        # 3. Simulate Google OAuth exchange returning personal @gmail.com -> rejected with 400
+        mock_token_resp = MagicMock()
+        mock_token_resp.status_code = 200
+        mock_token_resp.headers = {"content-type": "application/json"}
+        mock_token_resp.json.return_value = {"access_token": "ya29.mock-gmail-token"}
 
-    # 4. Verify identity and standard 'User' role
-    me_resp = await client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {res['access_token']}"})
-    assert me_resp.status_code == 200
-    profile = me_resp.json()
-    assert profile["email"] == "sarah.architect@cloud-native.io"
-    assert profile["full_name"] == "Sarah Architect"
-    assert "User" in profile["roles"]
+        mock_userinfo_gmail = MagicMock()
+        mock_userinfo_gmail.status_code = 200
+        mock_userinfo_gmail.headers = {"content-type": "application/json"}
+        mock_userinfo_gmail.json.return_value = {
+            "email": "developer@gmail.com",
+            "name": "Dev User",
+            "email_verified": True,
+        }
+
+        mock_client_gmail = MagicMock()
+        mock_client_gmail.__aenter__.return_value = mock_client_gmail
+        mock_client_gmail.__aexit__.return_value = None
+        mock_client_gmail.post = AsyncMock(return_value=mock_token_resp)
+        mock_client_gmail.get = AsyncMock(return_value=mock_userinfo_gmail)
+
+        with patch("app.api.v1.auth.httpx.AsyncClient", return_value=mock_client_gmail):
+            gmail_oauth = await client.post(
+                "/api/v1/auth/google/callback",
+                json={"code": "auth-code-gmail-123", "redirect_uri": "http://localhost:3000/auth/google/callback"},
+            )
+            assert gmail_oauth.status_code == 400
+            assert gmail_oauth.json()["error"]["code"] == "PERSONAL_EMAIL_NOT_ALLOWED"
+
+        # 4. Simulate Google OAuth exchange returning corporate Google Workspace email -> successful 200
+        mock_userinfo_corp = MagicMock()
+        mock_userinfo_corp.status_code = 200
+        mock_userinfo_corp.headers = {"content-type": "application/json"}
+        mock_userinfo_corp.json.return_value = {
+            "email": "sarah.architect@cloud-native.io",
+            "name": "Sarah Architect",
+            "email_verified": True,
+        }
+
+        mock_client_corp = MagicMock()
+        mock_client_corp.__aenter__.return_value = mock_client_corp
+        mock_client_corp.__aexit__.return_value = None
+        mock_client_corp.post = AsyncMock(return_value=mock_token_resp)
+        mock_client_corp.get = AsyncMock(return_value=mock_userinfo_corp)
+
+        with patch("app.api.v1.auth.httpx.AsyncClient", return_value=mock_client_corp):
+            corp_oauth = await client.post(
+                "/api/v1/auth/google/callback",
+                json={"code": "auth-code-corp-456", "redirect_uri": "http://localhost:3000/auth/google/callback"},
+            )
+            assert corp_oauth.status_code == 200
+            res = corp_oauth.json()
+            assert "access_token" in res
+            assert "omnirag_access_token" in corp_oauth.cookies
+
+            # 5. Verify identity and standard 'User' role in session
+            me_resp = await client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {res['access_token']}"})
+            assert me_resp.status_code == 200
+            profile = me_resp.json()
+            assert profile["email"] == "sarah.architect@cloud-native.io"
+            assert profile["full_name"] == "Sarah Architect"
+            assert "User" in profile["roles"]
 
 

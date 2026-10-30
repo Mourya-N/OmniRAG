@@ -94,19 +94,25 @@ export class ApiService {
     return resp.json();
   }
 
-  static async getGoogleAuthUrl(): Promise<{ authorization_url: string; client_id: string | null; prompt: string; is_mock: boolean }> {
-    const resp = await fetch(`${API_BASE}/auth/google/url`, {
+  static async getGoogleAuthUrl(redirectUri?: string): Promise<{ authorization_url: string; client_id: string | null; prompt: string; configured: boolean }> {
+    const url = new URL(`${window.location.origin}${API_BASE}/auth/google/url`);
+    if (redirectUri) {
+      url.searchParams.set('redirect_uri', redirectUri);
+    }
+    const resp = await fetch(url.toString(), {
       headers: this.getHeaders(),
       credentials: 'include',
     });
-    if (!resp.ok) throw new Error('Failed to retrieve Google OAuth2 configuration');
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || err.detail || 'Failed to retrieve Google OAuth2 configuration');
+    }
     return resp.json();
   }
 
   static async googleAuthCallback(payload: {
-    code?: string;
-    email?: string;
-    full_name?: string;
+    code: string;
+    redirect_uri?: string;
   }): Promise<any> {
     const resp = await fetch(`${API_BASE}/auth/google/callback`, {
       method: 'POST',
