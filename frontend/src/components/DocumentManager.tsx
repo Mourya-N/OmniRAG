@@ -40,17 +40,17 @@ export const DocumentManager: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
-        <h2 className="text-lg font-semibold text-white mb-2">Multimodal Document Ingestion</h2>
-        <p className="text-sm text-slate-400 mb-6">
+    <div className="space-y-6 animate-fade-in">
+      <div className="bento-card rounded-3xl p-6 border border-white/[0.08] shadow-2xl">
+        <h2 className="text-lg font-semibold text-white mb-1">Multimodal Document Ingestion</h2>
+        <p className="text-xs text-slate-400 mb-6">
           Upload PDF, DOCX, PPTX, XLSX, CSV, Markdown, or Code documents. All files are verified with SHA-256 deduplication and segmented into hierarchical parent-child vector chunks.
         </p>
 
-        <label className="border-2 border-dashed border-slate-700 hover:border-indigo-500/50 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-colors bg-slate-950/40">
-          <Upload className="h-8 w-8 text-indigo-400 mb-3" />
-          <span className="text-sm font-medium text-slate-200">Click to upload or drag and drop</span>
-          <span className="text-xs text-slate-500 mt-1">PDF, DOCX, PPTX, XLSX, CSV, MD up to 100MB</span>
+        <label className="border-2 border-dashed border-indigo-500/30 hover:border-indigo-500/60 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all bg-[#0d1024]/60 group">
+          <Upload className="h-9 w-9 text-indigo-400 mb-3 group-hover:scale-110 transition-transform" />
+          <span className="text-sm font-semibold text-slate-200">Click to upload or drag and drop</span>
+          <span className="text-xs text-slate-400 mt-1">PDF, DOCX, PPTX, XLSX, CSV, MD up to 100MB</span>
           <input
             type="file"
             onChange={handleFileUpload}
@@ -61,14 +61,14 @@ export const DocumentManager: React.FC = () => {
         </label>
 
         {statusMessage && (
-          <div className="mt-4 p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" />
+          <div className="mt-4 p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{statusMessage}</span>
           </div>
         )}
       </div>
 
-      <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+      <div className="bento-card rounded-3xl p-6 border border-white/[0.08] shadow-2xl">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-medium text-white">Ingested Document Assets</h3>
           <button

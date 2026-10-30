@@ -6,17 +6,24 @@
     <title>OmniRAG — Enterprise Multimodal Knowledge Intelligence</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Inter', 'sans-serif'],
+              sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
               mono: ['JetBrains Mono', 'monospace'],
             },
             colors: {
+              bento: {
+                dark: '#0a0d1a',
+                card: '#12162e',
+                cardHover: '#181d3d',
+                border: 'rgba(255, 255, 255, 0.08)',
+                borderGlow: 'rgba(99, 102, 241, 0.3)',
+              },
               primary: {
                 50: '#eef2ff',
                 100: '#e0e7ff',
@@ -26,12 +33,69 @@
                 900: '#312e81',
               },
             },
+            animation: {
+              'float-slow': 'float 6s ease-in-out infinite',
+              'pulse-slow': 'pulseGlow 4s ease-in-out infinite',
+              'spin-slow': 'spin 30s linear infinite',
+            },
+            keyframes: {
+              float: {
+                '0%, 100%': { transform: 'translateY(0px)' },
+                '50%': { transform: 'translateY(-8px)' },
+              },
+              pulseGlow: {
+                '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+                '50%': { opacity: '0.7', transform: 'scale(1.03)' },
+              },
+            },
           },
         },
       }
     </script>
+    <style>
+      body {
+        background-color: #090c1a;
+        color: #f1f5f9;
+        overflow-x: hidden;
+      }
+      .bento-card {
+        background: linear-gradient(135deg, rgba(20, 25, 52, 0.65) 0%, rgba(14, 18, 40, 0.75) 100%);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36), inset 0 1px 1px 0 rgba(255, 255, 255, 0.08);
+      }
+      .bento-card:hover {
+        border-color: rgba(129, 140, 248, 0.25);
+        box-shadow: 0 12px 40px 0 rgba(79, 70, 229, 0.15), inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
+      }
+      .bento-chip {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .bento-chip:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(167, 139, 250, 0.4);
+      }
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.5);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(99, 102, 241, 0.3);
+        border-radius: 9999px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(99, 102, 241, 0.6);
+      }
+    </style>
   </head>
-  <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+  <body class="bg-[#090c1a] text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

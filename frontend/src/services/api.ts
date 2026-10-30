@@ -2,7 +2,7 @@ const API_BASE = '/api/v1';
 
 export class ApiService {
   private static token: string | null = localStorage.getItem('omnirag_token');
-  private static tenantId: string | null = localStorage.getItem('omnirag_tenant_id');
+  private static tenantId: string | null = localStorage.getItem('omnirag_tenant_id') || '00000000-0000-0000-0000-000000000001';
 
   static setAuth(token: string, tenantId: string) {
     this.token = token;
@@ -59,6 +59,21 @@ export class ApiService {
     return resp.json();
   }
 
+  static async queryRAG(params: {
+    query: string;
+    tenant_id?: string;
+    user_role?: string;
+    conversation_history?: any[];
+  }): Promise<any> {
+    const resp = await fetch(`${API_BASE}/rag/query`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(params),
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    return resp.json();
+  }
+
   static async executeAgenticQuery(query: string): Promise<any> {
     const resp = await fetch(`${API_BASE}/agent/query`, {
       method: 'POST',
@@ -79,3 +94,4 @@ export class ApiService {
   }
 }
 
+export const api = ApiService;

@@ -47,18 +47,18 @@ export const EvaluationDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex items-center justify-between">
+    <div className="space-y-6 animate-fade-in">
+      <div className="bento-card rounded-3xl p-6 border border-white/[0.08] shadow-2xl flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-white mb-1">RAG Evaluation & Benchmark Engine</h2>
-          <p className="text-sm text-slate-400">
+          <p className="text-xs text-slate-400">
             Automated regression testing measuring the RAG Triad, Retrieval Quality, and Latency against versioned Golden QA datasets.
           </p>
         </div>
         <button
           onClick={handleRunEvaluation}
           disabled={running}
-          className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium text-sm flex items-center gap-2 transition-colors shadow-lg shadow-indigo-600/20"
+          className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-40 text-white font-semibold text-xs flex items-center gap-2 transition-all shadow-lg shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98]"
         >
           <Play className="h-4 w-4" />
           {running ? 'Benchmarking...' : 'Execute Benchmark'}
@@ -68,22 +68,22 @@ export const EvaluationDashboard: React.FC = () => {
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {metricCards.map((card) => (
-          <div key={card.title} className="p-4 rounded-xl bg-slate-900/50 border border-slate-800 space-y-1.5">
+          <div key={card.title} className="p-5 rounded-2xl bento-card border border-white/[0.08] space-y-1.5 shadow-lg">
             <div className="text-xs text-slate-400 flex items-center justify-between">
               <span>{card.title}</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
                 {card.status}
               </span>
             </div>
             <div className="text-2xl font-bold text-white tracking-tight">{card.val}</div>
-            <div className="text-[11px] text-slate-500">Target SLO: {card.target}</div>
+            <div className="text-[11px] text-slate-500 font-mono">Target SLO: {card.target}</div>
           </div>
         ))}
       </div>
 
-      <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 space-y-4">
-        <h3 className="text-base font-medium text-white">Continuous Quality Guardrails</h3>
-        <p className="text-xs text-slate-400 leading-relaxed">
+      <div className="bento-card rounded-3xl p-6 border border-white/[0.08] shadow-2xl space-y-3">
+        <h3 className="text-base font-semibold text-white">Continuous Quality Guardrails</h3>
+        <p className="text-xs text-slate-300 leading-relaxed">
           OmniRAG verifies that no hallucinated claims enter production. Every generated response is evaluated for Claim-to-Evidence alignment, and unanswerable questions trigger deterministic abstentions rather than fabricated predictions.
         </p>
       </div>
