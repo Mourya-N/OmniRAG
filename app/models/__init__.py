@@ -2,6 +2,7 @@
 
 from app.core.database import Base
 from app.models.audit import AuditLog
+from app.models.conversation import Citation, Conversation, Message
 from app.models.document import Document, DocumentChunk, DocumentPermission, DocumentVersion
 from app.models.job import IngestionJob, IngestionStage
 from app.models.tenant import Organization, Tenant
@@ -21,4 +22,7 @@ __all__ = [
     "IngestionJob",
     "IngestionStage",
     "AuditLog",
+    "Conversation",
+    "Message",
+    "Citation",
 ]
