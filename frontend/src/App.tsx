@@ -22,12 +22,13 @@ import { DocumentManager } from './components/DocumentManager';
 import { EvaluationDashboard } from './components/EvaluationDashboard';
 import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
+import { LandingPage } from './pages/LandingPage';
 import { GoogleCallbackPage } from './pages/GoogleCallbackPage';
 import { ApiService } from './services/api';
 import { useTheme } from './contexts/ThemeContext';
 import { UserProfile } from './types';
 
-type Page = 'login' | 'signup' | 'dashboard' | 'google-callback';
+type Page = 'landing' | 'login' | 'signup' | 'dashboard' | 'google-callback';
 type DashTab = 'home' | 'chat' | 'search' | 'documents' | 'evaluation';
 
 const isGoogleCallback = (): boolean => {
@@ -43,7 +44,12 @@ const getInitialPage = (): Page => {
   const h = window.location.hash;
   if (h === '#/signup') return 'signup';
   if (h === '#/login') return 'login';
-  return 'dashboard';
+  if (h === '#/dashboard') {
+    const hasUser = localStorage.getItem('omnirag_user');
+    return hasUser ? 'dashboard' : 'login';
+  }
+  // Default on http://localhost:3000/ or #/ or #/landing
+  return 'landing';
 };
 
 export const App: React.FC = () => {
@@ -63,6 +69,16 @@ export const App: React.FC = () => {
     }
   });
 
+  // Listen to browser hash changes (e.g. back/forward navigation or manual URL entry)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const page = getInitialPage();
+      setCurrentPage(page);
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   // Verify and sync authenticated user from backend on mount and navigation
   useEffect(() => {
     ApiService.getMe()
@@ -76,8 +92,10 @@ export const App: React.FC = () => {
   }, [currentPage]);
 
   const navigate = (page: Page) => {
-    if (page === 'dashboard') {
+    if (page === 'landing') {
       window.location.hash = '#/';
+    } else if (page === 'dashboard') {
+      window.location.hash = '#/dashboard';
     } else {
       window.location.hash = `#/${page}`;
     }
@@ -90,7 +108,7 @@ export const App: React.FC = () => {
     } catch {}
     localStorage.removeItem('omnirag_user');
     setCurrentUser(null);
-    navigate('login');
+    navigate('landing');
   };
 
   const navItems = [
@@ -123,6 +141,16 @@ export const App: React.FC = () => {
 
   const dark = theme === 'dark';
 
+  // ---- Landing Page (Default for http://localhost:3000/ and #/ ) ----
+  if (currentPage === 'landing') {
+    return (
+      <LandingPage
+        onNavigate={(p) => navigate(p)}
+        currentUser={currentUser}
+      />
+    );
+  }
+
   // ---- Auth pages ----
   if (currentPage === 'google-callback') {
     return (
@@ -138,10 +166,27 @@ export const App: React.FC = () => {
     );
   }
   if (currentPage === 'login') {
-    return <LoginPage onNavigate={(p) => navigate(p === 'signup' ? 'signup' : 'dashboard')} />;
+    return (
+      <LoginPage
+        onNavigate={(p) => navigate(p === 'signup' ? 'signup' : p === 'landing' ? 'landing' : 'dashboard')}
+      />
+    );
   }
   if (currentPage === 'signup') {
-    return <SignUpPage onNavigate={(p) => navigate(p === 'login' ? 'login' : 'dashboard')} />;
+    return (
+      <SignUpPage
+        onNavigate={(p) => navigate(p === 'login' ? 'login' : p === 'landing' ? 'landing' : 'dashboard')}
+      />
+    );
+  }
+
+  // Protected Route Guard: If dashboard requested but no authenticated session, redirect to login
+  if (currentPage === 'dashboard' && !currentUser) {
+    return (
+      <LoginPage
+        onNavigate={(p) => navigate(p === 'signup' ? 'signup' : p === 'landing' ? 'landing' : 'dashboard')}
+      />
+    );
   }
 
   // ---- Dashboard ----
@@ -163,6 +208,7 @@ export const App: React.FC = () => {
         onOpenUpload={() => setIsUploadModalOpen(true)}
         onQuickSearch={(_q) => setActiveTab('search')}
         onNavigateAuth={() => navigate('login')}
+        onNavigateLanding={() => navigate('landing')}
         currentUser={currentUser}
         onLogout={handleLogout}
       />

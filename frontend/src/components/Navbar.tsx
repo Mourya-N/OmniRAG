@@ -11,6 +11,7 @@ interface NavbarProps {
   onOpenUpload: () => void;
   onQuickSearch: (query: string) => void;
   onNavigateAuth?: () => void;
+  onNavigateLanding?: () => void;
   currentUser?: UserProfile | null;
   onLogout?: () => void;
 }
@@ -32,6 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenUpload,
   onQuickSearch,
   onNavigateAuth,
+  onNavigateLanding,
   currentUser,
   onLogout,
 }) => {
@@ -203,6 +205,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
 
                 <div className="py-1">
+                  {onNavigateLanding && (
+                    <button
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        onNavigateLanding();
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl text-xs t-secondary hover:t-primary hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors"
+                    >
+                      View Platform Overview
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       setIsProfileOpen(false);

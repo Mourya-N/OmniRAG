@@ -5,7 +5,7 @@ import { ApiService } from '../services/api';
 import { OmniRAGLogo } from '../components/OmniRAGLogo';
 
 interface LoginPageProps {
-  onNavigate: (page: 'signup' | 'dashboard') => void;
+  onNavigate: (page: 'signup' | 'dashboard' | 'landing') => void;
 }
 
 const GoogleIcon = () => (
@@ -104,7 +104,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
       <div className="bento-card w-full max-w-md rounded-3xl p-8 sm:p-10 animate-fade-in shadow-2xl">
         {/* Innovative OmniRAG Logo & heading */}
         <div className="flex flex-col items-center mb-8">
-          <div className="mb-4">
+          <div
+            onClick={() => onNavigate('landing')}
+            className="mb-4 cursor-pointer hover:scale-105 transition-transform"
+            title="Return to OmniRAG Home"
+          >
             <OmniRAGLogo
               size="lg"
               showText={false}
