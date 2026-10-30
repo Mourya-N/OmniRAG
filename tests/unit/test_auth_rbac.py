@@ -1,0 +1,167 @@
+"""Unit and integration tests for Phase 3: Auth, Multi-Tenancy, and RBAC."""
+
+import pytest
+import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+from app.api.deps import get_db
+from app.core.database import Base
+from app.core.exceptions import AuthenticationError, TokenExpiredError
+from app.core.security import (
+    check_document_access,
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    hash_password,
+    verify_password,
+)
+from app.main import app
+
+
+# Test Fixture: In-Memory SQLite Async Database
+@pytest_asyncio.fixture(scope="function")
+async def test_db_session():
+    test_engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    session_factory = async_sessionmaker(bind=test_engine, class_=AsyncSession, expire_on_commit=False)
+
+    async with session_factory() as session:
+        yield session
+
+    await test_engine.dispose()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def client(test_db_session):
+    async def override_get_db():
+        yield test_db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+# Unit Tests: Cryptography & Access Control
+def test_argon2id_hashing_and_verification():
+    raw_pass = "P@ssw0rdSecureEnterprise!2026"
+    hashed = hash_password(raw_pass)
+    assert hashed != raw_pass
+    assert hashed.startswith("$argon2id$")
+    assert verify_password(raw_pass, hashed) is True
+    assert verify_password("WrongPassword!", hashed) is False
+
+
+def test_jwt_lifecycle_and_tampering():
+    token = create_access_token(
+        subject="usr-123",
+        tenant_id="ten-456",
+        organization_id="org-789",
+        roles=["Admin"],
+    )
+    payload = decode_token(token)
+    assert payload["sub"] == "usr-123"
+    assert payload["tenant_id"] == "ten-456"
+    assert "Admin" in payload["roles"]
+
+    # Tampered token
+    tampered = token[:-5] + "XXXXX"
+    with pytest.raises(AuthenticationError):
+        decode_token(tampered)
+
+
+def test_document_abac_rbac_rules():
+    # Admin / Owner always allowed
+    assert check_document_access("u1", ["Admin"], [], "write") is True
+    assert check_document_access("u1", ["Owner"], [], "admin") is True
+
+    # Default open when no specific document ACL
+    assert check_document_access("u1", ["Member"], [], "read") is True
+
+    # Explicit ACL with role restriction
+    acl = [{"role_name": "Editor", "permission_level": "write"}]
+    assert check_document_access("u1", ["Editor"], acl, "write") is True
+    assert check_document_access("u1", ["Viewer"], acl, "write") is False
+
+    # Specific user ACL
+    user_acl = [{"user_id": "u-specific", "permission_level": "read"}]
+    assert check_document_access("u-specific", ["Viewer"], user_acl, "read") is True
+    assert check_document_access("u-other", ["Viewer"], user_acl, "read") is False
+
+
+# Integration Tests: Auth and Organization API Flows
+@pytest.mark.asyncio
+async def test_full_auth_and_organization_flow(client: AsyncClient):
+    # 1. Register User
+    reg_payload = {
+        "email": "lead.engineer@enterprise.ai",
+        "password": "SecurePassword123!",
+        "full_name": "Principal AI Architect",
+        "tenant_name": "OmniCorp Global",
+    }
+    reg_resp = await client.post("/api/v1/auth/register", json=reg_payload)
+    assert reg_resp.status_code == 201
+    tokens = reg_resp.json()
+    assert "access_token" in tokens
+    assert "refresh_token" in tokens
+    access_token = tokens["access_token"]
+    refresh_token = tokens["refresh_token"]
+
+    # 2. Duplicate registration should fail
+    dup_resp = await client.post("/api/v1/auth/register", json=reg_payload)
+    assert dup_resp.status_code == 409
+
+    # 3. Login with valid credentials
+    login_resp = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "lead.engineer@enterprise.ai", "password": "SecurePassword123!"},
+    )
+    assert login_resp.status_code == 200
+
+    # 4. Login with bad password
+    bad_login = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "lead.engineer@enterprise.ai", "password": "BadPassword!"},
+    )
+    assert bad_login.status_code == 401
+
+    # 5. Fetch Profile
+    auth_headers = {"Authorization": f"Bearer {access_token}"}
+    me_resp = await client.get("/api/v1/auth/me", headers=auth_headers)
+    assert me_resp.status_code == 200
+    profile = me_resp.json()
+    assert profile["email"] == "lead.engineer@enterprise.ai"
+    assert "Owner" in profile["roles"]
+    tenant_id = profile["tenant_id"]
+
+    # 6. Refresh Token
+    ref_resp = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
+    assert ref_resp.status_code == 200
+    new_tokens = ref_resp.json()
+    assert "access_token" in new_tokens
+
+    # 7. Create Organization in Tenant
+    tenant_headers = {**auth_headers, "X-Tenant-ID": tenant_id}
+    org_resp = await client.post(
+        "/api/v1/organizations/",
+        headers=tenant_headers,
+        json={"name": "Engineering Department", "slug": "engineering"},
+    )
+    assert org_resp.status_code == 201
+    org_data = org_resp.json()
+    assert org_data["name"] == "Engineering Department"
+
+    # 8. List Organizations
+    list_resp = await client.get("/api/v1/organizations/", headers=tenant_headers)
+    assert list_resp.status_code == 200
+    assert len(list_resp.json()) >= 2  # Default + Engineering
+
+    # 9. Test Tenant Boundary Violation
+    rogue_headers = {**auth_headers, "X-Tenant-ID": "different-tenant-id-456"}
+    boundary_resp = await client.get("/api/v1/organizations/", headers=rogue_headers)
+    assert boundary_resp.status_code == 403
+    assert boundary_resp.json()["error"]["code"] == "FORBIDDEN"
