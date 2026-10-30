@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, Sparkles } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ApiService } from '../services/api';
+import { GoogleOAuthModal } from '../components/GoogleOAuthModal';
 
 interface SignUpPageProps {
   onNavigate: (page: 'login' | 'dashboard') => void;
@@ -35,6 +36,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pwError, setPwError] = useState('');
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
 
   const dark = theme === 'dark';
 
@@ -347,6 +349,24 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                 'Create Account'
               )}
             </button>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 my-4">
+              <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+              <span className="text-[11px] t-muted font-semibold uppercase tracking-wider">or sign up with</span>
+              <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+            </div>
+
+            {/* Google OAuth2 Button */}
+            <button
+              type="button"
+              onClick={() => setIsGoogleModalOpen(true)}
+              className="w-full py-2.5 rounded-xl bento-chip flex items-center justify-center gap-3 font-semibold text-sm t-primary hover:opacity-90 transition-all border"
+              style={{ borderColor: 'var(--border)' }}
+            >
+              <GoogleIcon />
+              Continue with Google
+            </button>
           </form>
 
           {/* Sign in link */}
@@ -362,6 +382,17 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
           </p>
         </div>
       </div>
+
+      {/* Google OAuth2 Account Chooser Modal */}
+      <GoogleOAuthModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        onSuccess={(profile) => {
+          setIsGoogleModalOpen(false);
+          localStorage.setItem('omnirag_user', JSON.stringify(profile));
+          onNavigate('dashboard');
+        }}
+      />
     </div>
   );
 };

@@ -94,6 +94,33 @@ export class ApiService {
     return resp.json();
   }
 
+  static async getGoogleAuthUrl(): Promise<{ authorization_url: string; client_id: string | null; prompt: string; is_mock: boolean }> {
+    const resp = await fetch(`${API_BASE}/auth/google/url`, {
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) throw new Error('Failed to retrieve Google OAuth2 configuration');
+    return resp.json();
+  }
+
+  static async googleAuthCallback(payload: {
+    code?: string;
+    email?: string;
+    full_name?: string;
+  }): Promise<any> {
+    const resp = await fetch(`${API_BASE}/auth/google/callback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || err.detail || 'Google authentication failed');
+    }
+    return resp.json();
+  }
+
   /* ─────────────────────────────────────────────────────────
      DOCUMENT INGESTION
      ───────────────────────────────────────────────────────── */

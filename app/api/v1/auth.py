@@ -10,9 +10,12 @@ Enterprise-grade zero-trust authentication architecture supporting:
 """
 
 import re
+import secrets
 from typing import Any
+import urllib.parse
 
 from fastapi import APIRouter, Depends, Request, Response, status
+import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -35,6 +38,8 @@ from app.models.tenant import Organization, Tenant
 from app.models.user import Membership, Role, User
 from app.schemas.auth import (
     AuthLogoutResponse,
+    GoogleAuthUrlResponse,
+    GoogleOAuthCallbackRequest,
     RefreshTokenRequest,
     TokenResponse,
     UserLoginRequest,
@@ -341,4 +346,156 @@ async def get_current_user_profile(
         tenant_id=current_user["tenant_id"],
         organization_id=current_user.get("organization_id"),
         roles=current_user.get("roles", []),
+    )
+
+
+@router.get("/google/url", response_model=GoogleAuthUrlResponse)
+async def get_google_auth_url() -> GoogleAuthUrlResponse:
+    """Construct Google OAuth2 authorization URL with prompt=select_account."""
+    client_id = settings.GOOGLE_CLIENT_ID
+    redirect_uri = settings.GOOGLE_REDIRECT_URI
+    is_mock = not bool(client_id)
+
+    if not is_mock:
+        base_url = "https://accounts.google.com/o/oauth2/v2/auth"
+        params = {
+            "client_id": client_id,
+            "redirect_uri": redirect_uri,
+            "response_type": "code",
+            "scope": "openid email profile",
+            "access_type": "offline",
+            "prompt": "select_account",
+        }
+        auth_url = f"{base_url}?{urllib.parse.urlencode(params)}"
+    else:
+        auth_url = "/#select-google-account?prompt=select_account"
+
+    return GoogleAuthUrlResponse(
+        authorization_url=auth_url,
+        client_id=client_id,
+        prompt="select_account",
+        is_mock=is_mock,
+    )
+
+
+@router.post("/google/callback", response_model=TokenResponse)
+async def google_auth_callback(
+    payload: GoogleOAuthCallbackRequest,
+    response: Response,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> TokenResponse:
+    """Exchange Google OAuth2 credentials or chosen account for enterprise session."""
+    email: str | None = None
+    full_name: str | None = None
+
+    # 1. Exchange real Google code if configured
+    if payload.code and settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_SECRET:
+        token_url = "https://oauth2.googleapis.com/token"
+        data = {
+            "code": payload.code,
+            "client_id": settings.GOOGLE_CLIENT_ID,
+            "client_secret": settings.GOOGLE_CLIENT_SECRET,
+            "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+            "grant_type": "authorization_code",
+        }
+        async with httpx.AsyncClient() as client:
+            token_resp = await client.post(token_url, data=data)
+            if token_resp.status_code != 200:
+                raise AuthenticationError("Failed to exchange authorization code with Google")
+            tokens = token_resp.json()
+            userinfo_resp = await client.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {tokens['access_token']}"},
+            )
+            if userinfo_resp.status_code != 200:
+                raise AuthenticationError("Failed to retrieve Google user profile")
+            google_user = userinfo_resp.json()
+            email = google_user.get("email")
+            full_name = google_user.get("name") or (email.split("@")[0] if email else "")
+    elif payload.email:
+        email = payload.email
+        full_name = payload.full_name or (email.split("@")[0] if email else "")
+    else:
+        raise AuthenticationError("Invalid Google OAuth2 callback payload")
+
+    if not email:
+        raise AuthenticationError("Could not retrieve email from Google OAuth2")
+
+    # 2. Strict corporate work email validation (rejects @gmail.com)
+    validate_work_email(email)
+
+    # 3. Lookup existing user in database
+    stmt = (
+        select(User)
+        .where(User.email == email)
+        .options(
+            selectinload(User.memberships).selectinload(Membership.organization),
+            selectinload(User.memberships).selectinload(Membership.role),
+        )
+    )
+    res = await db.execute(stmt)
+    user = res.scalar_one_or_none()
+
+    # 4. Provision user & organization if new account
+    if not user:
+        domain_part = email.split("@")[1].split(".")[0].capitalize()
+        tenant_name = f"{domain_part} Workspace"
+        tenant = Tenant(name=tenant_name, slug=slugify(tenant_name))
+        db.add(tenant)
+        await db.flush()
+
+        org = Organization(tenant_id=tenant.id, name="Default Organization", slug="default")
+        db.add(org)
+        await db.flush()
+
+        # Random cryptographic password for OAuth managed account
+        random_pass = secrets.token_urlsafe(32) + "A1!"
+        user = User(
+            email=email,
+            password_hash=hash_password(random_pass),
+            full_name=full_name or email.split("@")[0].title(),
+            is_active=True,
+        )
+        db.add(user)
+        await db.flush()
+
+        role_res = await db.execute(select(Role).where(Role.name == "User"))
+        user_role = role_res.scalar_one_or_none()
+        if not user_role:
+            user_role = Role(name="User", description="Standard enterprise user account")
+            db.add(user_role)
+            await db.flush()
+
+        membership = Membership(user_id=user.id, organization_id=org.id, role_id=user_role.id)
+        db.add(membership)
+        await db.commit()
+
+        tenant_id = tenant.id
+        org_id = org.id
+        roles = ["User"]
+    else:
+        if not user.is_active:
+            raise AuthenticationError("User account has been disabled")
+        primary_membership = user.memberships[0] if user.memberships else None
+        tenant_id = primary_membership.organization.tenant_id if primary_membership else "00000000-0000-0000-0000-000000000001"
+        org_id = primary_membership.organization_id if primary_membership else None
+        roles = [m.role.name for m in user.memberships if m.organization_id == org_id] or ["User"]
+
+    # 5. Issue JWT tokens
+    access_token = create_access_token(
+        subject=user.id,
+        tenant_id=tenant_id,
+        organization_id=org_id,
+        roles=roles,
+    )
+    refresh_token = create_refresh_token(subject=user.id, tenant_id=tenant_id)
+
+    # 6. Set secure HttpOnly cookies
+    set_auth_cookies(response, access_token=access_token, refresh_token=refresh_token)
+
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        expires_in_seconds=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )

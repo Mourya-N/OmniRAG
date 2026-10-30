@@ -299,3 +299,40 @@ async def test_login_requires_existing_account(client):
     assert "No account found with this email. Please sign up first." in login_resp.json()["error"]["message"]
 
 
+@pytest.mark.asyncio
+async def test_google_oauth2_account_selection_and_work_email(client):
+    """Verify Google OAuth2 endpoint returns select_account prompt and rejects personal webmail."""
+    # 1. Fetch OAuth URL
+    url_resp = await client.get("/api/v1/auth/google/url")
+    assert url_resp.status_code == 200
+    data = url_resp.json()
+    assert data["prompt"] == "select_account"
+    assert "prompt=select_account" in data["authorization_url"]
+
+    # 2. Reject personal Gmail in Google login
+    gmail_oauth = await client.post(
+        "/api/v1/auth/google/callback",
+        json={"email": "developer@gmail.com", "full_name": "Dev User"},
+    )
+    assert gmail_oauth.status_code == 400
+    assert gmail_oauth.json()["error"]["code"] == "PERSONAL_EMAIL_NOT_ALLOWED"
+
+    # 3. Successful corporate Google Workspace login
+    corp_oauth = await client.post(
+        "/api/v1/auth/google/callback",
+        json={"email": "sarah.architect@cloud-native.io", "full_name": "Sarah Architect"},
+    )
+    assert corp_oauth.status_code == 200
+    res = corp_oauth.json()
+    assert "access_token" in res
+    assert "omnirag_access_token" in corp_oauth.cookies
+
+    # 4. Verify identity and standard 'User' role
+    me_resp = await client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {res['access_token']}"})
+    assert me_resp.status_code == 200
+    profile = me_resp.json()
+    assert profile["email"] == "sarah.architect@cloud-native.io"
+    assert profile["full_name"] == "Sarah Architect"
+    assert "User" in profile["roles"]
+
+

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ApiService } from '../services/api';
+import { GoogleOAuthModal } from '../components/GoogleOAuthModal';
 
 interface LoginPageProps {
   onNavigate: (page: 'signup' | 'dashboard') => void;
@@ -24,6 +25,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
 
   const dark = theme === 'dark';
 
@@ -175,10 +177,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
           <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
         </div>
 
-        {/* Google */}
+        {/* Google OAuth2 Button */}
         <button
           type="button"
-          onClick={() => onNavigate('dashboard')}
+          onClick={() => setIsGoogleModalOpen(true)}
           className="w-full py-2.5 rounded-xl bento-chip flex items-center justify-center gap-3 font-semibold text-sm t-primary hover:opacity-90 transition-all border"
           style={{ borderColor: 'var(--border)' }}
         >
@@ -205,6 +207,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
         <Sparkles className="w-3 h-3 icon-indigo" />
         OmniRAG Enterprise Knowledge Intelligence
       </p>
+
+      {/* Google OAuth2 Account Chooser Modal */}
+      <GoogleOAuthModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        onSuccess={(profile) => {
+          setIsGoogleModalOpen(false);
+          localStorage.setItem('omnirag_user', JSON.stringify(profile));
+          onNavigate('dashboard');
+        }}
+      />
     </div>
   );
 };

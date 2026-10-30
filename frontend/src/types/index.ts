@@ -60,5 +60,6 @@ export interface UserProfile {
   organization_id?: string;
   roles?: string[];
   is_active?: boolean;
+  is_superuser?: boolean;
 }
 

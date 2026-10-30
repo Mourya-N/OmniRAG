@@ -44,6 +44,24 @@ class AuthLogoutResponse(BaseModel):
     message: str = "Session successfully terminated"
 
 
+class GoogleAuthUrlResponse(BaseModel):
+    """Google OAuth2 authorization URL response."""
+
+    authorization_url: str
+    client_id: str | None = None
+    prompt: str = "select_account"
+    is_mock: bool = False
+
+
+class GoogleOAuthCallbackRequest(BaseModel):
+    """Payload for exchanging Google OAuth2 code or ID token."""
+
+    code: str | None = None
+    id_token: str | None = None
+    email: EmailStr | None = None
+    full_name: str | None = None
+
+
 class UserProfileResponse(BaseModel):
     """User identity and membership details."""
 
