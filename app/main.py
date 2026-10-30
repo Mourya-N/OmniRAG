@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.v1.auth import router as auth_router
+from app.api.v1.documents import router as doc_router
 from app.api.v1.organizations import router as org_router
 from app.core.config import settings
 from app.core.database import engine
@@ -98,6 +99,7 @@ async def omnirag_exception_handler(request: Request, exc: OmniRAGError) -> JSON
 # Include Routers
 app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
 app.include_router(org_router, prefix=settings.API_V1_PREFIX)
+app.include_router(doc_router, prefix=settings.API_V1_PREFIX)
 
 # System Health & Readiness Endpoints
 @app.get(f"{settings.API_V1_PREFIX}/system/health", tags=["System"])
