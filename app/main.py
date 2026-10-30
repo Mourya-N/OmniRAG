@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse
 from app.api.v1.agent import router as agent_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.documents import router as doc_router
+from app.api.v1.evaluation import router as eval_router
 from app.api.v1.organizations import router as org_router
 from app.api.v1.rag import router as rag_router
 from app.api.v1.search import router as search_router
@@ -106,6 +107,7 @@ app.include_router(doc_router, prefix=settings.API_V1_PREFIX)
 app.include_router(search_router, prefix=settings.API_V1_PREFIX)
 app.include_router(rag_router, prefix=settings.API_V1_PREFIX)
 app.include_router(agent_router, prefix=settings.API_V1_PREFIX)
+app.include_router(eval_router, prefix=settings.API_V1_PREFIX)
 
 # System Health & Readiness Endpoints
 @app.get(f"{settings.API_V1_PREFIX}/system/health", tags=["System"])

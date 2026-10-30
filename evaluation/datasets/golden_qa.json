@@ -1,0 +1,34 @@
+[
+  {
+    "id": "gold-1",
+    "question": "What retrieval components are fused together in the hybrid search engine?",
+    "gold_answer": "Dense vector search and sparse BM25 retrieval are fused using Reciprocal Rank Fusion.",
+    "gold_chunk_ids": ["chunk-retrieval-spec-01"],
+    "question_type": "factual",
+    "is_answerable": true
+  },
+  {
+    "id": "gold-2",
+    "question": "How does multi-tenant data isolation prevent cross-tenant information leakage?",
+    "gold_answer": "Every database row and vector point is partition-indexed by tenant_id, and pre-filtering occurs before retrieval.",
+    "gold_chunk_ids": ["chunk-security-spec-01"],
+    "question_type": "factual",
+    "is_answerable": true
+  },
+  {
+    "id": "gold-3",
+    "question": "What is the total quarterly revenue across all regional sectors?",
+    "gold_answer": "$470,000 across North America and Europe.",
+    "gold_chunk_ids": ["chunk-table-revenue-01"],
+    "question_type": "table_numeric",
+    "is_answerable": true
+  },
+  {
+    "id": "gold-4",
+    "question": "What quantum teleportation algorithm does OmniRAG use for inter-cluster sync?",
+    "gold_answer": "I cannot find sufficient evidence in the authorized documents to answer this question.",
+    "gold_chunk_ids": [],
+    "question_type": "unanswerable",
+    "is_answerable": false
+  }
+]
