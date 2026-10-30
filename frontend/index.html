@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark-theme">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,27 +16,11 @@
               sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
               mono: ['JetBrains Mono', 'monospace'],
             },
-            colors: {
-              bento: {
-                dark: '#0a0d1a',
-                card: '#12162e',
-                cardHover: '#181d3d',
-                border: 'rgba(255, 255, 255, 0.08)',
-                borderGlow: 'rgba(99, 102, 241, 0.3)',
-              },
-              primary: {
-                50: '#eef2ff',
-                100: '#e0e7ff',
-                500: '#6366f1',
-                600: '#4f46e5',
-                700: '#4338ca',
-                900: '#312e81',
-              },
-            },
             animation: {
               'float-slow': 'float 6s ease-in-out infinite',
               'pulse-slow': 'pulseGlow 4s ease-in-out infinite',
               'spin-slow': 'spin 30s linear infinite',
+              'fade-in': 'fadeIn 0.4s ease-out',
             },
             keyframes: {
               float: {
@@ -47,57 +31,145 @@
                 '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
                 '50%': { opacity: '0.7', transform: 'scale(1.03)' },
               },
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(8px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
             },
           },
         },
       }
     </script>
     <style>
+      /* =============================================
+         DARK THEME (default / .dark-theme)
+         ============================================= */
+      html, html.dark-theme {
+        --bg-base: #090c1a;
+        --bg-card: rgba(18, 22, 46, 0.72);
+        --bg-card-solid: #12162e;
+        --bg-input: rgba(8, 10, 24, 0.85);
+        --border: rgba(255, 255, 255, 0.07);
+        --border-glow: rgba(99, 102, 241, 0.3);
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --text-accent: #a5b4fc;
+        --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.45), inset 0 1px 1px 0 rgba(255,255,255,0.07);
+        --shadow-card-hover: 0 12px 40px 0 rgba(79, 70, 229, 0.2), inset 0 1px 1px 0 rgba(255,255,255,0.1);
+        --nebula1: rgba(157, 23, 77, 0.22);   /* pink bottom-left */
+        --nebula2: rgba(109, 40, 217, 0.20);  /* purple top-center */
+        --nebula3: rgba(6, 182, 212, 0.14);   /* cyan mid-right */
+        --nebula4: rgba(79, 70, 229, 0.15);   /* indigo bottom-right */
+      }
+
+      /* =============================================
+         LIGHT THEME (.light-theme)
+         ============================================= */
+      html.light-theme {
+        --bg-base: #eef0ff;
+        --bg-card: rgba(255, 255, 255, 0.82);
+        --bg-card-solid: #ffffff;
+        --bg-input: rgba(248, 250, 255, 0.95);
+        --border: rgba(99, 102, 241, 0.14);
+        --border-glow: rgba(99, 102, 241, 0.28);
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #94a3b8;
+        --text-accent: #4f46e5;
+        --shadow-card: 0 4px 24px 0 rgba(99, 102, 241, 0.10), 0 1px 3px rgba(0,0,0,0.06);
+        --shadow-card-hover: 0 8px 32px 0 rgba(99, 102, 241, 0.18);
+        --nebula1: rgba(157, 23, 77, 0.10);
+        --nebula2: rgba(109, 40, 217, 0.09);
+        --nebula3: rgba(6, 182, 212, 0.07);
+        --nebula4: rgba(79, 70, 229, 0.08);
+      }
+
       body {
-        background-color: #090c1a;
-        color: #f1f5f9;
+        background-color: var(--bg-base);
+        color: var(--text-primary);
+        font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+        transition: background-color 0.35s ease, color 0.35s ease;
         overflow-x: hidden;
       }
+
+      /* ─────────────────────────────────────────────
+         BENTO CARD  (reads CSS vars)
+         ───────────────────────────────────────────── */
       .bento-card {
-        background: linear-gradient(135deg, rgba(20, 25, 52, 0.65) 0%, rgba(14, 18, 40, 0.75) 100%);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36), inset 0 1px 1px 0 rgba(255, 255, 255, 0.08);
+        background: var(--bg-card);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-card);
+        transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.35s ease;
       }
       .bento-card:hover {
-        border-color: rgba(129, 140, 248, 0.25);
-        box-shadow: 0 12px 40px 0 rgba(79, 70, 229, 0.15), inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
+        border-color: var(--border-glow);
+        box-shadow: var(--shadow-card-hover);
       }
+
       .bento-chip {
         background: rgba(255, 255, 255, 0.05);
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--border);
+        transition: background 0.2s ease, border-color 0.2s ease;
+      }
+      html.light-theme .bento-chip {
+        background: rgba(99, 102, 241, 0.06);
+        border-color: rgba(99, 102, 241, 0.18);
       }
       .bento-chip:hover {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(99, 102, 241, 0.12);
         border-color: rgba(167, 139, 250, 0.4);
       }
-      /* Custom scrollbar */
-      ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+
+      /* ─────────────────────────────────────────────
+         NEBULA BACKGROUND BLOBS
+         ───────────────────────────────────────────── */
+      .nebula-blob-1 {
+        background: radial-gradient(ellipse, var(--nebula1) 0%, transparent 70%);
       }
-      ::-webkit-scrollbar-track {
-        background: rgba(15, 23, 42, 0.5);
+      .nebula-blob-2 {
+        background: radial-gradient(ellipse, var(--nebula2) 0%, transparent 70%);
       }
-      ::-webkit-scrollbar-thumb {
-        background: rgba(99, 102, 241, 0.3);
-        border-radius: 9999px;
+      .nebula-blob-3 {
+        background: radial-gradient(ellipse, var(--nebula3) 0%, transparent 70%);
       }
-      ::-webkit-scrollbar-thumb:hover {
-        background: rgba(99, 102, 241, 0.6);
+      .nebula-blob-4 {
+        background: radial-gradient(ellipse, var(--nebula4) 0%, transparent 70%);
       }
+
+      /* ─────────────────────────────────────────────
+         TEXT / INPUT HELPERS
+         ───────────────────────────────────────────── */
+      .t-primary   { color: var(--text-primary); }
+      .t-secondary { color: var(--text-secondary); }
+      .t-muted     { color: var(--text-muted); }
+      .t-accent    { color: var(--text-accent); }
+
+      .glass-input {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+      .glass-input::placeholder { color: var(--text-muted); }
+      .glass-input:focus {
+        border-color: rgba(99, 102, 241, 0.5);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+      }
+
+      /* scrollbar */
+      ::-webkit-scrollbar { width: 5px; height: 5px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 9999px; }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.6); }
     </style>
   </head>
-  <body class="bg-[#090c1a] text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

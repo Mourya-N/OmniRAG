@@ -11,6 +11,8 @@ import {
   X,
   CheckCircle2,
   AlertCircle,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { BentoDashboard } from './components/BentoDashboard';
@@ -18,14 +20,38 @@ import { ChatExplorer } from './components/ChatExplorer';
 import { SearchExplorer } from './components/SearchExplorer';
 import { DocumentManager } from './components/DocumentManager';
 import { EvaluationDashboard } from './components/EvaluationDashboard';
+import { LoginPage } from './pages/LoginPage';
+import { SignUpPage } from './pages/SignUpPage';
 import { ApiService } from './services/api';
+import { useTheme } from './contexts/ThemeContext';
+
+type Page = 'login' | 'signup' | 'dashboard';
+type DashTab = 'home' | 'chat' | 'search' | 'documents' | 'evaluation';
+
+const getInitialPage = (): Page => {
+  const h = window.location.hash;
+  if (h === '#/signup') return 'signup';
+  if (h === '#/login') return 'login';
+  return 'dashboard';
+};
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'home' | 'chat' | 'search' | 'documents' | 'evaluation'>('home');
+  const { theme, toggleTheme } = useTheme();
+  const [currentPage, setCurrentPage] = useState<Page>(getInitialPage);
+  const [activeTab, setActiveTab] = useState<DashTab>('home');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+
+  const navigate = (page: Page) => {
+    if (page === 'dashboard') {
+      window.location.hash = '#/';
+    } else {
+      window.location.hash = `#/${page}`;
+    }
+    setCurrentPage(page);
+  };
 
   const navItems = [
     { id: 'home', label: 'Bento Dashboard', icon: Home },
@@ -38,10 +64,8 @@ export const App: React.FC = () => {
   const handleModalUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!uploadFile) return;
-
     setIsUploading(true);
     setUploadStatus('Validating MIME magic bytes and calculating SHA-256...');
-
     try {
       await ApiService.uploadDocument(uploadFile);
       setUploadStatus('Document successfully uploaded! Asynchronous parsing pipeline triggered.');
@@ -57,55 +81,86 @@ export const App: React.FC = () => {
     }
   };
 
+  const dark = theme === 'dark';
+
+  // ---- Auth pages ----
+  if (currentPage === 'login') {
+    return <LoginPage onNavigate={(p) => navigate(p === 'signup' ? 'signup' : 'dashboard')} />;
+  }
+  if (currentPage === 'signup') {
+    return <SignUpPage onNavigate={(p) => navigate(p === 'login' ? 'login' : 'dashboard')} />;
+  }
+
+  // ---- Dashboard ----
   return (
-    <div className="min-h-screen bg-[#090c1a] text-slate-100 flex flex-col relative overflow-hidden font-sans selection:bg-indigo-500 selection:text-white">
-      {/* =========================================================================
-          AMBIENT BACKGROUND GLOWS (MATCHING SCREENSHOT)
-          ========================================================================= */}
-      <div className="fixed top-0 right-1/4 w-[600px] h-[600px] bg-gradient-to-b from-purple-600/15 via-indigo-600/10 to-transparent rounded-full blur-[120px] pointer-events-none -z-10" />
-      <div className="fixed top-1/3 left-1/3 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none -z-10" />
-      <div className="fixed bottom-0 left-0 w-[550px] h-[550px] bg-pink-600/10 rounded-full blur-[130px] pointer-events-none -z-10" />
+    <div
+      className="min-h-screen flex flex-col relative overflow-hidden font-sans selection:bg-indigo-500 selection:text-white"
+      style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}
+    >
+      {/* Nebula blobs — theme-aware via CSS vars */}
+      <div className="nebula-blob-1 fixed -bottom-40 -left-40 w-[700px] h-[700px] rounded-full blur-[160px] pointer-events-none -z-10" />
+      <div className="nebula-blob-2 fixed -top-32 left-1/3 w-[800px] h-[800px] rounded-full blur-[180px] pointer-events-none -z-10" />
+      <div className="nebula-blob-3 fixed top-1/3 -right-24 w-[500px] h-[500px] rounded-full blur-[140px] pointer-events-none -z-10" />
+      <div className="nebula-blob-4 fixed -bottom-20 right-1/4 w-[400px] h-[400px] rounded-full blur-[120px] pointer-events-none -z-10" />
 
       {/* TOP NAVBAR */}
       <Navbar
         activeTab={activeTab}
-        setActiveTab={(t) => setActiveTab(t as any)}
+        setActiveTab={(t) => setActiveTab(t as DashTab)}
         onOpenUpload={() => setIsUploadModalOpen(true)}
         onQuickSearch={(_q) => setActiveTab('search')}
+        onNavigateAuth={() => navigate('login')}
       />
 
       {/* MAIN CONTAINER: LEFT DOCK + MAIN CONTENT */}
       <div className="flex-1 max-w-[1600px] w-full mx-auto px-6 py-6 flex gap-6 items-start">
-        {/* =========================================================================
-            LEFT VERTICAL FLOATING DOCK
-            ========================================================================= */}
-        <aside className="sticky top-24 z-40 hidden md:flex flex-col items-center gap-3 p-2 rounded-2xl bento-card border border-white/[0.08] shadow-2xl">
+        {/* LEFT VERTICAL FLOATING DOCK */}
+        <aside
+          className="sticky top-24 z-40 hidden md:flex flex-col items-center gap-3 p-2 rounded-2xl bento-card shadow-2xl"
+          style={{ borderColor: 'var(--border)' }}
+        >
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id as any)}
+                onClick={() => setActiveTab(item.id as DashTab)}
                 title={item.label}
                 className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 relative group ${
                   isActive
                     ? 'bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/40 scale-105'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]'
+                    : dark
+                    ? 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]'
+                    : 'text-slate-500 hover:text-slate-700 hover:bg-black/[0.05]'
                 }`}
               >
                 <Icon className="w-5 h-5" />
-                {/* Tooltip on hover */}
-                <div className="absolute left-14 px-2.5 py-1 bg-[#13162b] text-slate-200 text-xs font-medium rounded-lg shadow-xl border border-white/10 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                {/* Tooltip */}
+                <div
+                  className="absolute left-14 px-2.5 py-1 text-xs font-medium rounded-lg shadow-xl border opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 bento-card"
+                  style={{ color: 'var(--text-primary)', borderColor: 'var(--border)' }}
+                >
                   {item.label}
                 </div>
               </button>
             );
           })}
 
-          <div className="w-6 h-[1px] bg-white/[0.08] my-1" />
+          <div className="w-6 h-[1px] my-1" style={{ background: 'var(--border)' }} />
 
-          {/* Security Indicator */}
+          {/* Theme toggle in dock */}
+          <button
+            onClick={toggleTheme}
+            title={dark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 ${
+              dark ? 'text-amber-300 hover:bg-amber-400/10' : 'text-indigo-500 hover:bg-indigo-500/10'
+            }`}
+          >
+            {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+
+          {/* Security */}
           <button
             title="Tenant Security & ACL Active"
             className="w-11 h-11 rounded-xl flex items-center justify-center text-emerald-400 hover:bg-emerald-500/10 transition-colors"
@@ -116,23 +171,22 @@ export const App: React.FC = () => {
           {/* Settings */}
           <button
             title="Enterprise Settings"
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-white/[0.06] transition-colors"
+            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${
+              dark ? 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]' : 'text-slate-500 hover:text-slate-700 hover:bg-black/[0.05]'
+            }`}
           >
             <Settings className="w-5 h-5" />
           </button>
         </aside>
 
-        {/* =========================================================================
-            CENTER / MAIN CONTENT VIEW
-            ========================================================================= */}
+        {/* CENTER / MAIN CONTENT VIEW */}
         <main className="flex-1 min-w-0">
           {activeTab === 'home' && (
             <BentoDashboard
-              onNavigateTab={(t) => setActiveTab(t as any)}
+              onNavigateTab={(t) => setActiveTab(t as DashTab)}
               onOpenUploadModal={() => setIsUploadModalOpen(true)}
             />
           )}
-
           {activeTab === 'chat' && <ChatExplorer />}
           {activeTab === 'search' && <SearchExplorer />}
           {activeTab === 'documents' && <DocumentManager />}
@@ -140,15 +194,13 @@ export const App: React.FC = () => {
         </main>
       </div>
 
-      {/* =========================================================================
-          UPLOAD MODAL OVERLAY
-          ========================================================================= */}
+      {/* UPLOAD MODAL OVERLAY */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-lg bento-card rounded-3xl p-6 border border-white/10 shadow-2xl relative">
+          <div className="w-full max-w-lg bento-card rounded-3xl p-6 shadow-2xl relative" style={{ borderColor: 'var(--border)' }}>
             <button
               onClick={() => setIsUploadModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-lg transition-colors"
+              className="absolute top-5 right-5 t-muted hover:t-primary p-1 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -158,27 +210,25 @@ export const App: React.FC = () => {
                 <Upload className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-white">Upload Knowledge Documents</h3>
-                <p className="text-xs text-slate-400">Multi-format enterprise document ingestion</p>
+                <h3 className="text-base font-semibold t-primary">Upload Knowledge Documents</h3>
+                <p className="text-xs t-muted">Multi-format enterprise document ingestion</p>
               </div>
             </div>
 
             <form onSubmit={handleModalUpload} className="space-y-4">
-              <label className="border-2 border-dashed border-indigo-500/30 hover:border-indigo-500/60 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all bg-[#0d1024]/60 group">
+              <label className="border-2 border-dashed border-indigo-500/30 hover:border-indigo-500/60 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all group" style={{ background: dark ? 'rgba(13,16,36,0.6)' : 'rgba(238,240,255,0.6)' }}>
                 <Upload className="w-8 h-8 text-indigo-400 group-hover:scale-110 transition-transform mb-2" />
-                <span className="text-xs font-semibold text-slate-200">
+                <span className="text-xs font-semibold t-primary">
                   {uploadFile ? uploadFile.name : 'Click to select or drag and drop files'}
                 </span>
-                <span className="text-[10px] text-slate-400 mt-1">
+                <span className="text-[10px] t-muted mt-1">
                   PDF, DOCX, PPTX, XLSX, CSV, Markdown, Code (Max 100MB)
                 </span>
                 <input
                   type="file"
                   disabled={isUploading}
                   onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      setUploadFile(e.target.files[0]);
-                    }
+                    if (e.target.files && e.target.files[0]) setUploadFile(e.target.files[0]);
                   }}
                   className="hidden"
                   accept=".pdf,.docx,.pptx,.xlsx,.csv,.md,.txt,.py"
@@ -206,7 +256,7 @@ export const App: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsUploadModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bento-chip text-xs text-slate-300 hover:text-white"
+                  className="px-4 py-2 rounded-xl bento-chip text-xs t-secondary hover:t-primary"
                 >
                   Cancel
                 </button>
