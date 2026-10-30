@@ -24,3 +24,4 @@ class ChunkPayload(BaseModel):
     token_count: int = 0
     embedding_model_version: str = "mock-embed-v1"
     metadata: dict[str, Any] = Field(default_factory=dict)
+

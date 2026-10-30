@@ -126,3 +126,4 @@ def test_parser_registry_dispatch():
     canonical = parse_document_content(txt_bytes, "readme.txt", "text/plain")
     assert canonical.total_pages == 1
     assert canonical.pages[0].blocks[0].text == "Simple document text"
+

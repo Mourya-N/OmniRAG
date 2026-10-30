@@ -105,3 +105,4 @@ async def test_evaluation_api_endpoint(client: AsyncClient):
     assert "run_id" in eval_data
     assert eval_data["metrics"]["recall_at_5"] >= 0.88
     assert "PASSED" in eval_data["report_markdown"]
+

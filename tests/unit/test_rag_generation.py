@@ -174,3 +174,4 @@ async def test_full_rag_chat_api_lifecycle(client: AsyncClient, test_db_session:
 
     cits_check = await test_db_session.execute(select(Citation))
     assert len(cits_check.scalars().all()) >= 1
+

@@ -26,3 +26,4 @@ class GroundedAnswer(BaseModel):
     prompt_tokens: int = 0
     completion_tokens: int = 0
     model_name: str = "mock-llm"
+

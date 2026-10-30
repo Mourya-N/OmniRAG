@@ -82,3 +82,4 @@ class DocxParser(DocumentParser):
             pages=[page_data],
             metadata={"format": "DOCX", "paragraphs_count": len(doc.paragraphs), "tables_count": len(doc.tables)},
         )
+

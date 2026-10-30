@@ -42,3 +42,4 @@ class VectorStore(ABC):
     async def delete_by_document(self, collection_name: str, document_id: str) -> bool:
         """Delete all points associated with a specific document."""
         pass
+

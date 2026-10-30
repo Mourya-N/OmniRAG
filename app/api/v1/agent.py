@@ -45,3 +45,4 @@ async def query_agent(
         total_tool_calls=result.total_tool_calls,
         total_duration_ms=result.total_duration_ms,
     )
+

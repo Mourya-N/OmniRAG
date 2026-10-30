@@ -115,3 +115,4 @@ def check_document_access(
             return True
 
     return False
+

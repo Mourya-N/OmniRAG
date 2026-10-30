@@ -122,3 +122,4 @@ async def assign_member_role(
 
     await db.commit()
     return {"status": "success", "message": f"Role '{payload.role_name}' assigned to {payload.user_email}"}
+

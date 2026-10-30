@@ -18,3 +18,4 @@ class Reranker(ABC):
     ) -> list[ScoredChunk]:
         """Score and rerank candidate chunks according to cross-attention relevance."""
         pass
+

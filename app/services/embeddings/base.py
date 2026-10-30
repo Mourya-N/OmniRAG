@@ -27,3 +27,4 @@ class EmbeddingProvider(ABC):
     async def embed_query(self, query: str) -> list[float]:
         """Compute dense vector embedding for a single search query."""
         pass
+

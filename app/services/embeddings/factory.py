@@ -17,3 +17,4 @@ def get_embedding_provider() -> EmbeddingProvider:
         else:
             _provider_instance = MockEmbeddingProvider(dimension=settings.EMBEDDING_DIMENSION)
     return _provider_instance
+

@@ -114,3 +114,4 @@ class AgentBudgetExceededError(OmniRAGError):
             status_code=429,
             details={"limit_type": limit_type, "limit_value": limit_value},
         )
+

@@ -6,7 +6,8 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI, Request, status
+from app.core.telemetry import get_prometheus_metrics
+from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -109,7 +110,7 @@ app.include_router(rag_router, prefix=settings.API_V1_PREFIX)
 app.include_router(agent_router, prefix=settings.API_V1_PREFIX)
 app.include_router(eval_router, prefix=settings.API_V1_PREFIX)
 
-# System Health & Readiness Endpoints
+# System Health, Readiness & Metrics Endpoints
 @app.get(f"{settings.API_V1_PREFIX}/system/health", tags=["System"])
 async def health_check() -> dict[str, str]:
     """Fast liveness probe for load balancers."""
@@ -125,3 +126,9 @@ async def readiness_check() -> dict[str, Any]:
         "vector_store": "configured",
     }
     return {"status": "ready", "checks": checks}
+
+
+@app.get("/metrics", tags=["System"])
+async def prometheus_metrics() -> Response:
+    """Prometheus exposition metrics endpoint."""
+    return Response(content=get_prometheus_metrics(), media_type="text/plain")

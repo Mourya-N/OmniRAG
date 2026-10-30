@@ -79,3 +79,4 @@ def setup_logging(log_level: str = "INFO", environment: str = "development") -> 
 def get_logger(name: str = "omnirag") -> structlog.stdlib.BoundLogger:
     """Retrieve a bound structured logger."""
     return structlog.get_logger(name)
+

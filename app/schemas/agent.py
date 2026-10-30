@@ -28,3 +28,4 @@ class AgentQueryResponse(BaseModel):
     total_steps: int
     total_tool_calls: int
     total_duration_ms: float
+

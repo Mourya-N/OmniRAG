@@ -40,3 +40,4 @@ async def close_redis() -> None:
         await _redis_pool.disconnect()
         _redis_pool = None
         logger.info("redis_connection_pool_closed")
+

@@ -80,3 +80,4 @@ def test_ocr_engine_synthetic_image():
     extracted = ocr.extract_text_from_image(png_bytes)
     assert len(extracted) > 0
     assert "PNG" in extracted or "200x100" in extracted or "OCR" in extracted
+

@@ -64,3 +64,4 @@ class S3StorageBackend(StorageBackend):
 
     async def get_presigned_url(self, storage_key: str, expires_in_seconds: int = 3600) -> str:
         return self._get_url(storage_key)
+

@@ -61,3 +61,4 @@ def detect_mime_type(filename: str, content: bytes) -> str:
         pass
 
     raise UnsupportedMediaTypeError(f"unknown (filename: {filename})")
+

@@ -30,3 +30,4 @@ class RAGChatResponse(BaseModel):
     citations: list[CitationMetadata]
     verification: VerificationReport
     retrieval_strategy: str
+

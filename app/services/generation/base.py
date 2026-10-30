@@ -17,3 +17,4 @@ class LLMProvider(ABC):
     ) -> GroundedAnswer:
         """Synthesize answer with inline citation tags [chunk_id]."""
         pass
+

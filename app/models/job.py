@@ -46,3 +46,4 @@ class IngestionJob(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     retry_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     started_at: Mapped[datetime | None] = mapped_column(default=None, nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(default=None, nullable=True)
+

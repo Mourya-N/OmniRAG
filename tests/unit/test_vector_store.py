@@ -100,3 +100,4 @@ async def test_qdrant_in_memory_lifecycle_and_tenant_isolation():
         top_k=5,
     )
     assert len(after_del) == 0
+

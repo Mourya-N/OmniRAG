@@ -60,3 +60,4 @@ class Membership(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     user: Mapped["User"] = relationship("User", back_populates="memberships")
     organization: Mapped["Organization"] = relationship("Organization", back_populates="memberships")
     role: Mapped["Role"] = relationship("Role", back_populates="memberships")
+

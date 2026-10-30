@@ -45,3 +45,4 @@ class MockEmbeddingProvider(EmbeddingProvider):
 
     async def embed_query(self, query: str) -> list[float]:
         return self._generate_vector(query)
+

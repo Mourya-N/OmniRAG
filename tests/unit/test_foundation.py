@@ -62,3 +62,4 @@ async def test_health_and_readiness_endpoints():
         assert ready_resp.status_code == 200
         ready_data = ready_resp.json()
         assert ready_data["status"] == "ready"
+

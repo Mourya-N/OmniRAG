@@ -110,3 +110,4 @@ class KnowledgeGraphEngine:
                     queue.append((tgt_id, hops + 1, new_path))
 
         return results
+

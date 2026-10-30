@@ -41,3 +41,4 @@ class SearchResponse(BaseModel):
     hits: list[SearchHit]
     diagnostics: list[FusionDiagnostic] = Field(default_factory=list)
     retrieval_strategy: str
+

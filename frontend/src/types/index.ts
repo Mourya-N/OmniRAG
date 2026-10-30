@@ -51,3 +51,4 @@ export interface SearchHit {
   content_type: string;
   retrieval_source: string;
 }
+

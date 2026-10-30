@@ -74,3 +74,4 @@ def estimate_query_cost_usd(
     in_cost = (prompt_tokens / 1_000_000.0) * input_rate_per_million
     out_cost = (completion_tokens / 1_000_000.0) * output_rate_per_million
     return round(in_cost + out_cost, 6)
+

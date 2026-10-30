@@ -27,3 +27,4 @@ class AuditLog(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
     user_agent: Mapped[str | None] = mapped_column(Text, nullable=True)
     details_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+

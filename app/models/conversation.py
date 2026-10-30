@@ -67,3 +67,4 @@ class Citation(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     confidence_score: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)
 
     message: Mapped["Message"] = relationship("Message", back_populates="citations")
+

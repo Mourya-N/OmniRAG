@@ -102,3 +102,4 @@ class PDFParser(DocumentParser):
             pages=pages,
             metadata=metadata,
         )
+

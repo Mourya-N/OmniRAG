@@ -27,3 +27,4 @@ class StorageBackend(ABC):
     async def get_presigned_url(self, storage_key: str, expires_in_seconds: int = 3600) -> str:
         """Generate a secure pre-signed retrieval URL."""
         pass
+

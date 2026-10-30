@@ -66,3 +66,4 @@ def test_conversation_memory_and_isolation():
     deleted = manager.clear_user_memory("tenant-A", "user-1")
     assert deleted is True
     assert len(manager.get_user_facts("tenant-A", "user-1")) == 0
+

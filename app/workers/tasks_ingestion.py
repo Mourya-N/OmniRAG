@@ -32,3 +32,4 @@ def process_document_task(self, job_id: str) -> dict[str, str]:
     except Exception as exc:
         logger.error("celery_task_error", job_id=job_id, error=str(exc))
         raise self.retry(exc=exc)
+

@@ -55,3 +55,4 @@ class DocumentPermissionUpdateRequest(BaseModel):
         default="read",
         description="Access level: 'read', 'write', or 'admin'",
     )
+

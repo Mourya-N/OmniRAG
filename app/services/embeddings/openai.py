@@ -50,3 +50,4 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
     async def embed_query(self, query: str) -> list[float]:
         results = await self.embed_documents([query])
         return results[0]
+

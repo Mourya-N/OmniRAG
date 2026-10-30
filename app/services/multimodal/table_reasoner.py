@@ -85,3 +85,4 @@ class TableReasoner:
             "avg": round(sum(values) / len(values), 2),
             "table_id": table.table_id,
         }
+

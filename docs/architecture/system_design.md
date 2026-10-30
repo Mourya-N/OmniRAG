@@ -578,3 +578,4 @@ Every phase includes architectural implementation, unit & integration tests, doc
 3. **Hallucinated Citations & Document Leakage**:
    * *Risk*: Generative models invent page numbers or leak text across tenant boundaries.
    * *Mitigation*: Two-stage authorization filter prevents unauthorized chunks from reaching context. Verifier stage confirms cited spans exist verbatim within the retrieved source chunks.
+

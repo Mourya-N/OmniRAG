@@ -144,3 +144,4 @@ async def test_agent_query_api_endpoint(client: AsyncClient):
     assert len(data["reasoning_trail"]) >= 3
     assert data["confidence_score"] >= 0.90
     assert len(data["citations"]) >= 1
+

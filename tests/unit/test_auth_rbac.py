@@ -165,3 +165,4 @@ async def test_full_auth_and_organization_flow(client: AsyncClient):
     boundary_resp = await client.get("/api/v1/organizations/", headers=rogue_headers)
     assert boundary_resp.status_code == 403
     assert boundary_resp.json()["error"]["code"] == "FORBIDDEN"
+

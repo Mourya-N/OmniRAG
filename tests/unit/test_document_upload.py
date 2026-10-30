@@ -151,3 +151,4 @@ async def test_document_upload_api_flow(client: AsyncClient):
     # Verify not found after deletion
     after_del = await client.get(f"/api/v1/documents/{doc_id}", headers=auth_headers)
     assert after_del.status_code == 404
+

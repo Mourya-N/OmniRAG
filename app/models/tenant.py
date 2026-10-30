@@ -45,3 +45,4 @@ class Organization(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     documents: Mapped[list["Document"]] = relationship(
         "Document", back_populates="organization", cascade="all, delete-orphan"
     )
+

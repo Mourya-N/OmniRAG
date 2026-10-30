@@ -215,3 +215,4 @@ async def test_search_api_endpoints(client: AsyncClient):
     assert hybrid_resp.status_code == 200
     hybrid_data = hybrid_resp.json()
     assert hybrid_data["retrieval_strategy"] in ("hybrid_rrf", "hybrid_rrf_neural_reranked")
+

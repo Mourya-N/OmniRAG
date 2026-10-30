@@ -45,3 +45,4 @@ COPY --chown=omnirag:omnirag . /app
 USER omnirag
 
 CMD ["celery", "-A", "app.workers.celery_app.celery_app", "worker", "--loglevel=INFO", "--concurrency=4"]
+

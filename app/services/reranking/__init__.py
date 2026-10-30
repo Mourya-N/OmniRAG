@@ -15,3 +15,4 @@ def get_reranker() -> Reranker:
 
 
 __all__ = ["Reranker", "CrossEncoderReranker", "get_reranker"]
+

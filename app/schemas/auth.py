@@ -72,3 +72,4 @@ class MemberAssignRoleRequest(BaseModel):
 
     user_email: EmailStr
     role_name: str = Field(description="Owner, Admin, Member, or Viewer")
+

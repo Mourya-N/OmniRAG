@@ -36,3 +36,4 @@ def parse_document_content(content: bytes, filename: str, mime_type: str, docume
     """Convenience helper to parse raw bytes into a CanonicalDocument."""
     parser = default_parser_registry.get_parser(mime_type)
     return parser.parse(content, filename, document_id)
+

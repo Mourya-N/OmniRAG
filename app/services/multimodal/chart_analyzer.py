@@ -47,3 +47,4 @@ class ChartAnalyzer:
             detected_trend=trend,
             confidence=0.92,
         )
+

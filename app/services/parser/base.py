@@ -17,3 +17,4 @@ class DocumentParser(ABC):
     def parse(self, content: bytes, filename: str, document_id: str = "") -> CanonicalDocument:
         """Parse raw document bytes into canonical representation."""
         pass
+

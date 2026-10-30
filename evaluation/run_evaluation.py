@@ -82,3 +82,4 @@ if __name__ == "__main__":
     dataset_file = Path(__file__).parent / "datasets" / "golden_qa.json"
     result = run_benchmark_on_dataset(dataset_file)
     print(result["report_markdown"])
+

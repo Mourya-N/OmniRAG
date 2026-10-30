@@ -164,3 +164,4 @@ async def bm25_search(
         diagnostics=[],
         retrieval_strategy="bm25_lexical_only",
     )
+

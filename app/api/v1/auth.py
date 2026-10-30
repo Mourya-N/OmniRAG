@@ -211,3 +211,4 @@ async def get_current_user_profile(
         organization_id=current_user.get("organization_id"),
         roles=current_user.get("roles", []),
     )
+

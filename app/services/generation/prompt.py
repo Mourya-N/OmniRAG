@@ -37,3 +37,4 @@ def build_grounded_prompt(query: str, chunks: list[ScoredChunk]) -> str:
         f"Provide a direct, complete, evidence-grounded answer with inline citations [chunk_id]."
     )
     return prompt
+

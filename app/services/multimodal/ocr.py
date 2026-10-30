@@ -32,3 +32,4 @@ class OCREngine:
         except Exception as e:
             logger.warning("ocr_extraction_failed", error=str(e))
             return ""
+

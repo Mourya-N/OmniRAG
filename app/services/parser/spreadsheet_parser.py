@@ -102,3 +102,4 @@ class SpreadsheetParser(DocumentParser):
             pages=pages,
             metadata={"format": "Spreadsheet", "sheets_count": len(pages)},
         )
+

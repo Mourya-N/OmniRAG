@@ -158,3 +158,4 @@ async def chat_rag(
         verification=verification,
         retrieval_strategy="hybrid_rrf_reranked" if payload.enable_reranking else "hybrid_rrf",
     )
+

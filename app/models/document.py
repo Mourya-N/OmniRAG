@@ -101,3 +101,4 @@ class DocumentPermission(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     permission_level: Mapped[str] = mapped_column(String(20), default="read", nullable=False)  # read, write, admin
 
     document: Mapped["Document"] = relationship("Document", back_populates="permissions")
+

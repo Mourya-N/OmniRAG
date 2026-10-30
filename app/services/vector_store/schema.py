@@ -26,3 +26,4 @@ class ScoredChunk(BaseModel):
     parent_chunk_id: str | None = None
     retrieval_source: str = "dense_vector"
     metadata: dict[str, Any] = Field(default_factory=dict)
+

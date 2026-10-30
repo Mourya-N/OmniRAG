@@ -100,3 +100,4 @@ class CanonicalDocument(BaseModel):
                 if table_md:
                     sections.append(table_md)
         return "\n\n".join(sections)
+

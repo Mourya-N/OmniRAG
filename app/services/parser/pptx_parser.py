@@ -74,3 +74,4 @@ class PPTXParser(DocumentParser):
             pages=pages,
             metadata={"format": "PPTX", "slides_count": len(pages)},
         )
+
