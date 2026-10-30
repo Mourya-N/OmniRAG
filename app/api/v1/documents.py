@@ -15,6 +15,7 @@ from app.core.exceptions import (
     OmniRAGError,
 )
 from app.models.document import Document, DocumentPermission, DocumentVersion
+from app.models.job import IngestionJob, IngestionStage
 from app.models.tenant import Organization
 from app.schemas.document import (
     DocumentDetailResponse,
@@ -22,6 +23,7 @@ from app.schemas.document import (
     DocumentPermissionUpdateRequest,
     DocumentUploadResponse,
 )
+from app.services.ingestion.pipeline import IngestionPipelineRunner
 from app.services.ingestion.validator import calculate_sha256, detect_mime_type
 from app.services.storage import get_storage_backend
 
@@ -194,6 +196,90 @@ async def delete_document(
 
     await db.delete(doc)
     await db.commit()
+
+
+@router.post("/{document_id}/reprocess", status_code=status.HTTP_202_ACCEPTED)
+async def reprocess_document(
+    document_id: str,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: str = Depends(verify_tenant_boundary),
+    current_user: dict[str, Any] = Depends(require_roles(["Owner", "Admin", "Member"])),
+) -> dict[str, Any]:
+    """Trigger an asynchronous document reprocessing pipeline job."""
+    stmt = (
+        select(Document)
+        .join(Organization, Document.organization_id == Organization.id)
+        .where(Document.id == document_id, Organization.tenant_id == tenant_id)
+    )
+    res = await db.execute(stmt)
+    doc = res.scalar_one_or_none()
+    if not doc:
+        raise DocumentNotFoundError(document_id)
+
+    # Create new IngestionJob
+    job = IngestionJob(
+        document_id=doc.id,
+        status=IngestionStage.UPLOADED.value,
+        progress_percent=0,
+        current_stage=IngestionStage.UPLOADED.value,
+    )
+    db.add(job)
+    doc.status = "PROCESSING"
+    await db.commit()
+
+    # Run pipeline runner
+    runner = IngestionPipelineRunner(db)
+    await runner.execute_pipeline(job.id)
+
+    return {
+        "job_id": job.id,
+        "document_id": doc.id,
+        "status": job.status,
+        "progress_percent": job.progress_percent,
+        "current_stage": job.current_stage,
+    }
+
+
+@router.get("/{document_id}/status")
+async def get_document_status(
+    document_id: str,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: str = Depends(verify_tenant_boundary),
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Poll latest ingestion job status and progress for a document."""
+    stmt = (
+        select(Document)
+        .join(Organization, Document.organization_id == Organization.id)
+        .where(Document.id == document_id, Organization.tenant_id == tenant_id)
+    )
+    res = await db.execute(stmt)
+    doc = res.scalar_one_or_none()
+    if not doc:
+        raise DocumentNotFoundError(document_id)
+
+    # Get most recent job
+    job_stmt = (
+        select(IngestionJob)
+        .where(IngestionJob.document_id == document_id)
+        .order_by(IngestionJob.created_at.desc())
+    )
+    job_res = await db.execute(job_stmt)
+    latest_job = job_res.scalars().first()
+
+    return {
+        "document_id": doc.id,
+        "document_status": doc.status,
+        "latest_job": {
+            "job_id": latest_job.id if latest_job else None,
+            "status": latest_job.status if latest_job else doc.status,
+            "progress_percent": latest_job.progress_percent if latest_job else (100 if doc.status == "INDEXED" else 0),
+            "current_stage": latest_job.current_stage if latest_job else "UNKNOWN",
+            "error_message": latest_job.error_message if latest_job else None,
+        }
+        if latest_job
+        else None,
+    }
 
 
 @router.post("/{document_id}/permissions", status_code=status.HTTP_200_OK)

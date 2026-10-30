@@ -14,7 +14,11 @@ class LocalStorageBackend(StorageBackend):
         self.base_dir.mkdir(parents=True, exist_ok=True)
 
     def _resolve_path(self, storage_key: str) -> Path:
-        clean_key = storage_key.lstrip("/")
+        clean_key = storage_key.replace("file://", "").lstrip("/")
+        p = Path(storage_key.replace("file://", ""))
+        if p.is_absolute():
+            p.parent.mkdir(parents=True, exist_ok=True)
+            return p
         dest = self.base_dir / clean_key
         dest.parent.mkdir(parents=True, exist_ok=True)
         return dest
