@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Sparkles } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { ApiService } from '../services/api';
 
 interface SignUpPageProps {
   onNavigate: (page: 'login' | 'dashboard') => void;
@@ -19,7 +20,7 @@ const features = [
   { icon: '⚡', label: 'Multimodal RAG Intelligence', desc: 'PDF, DOCX, images, code, tables — all modalities' },
   { icon: '🔍', label: 'Hybrid Search + BM25 + RRF', desc: 'Dense + sparse retrieval with reciprocal rank fusion' },
   { icon: '🤖', label: 'Bounded Agentic Retrieval', desc: 'Multi-hop reasoning with citation grounding' },
-  { icon: '🛡️', label: 'Zero-Trust Enterprise Security', desc: 'JWT + RBAC/ABAC + tenant isolation + audit logs' },
+  { icon: '🛡️', label: 'Zero-Trust Enterprise Security', desc: 'Argon2id + HttpOnly Cookies + Rate Protected' },
 ];
 
 export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
@@ -37,22 +38,41 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
 
   const dark = theme === 'dark';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPw) {
       setPwError('Passwords do not match');
       return;
     }
     if (password.length < 8) {
-      setPwError('Password must be at least 8 characters');
+      setPwError('Password must be at least 8 characters long');
+      return;
+    }
+    if (!/[0-9!@#$%^&*()_+\-=\[\]{};':",.<>/?\\|`~]/.test(password)) {
+      setPwError('Password must contain at least one number or special symbol');
       return;
     }
     setPwError('');
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+
+    try {
+      await ApiService.register({
+        email,
+        password,
+        full_name: fullName,
+        tenant_name: `${fullName}'s Workspace`,
+      });
+      // Passwords never persisted locally
+      setPassword('');
+      setConfirmPw('');
       onNavigate('dashboard');
-    }, 900);
+    } catch (err: any) {
+      setPwError(err.message || 'Registration failed');
+      setPassword('');
+      setConfirmPw('');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -73,9 +93,9 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
         title="Toggle theme"
       >
         {dark ? (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M18.364 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+          <svg className="w-5 h-5 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M18.364 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
         ) : (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+          <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
         )}
       </button>
 
@@ -88,7 +108,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
           style={{
             background: dark
               ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #1e1b4b 100%)'
-              : 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #4338ca 100%)',
+              : 'linear-gradient(135deg, #4338ca 0%, #6d28d9 50%, #3730a3 100%)',
           }}
         >
           {/* Decorative circle */}
@@ -105,7 +125,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
               </div>
               <div>
                 <div className="text-lg font-extrabold text-white tracking-tight">OmniRAG</div>
-                <div className="text-[10px] uppercase font-mono text-indigo-200/70 tracking-widest">Enterprise AI</div>
+                <div className="text-[10px] uppercase font-mono text-indigo-200/90 tracking-widest font-semibold">Enterprise AI</div>
               </div>
             </div>
 
@@ -113,7 +133,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
               Enterprise Knowledge<br />
               <span className="text-indigo-200">Intelligence Platform</span>
             </h2>
-            <p className="text-sm text-indigo-100/70 leading-relaxed mb-8">
+            <p className="text-sm text-indigo-100/90 leading-relaxed mb-8">
               Transform your organization's knowledge into instant, evidence-grounded AI intelligence.
             </p>
 
@@ -121,12 +141,12 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
             <div className="space-y-4">
               {features.map((f) => (
                 <div key={f.label} className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-lg shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-lg shrink-0">
                     {f.icon}
                   </div>
                   <div>
-                    <div className="text-xs font-semibold text-white">{f.label}</div>
-                    <div className="text-[11px] text-indigo-200/60 mt-0.5">{f.desc}</div>
+                    <div className="text-xs font-bold text-white">{f.label}</div>
+                    <div className="text-[11px] text-indigo-100/80 mt-0.5">{f.desc}</div>
                   </div>
                 </div>
               ))}
@@ -136,8 +156,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
           {/* Bottom badge */}
           <div className="relative z-10 mt-8 flex items-center gap-2 bg-white/10 border border-white/20 rounded-2xl px-4 py-3">
             <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
-            <p className="text-[11px] text-indigo-100/80">
-              <span className="font-semibold text-white">SOC 2 Type II</span> certified · GDPR compliant · SSO ready
+            <p className="text-[11px] text-indigo-100">
+              <span className="font-bold text-white">SOC 2 Type II</span> certified · GDPR compliant · SSO ready
             </p>
           </div>
         </div>
@@ -147,14 +167,15 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
           {/* Heading */}
           <div className="mb-7">
             <h1 className="text-2xl font-extrabold t-primary tracking-tight">Create your account</h1>
-            <p className="text-sm t-secondary mt-1">Start your 14-day free trial. No credit card required.</p>
+            <p className="text-sm t-secondary mt-1">Start your 14-day free enterprise trial. No credit card required.</p>
           </div>
 
           {/* Google Sign Up */}
           <button
             type="button"
             onClick={() => onNavigate('dashboard')}
-            className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl bento-chip border t-primary text-sm font-medium hover:opacity-80 transition-opacity mb-5"
+            className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl bento-chip border t-primary text-sm font-semibold hover:opacity-80 transition-opacity mb-5"
+            style={{ borderColor: 'var(--border)' }}
           >
             <GoogleIcon />
             Continue with Google
@@ -199,8 +220,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
               <select
                 value={role}
                 onChange={e => setRole(e.target.value)}
-                className="glass-input w-full px-4 py-2.5 rounded-xl text-sm t-primary focus:outline-none"
-                style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                className="glass-input w-full px-4 py-2.5 rounded-xl text-sm t-primary focus:outline-none border"
+                style={{ background: 'var(--bg-input)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}
               >
                 <option value="engineer">Engineer</option>
                 <option value="manager">Manager</option>
@@ -219,7 +240,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     required
                     value={password}
                     onChange={e => { setPassword(e.target.value); setPwError(''); }}
-                    placeholder="••••••••"
+                    placeholder="Min 8 chars"
                     className="glass-input w-full pl-4 pr-10 py-2.5 rounded-xl text-sm t-primary focus:outline-none placeholder:t-muted"
                   />
                   <button
@@ -240,7 +261,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     required
                     value={confirmPw}
                     onChange={e => { setConfirmPw(e.target.value); setPwError(''); }}
-                    placeholder="••••••••"
+                    placeholder="Repeat password"
                     className="glass-input w-full pl-4 pr-10 py-2.5 rounded-xl text-sm t-primary focus:outline-none placeholder:t-muted"
                   />
                   <button
@@ -257,7 +278,9 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
 
             {/* Password error */}
             {pwError && (
-              <p className="text-xs text-red-400 font-medium">{pwError}</p>
+              <p className="text-xs text-red-500 font-semibold bg-red-500/10 p-2.5 rounded-xl border border-red-500/30">
+                {pwError}
+              </p>
             )}
 
             {/* Terms checkbox */}
@@ -280,9 +303,9 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
               </div>
               <span className="text-xs t-secondary leading-relaxed">
                 I agree to the{' '}
-                <a href="#" className="text-indigo-400 hover:underline font-medium">Terms of Service</a>
+                <a href="#" className="t-accent hover:underline font-bold">Terms of Service</a>
                 {' '}and{' '}
-                <a href="#" className="text-indigo-400 hover:underline font-medium">Privacy Policy</a>
+                <a href="#" className="t-accent hover:underline font-bold">Privacy Policy</a>
               </span>
             </label>
 
@@ -298,7 +321,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Creating account...
+                  Creating account…
                 </>
               ) : (
                 'Create Account'
@@ -312,7 +335,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
             <button
               type="button"
               onClick={() => onNavigate('login')}
-              className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors"
+              className="t-accent font-bold hover:underline transition-colors"
             >
               Sign in
             </button>

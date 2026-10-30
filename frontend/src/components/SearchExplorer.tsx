@@ -69,7 +69,7 @@ export const SearchExplorer: React.FC = () => {
               onClick={() => setStrategy(s)}
               className={`px-3.5 py-1.5 rounded-xl border font-medium uppercase tracking-wider transition-all ${
                 strategy === s
-                  ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/30 text-indigo-400 border-indigo-500/50 shadow-md'
+                  ? 'badge-indigo shadow-md font-semibold'
                   : 'bento-chip t-muted hover:t-primary'
               }`}
               style={{ borderColor: strategy === s ? undefined : 'var(--border)' }}
@@ -84,7 +84,7 @@ export const SearchExplorer: React.FC = () => {
       <div className="bento-card rounded-3xl shadow-2xl p-6" style={{ borderColor: 'var(--border)' }}>
         <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: '1px solid var(--border)' }}>
           <h3 className="text-base font-semibold t-primary">Ranked Candidate Passages ({hits.length})</h3>
-          <span className="text-xs font-mono text-cyan-400 bento-chip px-2.5 py-1 rounded-full">
+          <span className="text-xs font-mono badge-cyan px-2.5 py-1 rounded-full">
             Cross-Encoder Scored
           </span>
         </div>
@@ -99,13 +99,13 @@ export const SearchExplorer: React.FC = () => {
               <div key={hit.chunk_id} className="p-4 rounded-2xl bento-chip border space-y-2" style={{ borderColor: 'var(--border)' }}>
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-indigo-400 font-bold">#{index + 1}</span>
+                    <span className="font-mono icon-indigo font-bold">#{index + 1}</span>
                     <span className="t-muted">{hit.document_id} (Page {hit.page_number})</span>
                     {hit.section_heading && (
                       <span className="t-muted">• {hit.section_heading}</span>
                     )}
                   </div>
-                  <span className="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded badge-indigo font-mono text-[11px]">
                     Score: {hit.score.toFixed(4)}
                   </span>
                 </div>

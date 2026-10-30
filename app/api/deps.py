@@ -3,7 +3,7 @@
 from collections.abc import AsyncGenerator
 from typing import Any
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,14 +25,22 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def get_current_user(
+    request: Request,
     auth_creds: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    """Extract, decode, and validate the current authenticated user context."""
-    if not auth_creds:
-        raise AuthenticationError("Authorization header is missing or invalid")
+    """Extract, decode, and validate the current authenticated user context from Bearer header or HttpOnly cookie."""
+    raw_token: str | None = None
 
-    token_payload = decode_token(auth_creds.credentials)
+    if auth_creds and auth_creds.credentials:
+        raw_token = auth_creds.credentials
+    elif "omnirag_access_token" in request.cookies:
+        raw_token = request.cookies.get("omnirag_access_token")
+
+    if not raw_token:
+        raise AuthenticationError("Authorization header or session cookie is missing or invalid")
+
+    token_payload = decode_token(raw_token)
     user_id = token_payload.get("sub")
     tenant_id = token_payload.get("tenant_id")
     org_id = token_payload.get("org_id")

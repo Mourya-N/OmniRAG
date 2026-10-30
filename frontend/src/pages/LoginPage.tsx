@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, ShieldCheck, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { ApiService } from '../services/api';
 
 interface LoginPageProps {
   onNavigate: (page: 'signup' | 'dashboard') => void;
@@ -22,16 +23,27 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
   const [showPw, setShowPw] = useState(false);
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const dark = theme === 'dark';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+
+    try {
+      // Authenticate with zero-trust backend and issue HttpOnly cookie
+      await ApiService.login({ email, password });
+      // Clear password state immediately from memory
+      setPassword('');
       onNavigate('dashboard');
-    }, 900);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Authentication failed. Please verify credentials.');
+      setPassword('');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -52,20 +64,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
         title="Toggle theme"
       >
         {dark ? (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M18.364 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+          <svg className="w-5 h-5 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M18.364 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
         ) : (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+          <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
         )}
       </button>
 
       {/* Card */}
-      <div className="bento-card w-full max-w-md rounded-3xl p-8 sm:p-10 animate-fade-in">
+      <div className="bento-card w-full max-w-md rounded-3xl p-8 sm:p-10 animate-fade-in shadow-2xl">
         {/* Logo & heading */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 p-[2px] shadow-lg shadow-indigo-600/30 mb-4">
             <div
               className="w-full h-full rounded-[14px] flex items-center justify-center relative overflow-hidden"
-              style={{ background: dark ? '#0d1024' : '#f5f3ff' }}
+              style={{ background: dark ? '#0d1024' : '#ffffff' }}
             >
               <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-400 to-cyan-300 animate-pulse-slow" />
             </div>
@@ -73,6 +85,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
           <h1 className="text-2xl font-extrabold t-primary tracking-tight">Welcome back</h1>
           <p className="text-sm t-secondary mt-1">Sign in to your OmniRAG workspace</p>
         </div>
+
+        {errorMsg && (
+          <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-500 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email */}
@@ -92,7 +111,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-semibold t-secondary">Password</label>
-              <button type="button" className="text-xs t-accent hover:underline">Forgot password?</button>
+              <button type="button" className="text-xs t-accent hover:underline font-semibold">Forgot password?</button>
             </div>
             <div className="relative">
               <input
@@ -144,7 +163,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
         {/* Divider */}
         <div className="flex items-center gap-3 my-5">
           <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-          <span className="text-[11px] t-muted font-medium uppercase tracking-wider">or continue with</span>
+          <span className="text-[11px] t-muted font-semibold uppercase tracking-wider">or continue with</span>
           <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
         </div>
 
@@ -152,7 +171,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
         <button
           type="button"
           onClick={() => onNavigate('dashboard')}
-          className="w-full py-2.5 rounded-xl bento-chip flex items-center justify-center gap-3 font-semibold text-sm t-primary hover:opacity-90 transition-all"
+          className="w-full py-2.5 rounded-xl bento-chip flex items-center justify-center gap-3 font-semibold text-sm t-primary hover:opacity-90 transition-all border"
+          style={{ borderColor: 'var(--border)' }}
         >
           <GoogleIcon />
           Continue with Google
@@ -161,22 +181,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
         {/* Signup link */}
         <p className="text-center text-sm t-secondary mt-6">
           Don't have an account?{' '}
-          <button onClick={() => onNavigate('signup')} className="t-accent font-semibold hover:underline">
+          <button onClick={() => onNavigate('signup')} className="t-accent font-bold hover:underline">
             Sign up free
           </button>
         </p>
 
         {/* Security badge */}
         <div className="flex items-center justify-center gap-1.5 mt-4 text-[11px] t-muted">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-          SOC 2 Type II · AES-256 · Zero-Knowledge Auth
+          <ShieldCheck className="w-3.5 h-3.5 icon-emerald" />
+          <span>SOC 2 Type II · Zero-Knowledge Cookies · Rate Protected</span>
         </div>
       </div>
 
       <p className="mt-6 text-xs t-muted flex items-center gap-1">
-        <Sparkles className="w-3 h-3 text-indigo-400" />
+        <Sparkles className="w-3 h-3 icon-indigo" />
         OmniRAG Enterprise Knowledge Intelligence
       </p>
     </div>
   );
 };
+
+export default LoginPage;

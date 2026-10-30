@@ -71,7 +71,7 @@ export const EvaluationDashboard: React.FC = () => {
           <div key={card.title} className="p-5 rounded-2xl bento-card space-y-1.5 shadow-lg" style={{ borderColor: 'var(--border)' }}>
             <div className="text-xs t-muted flex items-center justify-between">
               <span>{card.title}</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
+              <span className="text-[10px] px-2 py-0.5 rounded-full badge-emerald font-semibold">
                 {card.status}
               </span>
             </div>

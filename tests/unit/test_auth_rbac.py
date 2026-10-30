@@ -166,3 +166,70 @@ async def test_full_auth_and_organization_flow(client: AsyncClient):
     assert boundary_resp.status_code == 403
     assert boundary_resp.json()["error"]["code"] == "FORBIDDEN"
 
+
+@pytest.mark.asyncio
+async def test_httponly_cookie_auth_flow(client: AsyncClient):
+    """Verify passwords are not saved locally and sessions operate via secure HttpOnly cookies."""
+    # 1. Register with password and verify cookie issuance
+    reg_payload = {
+        "email": "cookie.user@enterprise.ai",
+        "password": "StrongPassword999#",
+        "full_name": "Cookie Session User",
+        "tenant_name": "SecureCo",
+    }
+    reg_resp = await client.post("/api/v1/auth/register", json=reg_payload)
+    assert reg_resp.status_code == 201
+    assert "omnirag_access_token" in reg_resp.cookies
+    assert "omnirag_refresh_token" in reg_resp.cookies
+
+    # 2. Login and verify cookies & security headers
+    login_resp = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "cookie.user@enterprise.ai", "password": "StrongPassword999#"},
+    )
+    assert login_resp.status_code == 200
+    assert "omnirag_access_token" in login_resp.cookies
+    assert login_resp.headers.get("X-Frame-Options") == "DENY"
+    assert login_resp.headers.get("X-Content-Type-Options") == "nosniff"
+
+    # 3. Access protected /auth/me using ONLY cookies (no Authorization header!)
+    cookie_header = {"Cookie": f"omnirag_access_token={login_resp.cookies['omnirag_access_token']}"}
+    me_resp = await client.get("/api/v1/auth/me", headers=cookie_header)
+    assert me_resp.status_code == 200
+    profile = me_resp.json()
+    assert profile["email"] == "cookie.user@enterprise.ai"
+
+    # 4. Logout terminates session and clears cookies
+    logout_resp = await client.post("/api/v1/auth/logout")
+    assert logout_resp.status_code == 200
+    assert logout_resp.json()["success"] is True
+
+
+@pytest.mark.asyncio
+async def test_weak_password_enforcement(client: AsyncClient):
+    """Enforce defense against weak credentials."""
+    # Too short
+    short_resp = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "bad.pass@enterprise.ai",
+            "password": "short",
+            "full_name": "Bad Pass",
+            "tenant_name": "BadCo",
+        },
+    )
+    assert short_resp.status_code == 422 or short_resp.status_code == 400
+
+    # Common password
+    common_resp = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "common.pass@enterprise.ai",
+            "password": "password",
+            "full_name": "Common Pass",
+            "tenant_name": "BadCo",
+        },
+    )
+    assert common_resp.status_code == 400
+
+

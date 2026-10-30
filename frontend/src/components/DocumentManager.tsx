@@ -48,7 +48,7 @@ export const DocumentManager: React.FC = () => {
         </p>
 
         <label className="border-2 border-dashed border-indigo-500/30 hover:border-indigo-500/60 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all bento-chip group">
-          <Upload className="h-9 w-9 text-indigo-400 mb-3 group-hover:scale-110 transition-transform" />
+          <Upload className="h-9 w-9 icon-indigo mb-3 group-hover:scale-110 transition-transform" />
           <span className="text-sm font-semibold t-primary">Click to upload or drag and drop</span>
           <span className="text-xs t-muted mt-1">PDF, DOCX, PPTX, XLSX, CSV, MD up to 100MB</span>
           <input
@@ -61,7 +61,7 @@ export const DocumentManager: React.FC = () => {
         </label>
 
         {statusMessage && (
-          <div className="mt-4 p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-400 flex items-center gap-2">
+          <div className="mt-4 p-3 rounded-xl badge-indigo text-xs flex items-center gap-2">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{statusMessage}</span>
           </div>
@@ -88,16 +88,16 @@ export const DocumentManager: React.FC = () => {
             {documents.map((doc) => (
               <div key={doc.id} className="py-3 flex items-center justify-between text-sm">
                 <div className="flex items-center space-x-3">
-                  <FileText className="h-5 w-5 text-indigo-400" />
+                  <FileText className="h-5 w-5 icon-indigo" />
                   <div>
-                    <div className="font-medium text-slate-200">{doc.filename}</div>
-                    <div className="text-xs text-slate-500">
+                    <div className="font-medium t-primary">{doc.filename}</div>
+                    <div className="text-xs t-muted">
                       {(doc.file_size_bytes / 1024).toFixed(1)} KB • SHA-256: {doc.sha256_checksum.slice(0, 8)}...
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                  <span className="text-xs px-2 py-0.5 rounded-full badge-emerald flex items-center gap-1">
                     <CheckCircle2 className="h-3 w-3" />
                     {doc.status}
                   </span>

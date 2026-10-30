@@ -1,6 +1,7 @@
-import React from 'react';
-import { Search, Bell, Upload } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Search, Bell, Upload, LogOut, Shield, ChevronDown } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { ApiService } from '../services/api';
 
 interface NavbarProps {
   activeTab: string;
@@ -18,13 +19,38 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const { theme } = useTheme();
   const dark = theme === 'dark';
-  const [searchValue, setSearchValue] = React.useState('');
+  const [searchValue, setSearchValue] = useState('');
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchValue.trim()) {
       onQuickSearch(searchValue);
       setActiveTab('search');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await ApiService.logout();
+    } catch {
+      // Ignore network errors on logout
+    }
+    if (onNavigateAuth) {
+      onNavigateAuth();
+    } else {
+      window.location.hash = '#/login';
     }
   };
 
@@ -113,22 +139,63 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </div>
 
-          {/* User Profile Capsule */}
+          {/* User Profile Capsule with Interactive Dropdown */}
           <div
-            className="flex items-center gap-2.5 pl-2"
+            ref={dropdownRef}
+            className="relative flex items-center pl-2"
             style={{ borderLeft: `1px solid var(--border)` }}
           >
-            <div
-              className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-xs font-bold text-white shadow-md shadow-indigo-500/30 cursor-pointer"
-              onClick={onNavigateAuth}
-              title="Account"
+            <button
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              className="flex items-center gap-2.5 p-1 rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all"
             >
-              AK
-            </div>
-            <div className="hidden sm:block text-left">
-              <p className="text-xs font-semibold leading-tight t-primary">Amit Kumar</p>
-              <p className="text-[10px] leading-tight t-muted">Engineering</p>
-            </div>
+              <div
+                className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-xs font-bold text-white shadow-md shadow-indigo-500/30"
+              >
+                AK
+              </div>
+              <div className="hidden sm:block text-left">
+                <p className="text-xs font-semibold leading-tight t-primary">Amit Kumar</p>
+                <p className="text-[10px] leading-tight t-muted">Engineering</p>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 t-muted" />
+            </button>
+
+            {/* Profile Dropdown Menu */}
+            {isProfileOpen && (
+              <div
+                className="absolute right-0 top-12 w-60 rounded-2xl bento-card p-2 shadow-2xl z-50 animate-fade-in"
+                style={{ borderColor: 'var(--border)' }}
+              >
+                <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--border)' }}>
+                  <p className="text-xs font-bold t-primary">Amit Kumar</p>
+                  <p className="text-[11px] t-muted">amit.kumar@enterprise.ai</p>
+                  <div className="mt-2 flex items-center gap-1.5 text-[10px] badge-emerald px-2 py-0.5 rounded-md w-fit">
+                    <Shield className="w-3 h-3 icon-emerald" />
+                    <span>Role: Tenant Admin</span>
+                  </div>
+                </div>
+
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      onNavigateAuth && onNavigateAuth();
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs t-secondary hover:t-primary hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors"
+                  >
+                    Switch Account / Sign In
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 flex items-center gap-2 transition-colors font-medium"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out (Clear Session)</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

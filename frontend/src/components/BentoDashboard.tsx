@@ -155,7 +155,7 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                 </span>
               </h1>
 
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl">
+              <p className="t-secondary text-sm sm:text-base leading-relaxed max-w-xl">
                 Search, analyze, and get precise answers from your documents, images, tables,
                 code, and more — powered by advanced multimodal AI.
               </p>
@@ -171,9 +171,10 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
 
                 <button
                   onClick={onOpenUploadModal}
-                  className="px-5 py-2.5 rounded-full bento-chip hover:bg-white/10 text-slate-200 font-medium text-sm flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  className="px-5 py-2.5 rounded-full bento-chip hover:opacity-90 t-primary font-medium text-sm flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] border"
+                  style={{ borderColor: 'var(--border)' }}
                 >
-                  <Upload className="w-4 h-4 text-cyan-400" />
+                  <Upload className="w-4 h-4 icon-cyan" />
                   <span>Upload Documents</span>
                 </button>
               </div>
@@ -203,36 +204,36 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
 
                 {/* Floating Bento Chips Orbiting the Globe */}
                 {/* Chip 1: Multimodal RAG */}
-                <div className="absolute -top-3 left-2 animate-float-slow bento-chip px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-purple-900/40">
-                  <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
-                  <span className="text-[11px] font-semibold text-purple-200">Multimodal RAG</span>
+                <div className="absolute -top-3 left-2 animate-float-slow bento-chip px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-purple-900/40 border" style={{ borderColor: 'var(--border)' }}>
+                  <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping" />
+                  <span className="text-[11px] font-bold icon-purple">Multimodal RAG</span>
                 </div>
 
                 {/* Chip 2: Hybrid Search */}
                 <div
-                  className="absolute top-10 -right-4 animate-float-slow bento-chip px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-cyan-900/40"
-                  style={{ animationDelay: '1.5s' }}
+                  className="absolute top-10 -right-4 animate-float-slow bento-chip px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-cyan-900/40 border"
+                  style={{ animationDelay: '1.5s', borderColor: 'var(--border)' }}
                 >
-                  <Search className="w-3 h-3 text-cyan-400" />
-                  <span className="text-[11px] font-semibold text-cyan-200">Hybrid Search</span>
+                  <Search className="w-3.5 h-3.5 icon-cyan" />
+                  <span className="text-[11px] font-bold icon-cyan">Hybrid Search</span>
                 </div>
 
                 {/* Chip 3: Agentic Search */}
                 <div
-                  className="absolute -bottom-3 left-6 animate-float-slow bento-chip px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-indigo-900/40"
-                  style={{ animationDelay: '3s' }}
+                  className="absolute -bottom-3 left-6 animate-float-slow bento-chip px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-indigo-900/40 border"
+                  style={{ animationDelay: '3s', borderColor: 'var(--border)' }}
                 >
-                  <Cpu className="w-3 h-3 text-indigo-400" />
-                  <span className="text-[11px] font-semibold text-indigo-200">Agentic Search</span>
+                  <Cpu className="w-3.5 h-3.5 icon-indigo" />
+                  <span className="text-[11px] font-bold icon-indigo">Agentic Search</span>
                 </div>
 
                 {/* Chip 4: Quoted Sources */}
                 <div
-                  className="absolute bottom-10 -right-2 animate-float-slow bento-chip px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-pink-900/40"
-                  style={{ animationDelay: '4.5s' }}
+                  className="absolute bottom-10 -right-2 animate-float-slow bento-chip px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-pink-900/40 border"
+                  style={{ animationDelay: '4.5s', borderColor: 'var(--border)' }}
                 >
-                  <ShieldCheck className="w-3 h-3 text-pink-400" />
-                  <span className="text-[11px] font-semibold text-pink-200">Quoted Sources</span>
+                  <ShieldCheck className="w-3.5 h-3.5 icon-pink" />
+                  <span className="text-[11px] font-bold icon-pink">Quoted Sources</span>
                 </div>
               </div>
             </div>
@@ -248,16 +249,16 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
             {/* Metric 1: Avg Response Time */}
             <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border)' }}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-                  <Clock className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-2xl badge-cyan flex items-center justify-center">
+                  <Clock className="w-5 h-5 icon-cyan" />
                 </div>
                 <div>
-                  <p className="text-xs t-muted">Avg. Response Time</p>
+                  <p className="text-xs t-muted font-medium">Avg. Response Time</p>
                   <p className="text-2xl font-bold t-primary tracking-tight">1.8s</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                <TrendingDown className="w-3 h-3" />
+              <div className="flex items-center gap-1 text-xs font-semibold badge-emerald px-2.5 py-1 rounded-full">
+                <TrendingDown className="w-3 h-3 icon-emerald" />
                 <span>32%</span>
               </div>
             </div>
@@ -265,15 +266,15 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
             {/* Metric 2: Citation Accuracy */}
             <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border)' }}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-                  <ShieldCheck className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-2xl badge-purple flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5 icon-purple" />
                 </div>
                 <div>
-                  <p className="text-xs t-muted">Citation Accuracy</p>
+                  <p className="text-xs t-muted font-medium">Citation Accuracy</p>
                   <p className="text-2xl font-bold t-primary tracking-tight">96.4%</p>
                 </div>
               </div>
-              <div className="text-[11px] font-semibold text-purple-300 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/20">
+              <div className="text-[11px] font-bold badge-purple px-2.5 py-1 rounded-full">
                 SLO Verified
               </div>
             </div>
@@ -281,16 +282,16 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
             {/* Metric 3: Monthly Queries Cost */}
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                  <Database className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-2xl badge-indigo flex items-center justify-center">
+                  <Database className="w-5 h-5 icon-indigo" />
                 </div>
                 <div>
-                  <p className="text-xs t-muted">Monthly Query Cost</p>
+                  <p className="text-xs t-muted font-medium">Monthly Query Cost</p>
                   <p className="text-2xl font-bold t-primary tracking-tight">$24.80</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                <TrendingDown className="w-3 h-3" />
+              <div className="flex items-center gap-1 text-xs font-semibold badge-emerald px-2.5 py-1 rounded-full">
+                <TrendingDown className="w-3 h-3 icon-emerald" />
                 <span>3.2%</span>
               </div>
             </div>
@@ -299,17 +300,17 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
           {/* Sub Card: Budget & Status */}
           <div className="bento-card rounded-2xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400">
-                <Zap className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-xl badge-cyan flex items-center justify-center">
+                <Zap className="w-4 h-4 icon-cyan" />
               </div>
               <div>
-                <p className="text-xs t-muted">Monthly Cost Efficiency</p>
+                <p className="text-xs t-muted font-medium">Monthly Cost Efficiency</p>
                 <p className="text-sm font-semibold t-primary">Optimal Cloud Spend</p>
               </div>
             </div>
             <div className="text-right">
-              <span className="text-base font-bold text-emerald-400">$3.2%</span>
-              <p className="text-[10px] t-muted">↑ 3.2% saved</p>
+              <span className="text-base font-bold icon-emerald">$3.2%</span>
+              <p className="text-[10px] t-muted font-medium">↑ 3.2% saved</p>
             </div>
           </div>
         </div>
@@ -321,52 +322,52 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="bento-card rounded-2xl px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-              <Layers className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl badge-indigo flex items-center justify-center">
+              <Layers className="w-4 h-4 icon-indigo" />
             </div>
             <div>
-              <p className="text-xs t-muted">Indexed Chunks</p>
+              <p className="text-xs t-muted font-medium">Indexed Chunks</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-xl font-bold t-primary">1,248</span>
-                <span className="text-[11px] text-emerald-400 font-medium">↑ 12%</span>
+                <span className="text-[11px] icon-emerald font-semibold">↑ 12%</span>
               </div>
             </div>
           </div>
-          <span className="text-[11px] t-muted">2 hours ago</span>
+          <span className="text-[11px] t-muted font-medium">2 hours ago</span>
         </div>
 
         <div className="bento-card rounded-2xl px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-              <Cpu className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl badge-cyan flex items-center justify-center">
+              <Cpu className="w-4 h-4 icon-cyan" />
             </div>
             <div>
-              <p className="text-xs t-muted">Vector Embeddings</p>
+              <p className="text-xs t-muted font-medium">Vector Embeddings</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-xl font-bold t-primary">4,892</span>
-                <span className="text-[11px] text-emerald-400 font-medium">↑ 18%</span>
+                <span className="text-[11px] icon-emerald font-semibold">↑ 18%</span>
               </div>
             </div>
           </div>
-          <span className="text-[11px] text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">
+          <span className="text-[11px] font-bold badge-cyan px-2 py-0.5 rounded-full">
             Qdrant HNSW
           </span>
         </div>
 
         <div className="bento-card rounded-2xl px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-              <Sparkles className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl badge-purple flex items-center justify-center">
+              <Sparkles className="w-4 h-4 icon-purple" />
             </div>
             <div>
-              <p className="text-xs t-muted">Search Queries</p>
+              <p className="text-xs t-muted font-medium">Search Queries</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-xl font-bold t-primary">3,428</span>
-                <span className="text-[11px] text-purple-400 font-medium">99.7%</span>
+                <span className="text-[11px] icon-purple font-semibold">99.7%</span>
               </div>
             </div>
           </div>
-          <span className="text-[11px] t-muted">24h Activity</span>
+          <span className="text-[11px] t-muted font-medium">24h Activity</span>
         </div>
       </div>
 
@@ -400,63 +401,63 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                   <p className="text-xs font-medium t-primary truncate">Q3 Financial Report 2024</p>
                   <p className="text-[10px] t-muted">PDF · 42 pages · 2h ago</p>
                 </div>
-                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
+                <span className="text-[10px] badge-emerald px-2 py-0.5 rounded-full shrink-0 font-medium">
                   Indexed
                 </span>
               </div>
 
               {/* Doc 2 */}
               <div className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold shrink-0">
+                <div className="w-8 h-8 rounded-lg badge-indigo flex items-center justify-center text-xs font-bold shrink-0">
                   DOCX
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium t-primary truncate">Product Architecture Guide</p>
                   <p className="text-[10px] t-muted">DOCX · 56 pages · 5h ago</p>
                 </div>
-                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
+                <span className="text-[10px] badge-emerald px-2 py-0.5 rounded-full shrink-0 font-medium">
                   Indexed
                 </span>
               </div>
 
               {/* Doc 3 */}
               <div className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs font-bold shrink-0">
+                <div className="w-8 h-8 rounded-lg badge-cyan flex items-center justify-center text-xs font-bold shrink-0">
                   IMG
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium t-primary truncate">System Design Diagrams</p>
                   <p className="text-[10px] t-muted">Images · 12 files · 1d ago</p>
                 </div>
-                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
+                <span className="text-[10px] badge-emerald px-2 py-0.5 rounded-full shrink-0 font-medium">
                   Indexed
                 </span>
               </div>
 
               {/* Doc 4 */}
               <div className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center text-xs font-bold shrink-0">
+                <div className="w-8 h-8 rounded-lg badge-purple flex items-center justify-center text-xs font-bold shrink-0">
                   MD
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium t-primary truncate">API Documentation</p>
                   <p className="text-[10px] t-muted">Markdown · 18 pages · 2d ago</p>
                 </div>
-                <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 shrink-0 animate-pulse">
+                <span className="text-[10px] badge-amber px-2 py-0.5 rounded-full shrink-0 animate-pulse font-medium">
                   Processing
                 </span>
               </div>
 
               {/* Doc 5 */}
               <div className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0">
+                <div className="w-8 h-8 rounded-lg badge-emerald flex items-center justify-center text-xs font-bold shrink-0">
                   XLSX
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium t-primary truncate">Sales Data Analysis</p>
                   <p className="text-[10px] t-muted">XLSX · 8 sheets · 3d ago</p>
                 </div>
-                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
+                <span className="text-[10px] badge-emerald px-2 py-0.5 rounded-full shrink-0 font-medium">
                   Indexed
                 </span>
               </div>
@@ -539,31 +540,32 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
 
               {/* Grounded Response Display */}
               {responseResult && (
-                <div className="mt-4 p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/20 space-y-3">
-                  <div className="flex items-center justify-between text-xs text-indigo-300">
-                    <span className="font-semibold flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <div className="mt-4 p-4 rounded-2xl bento-chip border space-y-3" style={{ borderColor: 'var(--border)' }}>
+                  <div className="flex items-center justify-between text-xs t-primary">
+                    <span className="font-semibold flex items-center gap-1.5 icon-emerald">
+                      <ShieldCheck className="w-4 h-4 icon-emerald" />
                       Verified Response
                     </span>
                     {responseResult.verification && (
-                      <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      <span className="text-[10px] badge-emerald px-2 py-0.5 rounded-full font-semibold">
                         Faithfulness: {(responseResult.verification.faithfulness_score * 100).toFixed(0)}%
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">
+                  <p className="text-xs t-primary leading-relaxed whitespace-pre-wrap">
                     {responseResult.answer}
                   </p>
 
                   {/* Inline Citations */}
                   {responseResult.citations && responseResult.citations.length > 0 && (
-                    <div className="pt-2 border-t border-indigo-500/20 flex flex-wrap gap-2">
+                    <div className="pt-2 flex flex-wrap gap-2" style={{ borderTop: '1px solid var(--border)' }}>
                       {responseResult.citations.map((c) => (
                         <div
                           key={c.citation_id}
-                          className="px-2.5 py-1 rounded-lg bg-indigo-900/40 border border-indigo-500/30 text-[10px] text-indigo-300 flex items-center gap-1.5"
+                          className="px-2.5 py-1 rounded-lg bento-card border text-[10px] t-secondary flex items-center gap-1.5 font-medium"
+                          style={{ borderColor: 'var(--border)' }}
                         >
-                          <FileText className="w-3 h-3 text-cyan-400" />
+                          <FileText className="w-3 h-3 icon-cyan" />
                           <span>
                             {c.document_id} · p.{c.page_number}
                           </span>
@@ -645,7 +647,7 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                 <span className="w-2 h-2 rounded-full bg-purple-500" />
                 Recent Conversations
               </h3>
-              <span className="text-[11px] text-purple-400 bento-chip px-2 py-0.5 rounded-md">
+              <span className="text-[11px] badge-purple px-2 py-0.5 rounded-md font-medium">
                 5 active
               </span>
             </div>
@@ -664,7 +666,7 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                   className="p-3 rounded-xl bento-chip hover:opacity-90 transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-medium t-primary group-hover:text-indigo-400 transition-colors truncate">
+                    <p className="text-xs font-medium t-primary group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
                       {conv.title}
                     </p>
                     <span className="text-[10px] t-muted shrink-0">{conv.msgs}</span>
@@ -697,18 +699,18 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                 <span className="w-2 h-2 rounded-full bg-cyan-400" />
                 Knowledge Sources
               </h3>
-              <span className="text-[10px] text-cyan-400 bento-chip px-2 py-0.5 rounded-md">
+              <span className="text-[10px] badge-cyan px-2 py-0.5 rounded-md font-medium">
                 1,168 Total
               </span>
             </div>
 
             <div className="grid grid-cols-5 gap-2">
               {[
-                { label: 'PDF Docs', count: '482', icon: 'PDF', color: 'from-red-500/20 to-red-600/10 text-red-400 border-red-500/30' },
-                { label: 'Word Docs', count: '286', icon: 'W', color: 'from-blue-500/20 to-blue-600/10 text-blue-400 border-blue-500/30' },
-                { label: 'Excel Sheets', count: '124', icon: 'XLS', color: 'from-emerald-500/20 to-emerald-600/10 text-emerald-400 border-emerald-500/30' },
-                { label: 'Markdown', count: '92', icon: 'MD', color: 'from-purple-500/20 to-purple-600/10 text-purple-400 border-purple-500/30' },
-                { label: 'Images', count: '184', icon: 'IMG', color: 'from-pink-500/20 to-pink-600/10 text-pink-400 border-pink-500/30' },
+                { label: 'PDF Docs', count: '482', icon: 'PDF', color: 'from-rose-500/15 to-rose-600/5 text-rose-600 dark:text-rose-400 border-rose-500/30' },
+                { label: 'Word Docs', count: '286', icon: 'W', color: 'from-blue-500/15 to-blue-600/5 text-blue-600 dark:text-blue-400 border-blue-500/30' },
+                { label: 'Excel Sheets', count: '124', icon: 'XLS', color: 'from-emerald-500/15 to-emerald-600/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' },
+                { label: 'Markdown', count: '92', icon: 'MD', color: 'from-purple-500/15 to-purple-600/5 text-purple-600 dark:text-purple-400 border-purple-500/30' },
+                { label: 'Images', count: '184', icon: 'IMG', color: 'from-pink-500/15 to-pink-600/5 text-pink-600 dark:text-pink-400 border-pink-500/30' },
               ].map((src, idx) => (
                 <div
                   key={idx}
@@ -737,7 +739,7 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                 <span className="w-2 h-2 rounded-full bg-indigo-400" />
                 Ingestion Pipeline
               </h3>
-              <span className="text-[10px] text-indigo-400 bento-chip px-2 py-0.5 rounded-md">
+              <span className="text-[10px] badge-indigo px-2 py-0.5 rounded-md font-medium">
                 Live State
               </span>
             </div>
@@ -767,7 +769,7 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
 
           <div className="flex items-center justify-between pt-3 mt-2 text-[11px] t-muted" style={{ borderTop: '1px solid var(--border)' }}>
             <span>Workers: 4 active Celery pods</span>
-            <span className="text-cyan-400 font-mono">0 dropped jobs</span>
+            <span className="icon-cyan font-mono font-bold">0 dropped jobs</span>
           </div>
         </div>
 
@@ -779,7 +781,7 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                 <span className="w-2 h-2 rounded-full bg-purple-400" />
                 Query Analytics
               </h3>
-              <div className="flex items-center gap-1 text-[10px] text-purple-400 bento-chip px-2 py-0.5 rounded-md">
+              <div className="flex items-center gap-1 text-[10px] badge-purple px-2 py-0.5 rounded-md font-medium">
                 <span>7 days</span>
                 <ChevronDown className="w-3 h-3" />
               </div>

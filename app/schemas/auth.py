@@ -31,7 +31,17 @@ class TokenResponse(BaseModel):
 class RefreshTokenRequest(BaseModel):
     """Payload for refreshing an expired access token."""
 
-    refresh_token: str
+    refresh_token: str | None = Field(
+        default=None,
+        description="Refresh token string (optional if sent via HttpOnly cookie)",
+    )
+
+
+class AuthLogoutResponse(BaseModel):
+    """Response after terminating session and clearing cookies."""
+
+    success: bool = True
+    message: str = "Session successfully terminated"
 
 
 class UserProfileResponse(BaseModel):

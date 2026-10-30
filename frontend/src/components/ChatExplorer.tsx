@@ -102,7 +102,7 @@ export const ChatExplorer: React.FC = () => {
           <button
             key={index}
             onClick={() => citation && setActiveCitation(citation)}
-            className="inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded text-xs font-mono font-medium bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 border border-indigo-500/30 transition-colors"
+            className="inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded text-xs font-mono font-medium badge-indigo transition-colors"
           >
             {citation ? `[P.${citation.page_number}]` : `[${chunkId.slice(0, 6)}]`}
           </button>
@@ -118,10 +118,10 @@ export const ChatExplorer: React.FC = () => {
       <div className="lg:col-span-2 flex flex-col bento-card rounded-3xl overflow-hidden shadow-2xl">
         <div className="p-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center space-x-2 text-sm font-semibold t-primary">
-            <Sparkles className="h-4 w-4 text-indigo-400" />
+            <Sparkles className="h-4 w-4 icon-indigo" />
             <span>Grounded Dialogue Thread</span>
           </div>
-          <span className="text-[11px] text-indigo-400 font-mono bento-chip px-2.5 py-0.5 rounded-full">
+          <span className="text-[11px] badge-indigo font-mono px-2.5 py-0.5 rounded-full">
             Strict Evidence Citations
           </span>
         </div>
@@ -145,8 +145,8 @@ export const ChatExplorer: React.FC = () => {
 
               {msg.verification && (
                 <div className="mt-1 flex items-center gap-3 text-[11px] t-muted px-1">
-                  <span className="flex items-center gap-1 text-emerald-400">
-                    <ShieldCheck className="h-3 w-3" />
+                  <span className="flex items-center gap-1 icon-emerald font-medium">
+                    <ShieldCheck className="h-3.5 w-3.5" />
                     Faithfulness: {(msg.verification.faithfulness_score * 100).toFixed(0)}%
                   </span>
                   <span>•</span>
@@ -157,7 +157,7 @@ export const ChatExplorer: React.FC = () => {
           ))}
 
           {loading && (
-            <div className="flex items-center space-x-2 text-xs text-indigo-400 py-2">
+            <div className="flex items-center space-x-2 text-xs icon-indigo py-2">
               <div className="h-2 w-2 rounded-full bg-indigo-500 animate-ping" />
               <span>Searching dense & sparse indexes, neural reranking context...</span>
             </div>
@@ -186,7 +186,7 @@ export const ChatExplorer: React.FC = () => {
       {/* Visual Evidence Viewer Side Panel */}
       <div className="bento-card rounded-3xl p-5 flex flex-col overflow-hidden shadow-2xl">
         <div className="flex items-center space-x-2 pb-3 mb-3" style={{ borderBottom: '1px solid var(--border)' }}>
-          <BookOpen className="h-4 w-4 text-cyan-400" />
+          <BookOpen className="h-4 w-4 icon-cyan" />
           <h3 className="text-sm font-semibold t-primary">Citation Evidence Inspector</h3>
         </div>
 
@@ -194,8 +194,8 @@ export const ChatExplorer: React.FC = () => {
           <div className="space-y-4 flex-1 overflow-y-auto pr-1">
             <div className="p-4 rounded-2xl bento-chip border" style={{ borderColor: 'var(--border)' }}>
               <div className="flex items-center justify-between text-xs t-muted mb-2">
-                <span className="font-mono text-indigo-400">Page {activeCitation.page_number}</span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold">
+                <span className="font-mono icon-indigo font-bold">Page {activeCitation.page_number}</span>
+                <span className="px-2 py-0.5 rounded-full badge-emerald text-[10px] font-semibold">
                   Verified Pass
                 </span>
               </div>

@@ -154,7 +154,7 @@ export const App: React.FC = () => {
             onClick={toggleTheme}
             title={dark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
             className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 ${
-              dark ? 'text-amber-300 hover:bg-amber-400/10' : 'text-indigo-500 hover:bg-indigo-500/10'
+              dark ? 'text-amber-300 hover:bg-amber-400/10' : 'text-indigo-600 hover:bg-indigo-500/10'
             }`}
           >
             {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -163,7 +163,7 @@ export const App: React.FC = () => {
           {/* Security */}
           <button
             title="Tenant Security & ACL Active"
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+            className="w-11 h-11 rounded-xl flex items-center justify-center icon-emerald hover:bg-emerald-500/10 transition-colors"
           >
             <ShieldCheck className="w-5 h-5" />
           </button>
@@ -172,7 +172,7 @@ export const App: React.FC = () => {
           <button
             title="Enterprise Settings"
             className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${
-              dark ? 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]' : 'text-slate-500 hover:text-slate-700 hover:bg-black/[0.05]'
+              dark ? 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]' : 'text-slate-600 hover:text-slate-900 hover:bg-black/[0.05]'
             }`}
           >
             <Settings className="w-5 h-5" />
@@ -206,8 +206,8 @@ export const App: React.FC = () => {
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                <Upload className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-2xl badge-indigo flex items-center justify-center">
+                <Upload className="w-5 h-5 icon-indigo" />
               </div>
               <div>
                 <h3 className="text-base font-semibold t-primary">Upload Knowledge Documents</h3>
@@ -217,7 +217,7 @@ export const App: React.FC = () => {
 
             <form onSubmit={handleModalUpload} className="space-y-4">
               <label className="border-2 border-dashed border-indigo-500/30 hover:border-indigo-500/60 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all group" style={{ background: dark ? 'rgba(13,16,36,0.6)' : 'rgba(238,240,255,0.6)' }}>
-                <Upload className="w-8 h-8 text-indigo-400 group-hover:scale-110 transition-transform mb-2" />
+                <Upload className="w-8 h-8 icon-indigo group-hover:scale-110 transition-transform mb-2" />
                 <span className="text-xs font-semibold t-primary">
                   {uploadFile ? uploadFile.name : 'Click to select or drag and drop files'}
                 </span>
@@ -239,14 +239,14 @@ export const App: React.FC = () => {
                 <div
                   className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
                     uploadStatus.includes('failed')
-                      ? 'bg-red-500/10 border border-red-500/20 text-red-300'
-                      : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300'
+                      ? 'badge-amber'
+                      : 'badge-emerald'
                   }`}
                 >
                   {uploadStatus.includes('failed') ? (
-                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <AlertCircle className="w-4 h-4 shrink-0 icon-amber" />
                   ) : (
-                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                    <CheckCircle2 className="w-4 h-4 shrink-0 icon-emerald" />
                   )}
                   <span>{uploadStatus}</span>
                 </div>
