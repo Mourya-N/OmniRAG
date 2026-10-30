@@ -66,10 +66,18 @@ class CrossEncoderReranker(Reranker):
             return []
 
         scored_candidates: list[tuple[ScoredChunk, float]] = []
+        all_scored: list[tuple[ScoredChunk, float]] = []
+
         for chunk in candidates:
             relevance = self._compute_relevance_score(query, chunk.raw_text)
+            all_scored.append((chunk, relevance))
             if relevance >= score_threshold:
                 scored_candidates.append((chunk, relevance))
+
+        # Fallback to top scored candidates if threshold was too strict for multi-clause queries
+        if not scored_candidates and all_scored:
+            all_scored.sort(key=lambda x: x[1], reverse=True)
+            scored_candidates = [pair for pair in all_scored[:top_k] if pair[1] > 0.15]
 
         # Sort descending by cross-encoder score
         scored_candidates.sort(key=lambda x: x[1], reverse=True)
