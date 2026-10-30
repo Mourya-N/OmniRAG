@@ -12,8 +12,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import OmniRAGError
 from app.core.logging import get_logger
-from app.models.document import Document, DocumentVersion
+from app.models.document import Document, DocumentChunk, DocumentVersion
 from app.models.job import IngestionJob, IngestionStage
+from app.models.tenant import Organization
+from app.services.chunking import HierarchicalChunker
+from app.services.embeddings import get_embedding_provider
 from app.services.parser.registry import parse_document_content
 from app.services.storage import get_storage_backend
 
@@ -111,12 +114,48 @@ class IngestionPipelineRunner:
 
             # Stage 4: CHUNKING
             await self.update_job_stage(job, IngestionStage.CHUNKING)
+            # Fetch tenant_id via organization
+            org_stmt = select(Organization).where(Organization.id == doc.organization_id)
+            org_res = await self.db.execute(org_stmt)
+            org = org_res.scalar_one_or_none()
+            tenant_id = org.tenant_id if org else "default"
+
+            chunker = HierarchicalChunker()
+            chunk_payloads = chunker.chunk(
+                canonical_doc=canonical_doc,
+                tenant_id=tenant_id,
+                version_id=latest_version.id if latest_version else "v1",
+            )
 
             # Stage 5: EMBEDDING
             await self.update_job_stage(job, IngestionStage.EMBEDDING)
+            embedder = get_embedding_provider()
+            texts_to_embed = [c.raw_text for c in chunk_payloads]
+            embeddings = await embedder.embed_documents(texts_to_embed)
 
             # Stage 6: INDEXING
             await self.update_job_stage(job, IngestionStage.INDEXING)
+            # Persist chunks into database
+            if latest_version:
+                latest_version.total_chunks = len(chunk_payloads)
+
+            for payload, vector in zip(chunk_payloads, embeddings, strict=False):
+                db_chunk = DocumentChunk(
+                    id=payload.chunk_id,
+                    version_id=latest_version.id if latest_version else "v1",
+                    parent_chunk_id=payload.parent_chunk_id,
+                    chunk_index=payload.chunk_index,
+                    content_type=payload.content_type,
+                    raw_text=payload.raw_text,
+                    page_number=payload.page_number,
+                    section_heading=payload.section_heading,
+                    bounding_box_json=payload.bounding_box.model_dump() if payload.bounding_box else None,
+                    qdrant_point_id=payload.chunk_id,
+                    token_count=payload.token_count,
+                )
+                self.db.add(db_chunk)
+
+            await self.db.flush()
 
             # Update document status and complete job
             doc.status = "INDEXED"
