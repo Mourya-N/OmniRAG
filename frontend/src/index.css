@@ -185,3 +185,36 @@ html.light-theme .bento-chip {
 ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 9999px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.6); }
 
+/* ─────────────────────────────────────────────
+   POP-IN & POP-OUT SECTION ANIMATIONS
+   ───────────────────────────────────────────── */
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes popOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.96) translateY(-10px);
+  }
+}
+
+.animate-pop-in {
+  animation: popIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pop-out {
+  animation: popOut 0.25s ease-in forwards;
+}
+

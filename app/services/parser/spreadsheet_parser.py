@@ -30,33 +30,7 @@ class SpreadsheetParser(DocumentParser):
         doc_id = document_id or str(uuid.uuid4())
         pages: list[PageData] = []
 
-        if filename.lower().endswith(".csv") or content.startswith(b"") and b"," in content[:256]:
-            # CSV parsing
-            try:
-                text_content = content.decode("utf-8", errors="replace")
-                reader = csv.reader(io.StringIO(text_content))
-                rows_list = list(reader)
-                if rows_list:
-                    headers = rows_list[0]
-                    rows = rows_list[1:]
-                else:
-                    headers, rows = [], []
-
-                page = PageData(page_number=1)
-                page.tables.append(
-                    TableData(
-                        table_id=str(uuid.uuid4()),
-                        headers=headers,
-                        rows=rows,
-                        caption=filename,
-                        page_number=1,
-                    )
-                )
-                pages.append(page)
-            except Exception as e:
-                raise ParserError(f"Failed to parse CSV: {e}") from e
-
-        else:
+        if filename.lower().endswith((".xlsx", ".xls")) or content.startswith(b"PK\x03\x04"):
             # Excel (.xlsx) parsing
             try:
                 wb = openpyxl.load_workbook(io.BytesIO(content), data_only=True)
@@ -93,6 +67,32 @@ class SpreadsheetParser(DocumentParser):
                     pages.append(page)
             except Exception as e:
                 raise ParserError(f"Failed to parse XLSX workbook: {e}") from e
+
+        else:
+            # CSV parsing
+            try:
+                text_content = content.decode("utf-8", errors="replace")
+                reader = csv.reader(io.StringIO(text_content))
+                rows_list = list(reader)
+                if rows_list:
+                    headers = rows_list[0]
+                    rows = rows_list[1:]
+                else:
+                    headers, rows = [], []
+
+                page = PageData(page_number=1)
+                page.tables.append(
+                    TableData(
+                        table_id=str(uuid.uuid4()),
+                        headers=headers,
+                        rows=rows,
+                        caption=filename,
+                        page_number=1,
+                    )
+                )
+                pages.append(page)
+            except Exception as e:
+                raise ParserError(f"Failed to parse CSV: {e}") from e
 
         return CanonicalDocument(
             document_id=doc_id,
