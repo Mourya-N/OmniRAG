@@ -8,6 +8,218 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Stylesheet link -->
+    <link rel="stylesheet" href="/src/index.css" />
+
+    <!-- Tailwind CSS with Console Warning Filter -->
+    <script>
+      (function() {
+        const origWarn = console.warn;
+        console.warn = function(...args) {
+          if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) {
+            return;
+          }
+          origWarn.apply(console, args);
+        };
+      })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            animation: {
+              'float-slow': 'float 6s ease-in-out infinite',
+              'pulse-slow': 'pulseGlow 4s ease-in-out infinite',
+              'spin-slow': 'spin 30s linear infinite',
+              'fade-in': 'fadeIn 0.4s ease-out',
+            },
+            keyframes: {
+              float: {
+                '0%, 100%': { transform: 'translateY(0px)' },
+                '50%': { transform: 'translateY(-8px)' },
+              },
+              pulseGlow: {
+                '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+                '50%': { opacity: '0.7', transform: 'scale(1.03)' },
+              },
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(8px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+      /* =============================================
+         DARK THEME (default / .dark-theme)
+         ============================================= */
+      html, html.dark-theme {
+        --bg-base: #090c1a;
+        --bg-card: rgba(18, 22, 46, 0.72);
+        --bg-card-solid: #12162e;
+        --bg-input: rgba(8, 10, 24, 0.85);
+        --border: rgba(255, 255, 255, 0.08);
+        --border-glow: rgba(99, 102, 241, 0.3);
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --text-accent: #a5b4fc;
+        --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.45), inset 0 1px 1px 0 rgba(255,255,255,0.07);
+        --shadow-card-hover: 0 12px 40px 0 rgba(79, 70, 229, 0.2), inset 0 1px 1px 0 rgba(255,255,255,0.1);
+        --nebula1: rgba(157, 23, 77, 0.22);
+        --nebula2: rgba(109, 40, 217, 0.20);
+        --nebula3: rgba(6, 182, 212, 0.14);
+        --nebula4: rgba(79, 70, 229, 0.15);
+
+        --accent-cyan: #22d3ee;
+        --accent-cyan-bg: rgba(6, 182, 212, 0.12);
+        --accent-cyan-border: rgba(6, 182, 212, 0.28);
+        --accent-indigo: #818cf8;
+        --accent-indigo-bg: rgba(99, 102, 241, 0.12);
+        --accent-indigo-border: rgba(99, 102, 241, 0.28);
+        --accent-purple: #c084fc;
+        --accent-purple-bg: rgba(168, 85, 247, 0.12);
+        --accent-purple-border: rgba(168, 85, 247, 0.28);
+        --accent-emerald: #34d399;
+        --accent-emerald-bg: rgba(16, 185, 129, 0.12);
+        --accent-emerald-border: rgba(16, 185, 129, 0.28);
+        --accent-pink: #f472b6;
+        --accent-pink-bg: rgba(236, 72, 153, 0.12);
+        --accent-pink-border: rgba(236, 72, 153, 0.28);
+        --accent-amber: #fbbf24;
+        --accent-amber-bg: rgba(245, 158, 11, 0.12);
+        --accent-amber-border: rgba(245, 158, 11, 0.28);
+      }
+
+      /* =============================================
+         LIGHT THEME (.light-theme) - High Contrast WCAG AAA
+         ============================================= */
+      html.light-theme {
+        --bg-base: #eef2ff;
+        --bg-card: rgba(255, 255, 255, 0.94);
+        --bg-card-solid: #ffffff;
+        --bg-input: #ffffff;
+        --border: rgba(79, 70, 229, 0.20);
+        --border-glow: rgba(79, 70, 229, 0.40);
+        --text-primary: #050814;
+        --text-secondary: #1e293b;
+        --text-muted: #475569;
+        --text-accent: #3730a3;
+        --shadow-card: 0 4px 24px 0 rgba(79, 70, 229, 0.08), 0 1px 3px rgba(0,0,0,0.06);
+        --shadow-card-hover: 0 8px 32px 0 rgba(79, 70, 229, 0.16);
+        --nebula1: rgba(157, 23, 77, 0.08);
+        --nebula2: rgba(109, 40, 217, 0.08);
+        --nebula3: rgba(6, 182, 212, 0.06);
+        --nebula4: rgba(79, 70, 229, 0.07);
+
+        --accent-cyan: #0284c7;
+        --accent-cyan-bg: rgba(2, 132, 199, 0.12);
+        --accent-cyan-border: rgba(2, 132, 199, 0.32);
+        --accent-indigo: #3730a3;
+        --accent-indigo-bg: rgba(55, 48, 163, 0.10);
+        --accent-indigo-border: rgba(55, 48, 163, 0.32);
+        --accent-purple: #6d28d9;
+        --accent-purple-bg: rgba(109, 40, 217, 0.10);
+        --accent-purple-border: rgba(109, 40, 217, 0.32);
+        --accent-emerald: #047857;
+        --accent-emerald-bg: rgba(4, 120, 87, 0.12);
+        --accent-emerald-border: rgba(4, 120, 87, 0.32);
+        --accent-pink: #be185d;
+        --accent-pink-bg: rgba(190, 24, 93, 0.10);
+        --accent-pink-border: rgba(190, 24, 93, 0.32);
+        --accent-amber: #b45309;
+        --accent-amber-bg: rgba(180, 83, 9, 0.12);
+        --accent-amber-border: rgba(180, 83, 9, 0.32);
+      }
+
+      body {
+        background-color: var(--bg-base);
+        color: var(--text-primary);
+        font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+        transition: background-color 0.35s ease, color 0.35s ease;
+        overflow-x: hidden;
+      }
+
+      .bento-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-card);
+        transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.35s ease;
+      }
+      .bento-card:hover {
+        border-color: var(--border-glow);
+        box-shadow: var(--shadow-card-hover);
+      }
+
+      .bento-chip {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      }
+      html.light-theme .bento-chip {
+        background: rgba(255, 255, 255, 0.85);
+        border-color: var(--border);
+        color: var(--text-primary);
+      }
+      .bento-chip:hover {
+        background: rgba(99, 102, 241, 0.12);
+        border-color: rgba(167, 139, 250, 0.4);
+      }
+
+      .nebula-blob-1 { background: radial-gradient(ellipse, var(--nebula1) 0%, transparent 70%); }
+      .nebula-blob-2 { background: radial-gradient(ellipse, var(--nebula2) 0%, transparent 70%); }
+      .nebula-blob-3 { background: radial-gradient(ellipse, var(--nebula3) 0%, transparent 70%); }
+      .nebula-blob-4 { background: radial-gradient(ellipse, var(--nebula4) 0%, transparent 70%); }
+
+      .t-primary   { color: var(--text-primary); }
+      .t-secondary { color: var(--text-secondary); }
+      .t-muted     { color: var(--text-muted); }
+      .t-accent    { color: var(--text-accent); }
+
+      .badge-cyan    { color: var(--accent-cyan); background: var(--accent-cyan-bg); border: 1px solid var(--accent-cyan-border); }
+      .badge-indigo  { color: var(--accent-indigo); background: var(--accent-indigo-bg); border: 1px solid var(--accent-indigo-border); }
+      .badge-purple  { color: var(--accent-purple); background: var(--accent-purple-bg); border: 1px solid var(--accent-purple-border); }
+      .badge-emerald { color: var(--accent-emerald); background: var(--accent-emerald-bg); border: 1px solid var(--accent-emerald-border); }
+      .badge-pink    { color: var(--accent-pink); background: var(--accent-pink-bg); border: 1px solid var(--accent-pink-border); }
+      .badge-amber   { color: var(--accent-amber); background: var(--accent-amber-bg); border: 1px solid var(--accent-amber-border); }
+
+      .icon-cyan    { color: var(--accent-cyan); }
+      .icon-indigo  { color: var(--accent-indigo); }
+      .icon-purple  { color: var(--accent-purple); }
+      .icon-emerald { color: var(--accent-emerald); }
+      .icon-pink    { color: var(--accent-pink); }
+      .icon-amber   { color: var(--accent-amber); }
+
+      .glass-input {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+      .glass-input::placeholder { color: var(--text-muted); }
+      .glass-input:focus {
+        border-color: rgba(99, 102, 241, 0.5);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+      }
+
+      ::-webkit-scrollbar { width: 5px; height: 5px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 9999px; }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.6); }
+    </style>
   </head>
   <body>
     <div id="root"></div>
