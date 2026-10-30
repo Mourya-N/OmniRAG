@@ -19,6 +19,7 @@ from app.services.chunking import HierarchicalChunker
 from app.services.embeddings import get_embedding_provider
 from app.services.parser.registry import parse_document_content
 from app.services.storage import get_storage_backend
+from app.services.vector_store import VectorPoint, get_vector_store
 
 logger = get_logger(__name__)
 
@@ -139,6 +140,7 @@ class IngestionPipelineRunner:
             if latest_version:
                 latest_version.total_chunks = len(chunk_payloads)
 
+            vector_points: list[VectorPoint] = []
             for payload, vector in zip(chunk_payloads, embeddings, strict=False):
                 db_chunk = DocumentChunk(
                     id=payload.chunk_id,
@@ -155,7 +157,36 @@ class IngestionPipelineRunner:
                 )
                 self.db.add(db_chunk)
 
+                vector_points.append(
+                    VectorPoint(
+                        point_id=payload.chunk_id,
+                        vector=vector,
+                        payload={
+                            "chunk_id": payload.chunk_id,
+                            "document_id": doc.id,
+                            "tenant_id": tenant_id,
+                            "organization_id": doc.organization_id,
+                            "raw_text": payload.raw_text,
+                            "page_number": payload.page_number,
+                            "section_heading": payload.section_heading,
+                            "content_type": payload.content_type,
+                            "parent_chunk_id": payload.parent_chunk_id,
+                        },
+                    )
+                )
+
             await self.db.flush()
+
+            # Index into Qdrant vector store
+            try:
+                vstore = get_vector_store()
+                await vstore.create_collection_if_not_exists(
+                    collection_name="omnirag_chunks",
+                    dimension=embedder.dimension,
+                )
+                await vstore.upsert_points("omnirag_chunks", vector_points)
+            except Exception as v_err:
+                logger.warning("vector_store_indexing_deferred", error=str(v_err))
 
             # Update document status and complete job
             doc.status = "INDEXED"
