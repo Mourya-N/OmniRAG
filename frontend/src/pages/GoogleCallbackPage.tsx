@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle2, ShieldCheck, Sparkles, ArrowRight, RefreshCw } from 'lucide-react';
 import { ApiService } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
+import { OmniRAGLogo } from '../components/OmniRAGLogo';
 
 interface GoogleCallbackPageProps {
   onSuccess: () => void;
@@ -135,14 +136,8 @@ export const GoogleCallbackPage: React.FC<GoogleCallbackPageProps> = ({ onSucces
         {status === 'processing' && (
           <div className="flex flex-col items-center py-6">
             <div className="relative mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 p-[2px] shadow-lg shadow-indigo-600/30 flex items-center justify-center animate-pulse">
-                <div
-                  className="w-full h-full rounded-[14px] flex items-center justify-center"
-                  style={{ background: dark ? '#0d1024' : '#ffffff' }}
-                >
-                  <RefreshCw className="w-7 h-7 text-indigo-500 animate-spin" />
-                </div>
-              </div>
+              <OmniRAGLogo size="lg" showText={false} interactive={false} iconClassName="animate-pulse" />
+              <div className="absolute -inset-1 rounded-2xl bg-indigo-500/20 blur-md -z-10 animate-pulse" />
             </div>
             <h2 className="text-xl font-extrabold t-primary tracking-tight">Authenticating with Google</h2>
             <p className="text-xs t-secondary mt-2 max-w-xs leading-relaxed">
@@ -222,3 +217,4 @@ export const GoogleCallbackPage: React.FC<GoogleCallbackPageProps> = ({ onSucces
 };
 
 export default GoogleCallbackPage;
+

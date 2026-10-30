@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ApiService } from '../services/api';
+import { OmniRAGLogo } from '../components/OmniRAGLogo';
 
 interface LoginPageProps {
   onNavigate: (page: 'signup' | 'dashboard') => void;
@@ -101,18 +102,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
 
       {/* Card */}
       <div className="bento-card w-full max-w-md rounded-3xl p-8 sm:p-10 animate-fade-in shadow-2xl">
-        {/* Logo & heading */}
+        {/* Innovative OmniRAG Logo & heading */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 p-[2px] shadow-lg shadow-indigo-600/30 mb-4">
-            <div
-              className="w-full h-full rounded-[14px] flex items-center justify-center relative overflow-hidden"
-              style={{ background: dark ? '#0d1024' : '#ffffff' }}
-            >
-              <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-400 to-cyan-300 animate-pulse-slow" />
-            </div>
+          <div className="mb-4">
+            <OmniRAGLogo
+              size="lg"
+              showText={false}
+              interactive={true}
+            />
           </div>
-          <h1 className="text-2xl font-extrabold t-primary tracking-tight">Welcome back</h1>
-          <p className="text-sm t-secondary mt-1">Sign in to your OmniRAG workspace</p>
+          <div className="flex items-center gap-1.5 mb-1">
+            <h1 className="text-2xl font-extrabold t-primary tracking-tight">Welcome back to</h1>
+            <span className="text-2xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 bg-clip-text text-transparent">OmniRAG</span>
+          </div>
+          <p className="text-sm t-secondary">Sign in to your enterprise knowledge workspace</p>
         </div>
 
         {errorMsg && (

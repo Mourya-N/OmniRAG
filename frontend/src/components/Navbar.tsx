@@ -3,6 +3,7 @@ import { Search, Bell, Upload, LogOut, Shield, ChevronDown, LogIn } from 'lucide
 import { useTheme } from '../contexts/ThemeContext';
 import { ApiService } from '../services/api';
 import { UserProfile } from '../types';
+import { OmniRAGLogo } from './OmniRAGLogo';
 
 interface NavbarProps {
   activeTab: string;
@@ -90,31 +91,18 @@ export const Navbar: React.FC<NavbarProps> = ({
       }}
     >
       <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-6">
-        {/* Left: Brand & Tagline */}
+        {/* Left: Brand & Tagline with Innovative OmniRAG Logo */}
         <div
           onClick={() => setActiveTab('home')}
-          className="flex items-center gap-3.5 cursor-pointer group shrink-0"
+          className="cursor-pointer group shrink-0"
         >
-          {/* Glowing Multi-color Petal Icon */}
-          <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 p-[1.5px] shadow-lg shadow-indigo-600/30 group-hover:shadow-indigo-500/50 transition-all">
-            <div
-              className="w-full h-full rounded-[14px] flex items-center justify-center relative overflow-hidden"
-              style={{ background: dark ? '#0d1024' : '#f5f3ff' }}
-            >
-              <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-400 to-cyan-300 animate-pulse-slow" />
-              <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-transparent" />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-bold tracking-tight t-primary">OmniRAG</span>
-              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
-                Enterprise
-              </span>
-            </div>
-            <p className="text-[11px] t-muted font-medium">Enterprise Knowledge Intelligence</p>
-          </div>
+          <OmniRAGLogo
+            size="md"
+            showText={true}
+            subtitle="Enterprise Knowledge Intelligence"
+            badge="Enterprise"
+            interactive={true}
+          />
         </div>
 
         {/* Center: Global Search Capsule */}

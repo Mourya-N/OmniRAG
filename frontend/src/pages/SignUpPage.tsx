@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, Sparkles } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ApiService } from '../services/api';
+import { OmniRAGLogo } from '../components/OmniRAGLogo';
 
 interface SignUpPageProps {
   onNavigate: (page: 'login' | 'dashboard') => void;
@@ -152,18 +153,17 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
           <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/5 blur-2xl" />
           <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full bg-indigo-300/10 blur-xl" />
 
-          {/* Logo */}
+          {/* Innovative OmniRAG Logo */}
           <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-400 via-purple-400 to-cyan-300 p-[1.5px] shadow-lg shadow-indigo-400/40">
-                <div className="w-full h-full rounded-[12px] bg-indigo-900/60 flex items-center justify-center">
-                  <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-indigo-300 via-purple-300 to-cyan-200 animate-pulse-slow" />
-                </div>
-              </div>
-              <div>
-                <div className="text-lg font-extrabold text-white tracking-tight">OmniRAG</div>
-                <div className="text-[10px] uppercase font-mono text-indigo-200/90 tracking-widest font-semibold">Enterprise AI</div>
-              </div>
+            <div className="mb-6">
+              <OmniRAGLogo
+                size="md"
+                showText={true}
+                subtitle="Enterprise AI"
+                badge="Enterprise"
+                interactive={false}
+                className="[&_.t-primary]:!text-white [&_.t-muted]:!text-indigo-200"
+              />
             </div>
 
             <h2 className="text-2xl font-extrabold text-white leading-tight mb-3">
@@ -205,23 +205,6 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
           <div className="mb-7">
             <h1 className="text-2xl font-extrabold t-primary tracking-tight">Create your account</h1>
             <p className="text-sm t-secondary mt-1">Start your 14-day free enterprise trial. No credit card required.</p>
-          </div>
-
-          {/* Google Sign Up */}
-          <button
-            type="button"
-            onClick={() => onNavigate('dashboard')}
-            className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl bento-chip border t-primary text-sm font-semibold hover:opacity-80 transition-opacity mb-5"
-            style={{ borderColor: 'var(--border)' }}
-          >
-            <GoogleIcon />
-            Continue with Google
-          </button>
-
-          <div className="flex items-center gap-3 mb-5">
-            <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-            <span className="text-[11px] font-semibold t-muted uppercase tracking-widest">or sign up with email</span>
-            <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
