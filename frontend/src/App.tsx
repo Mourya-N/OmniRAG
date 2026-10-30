@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Home,
   MessageSquare,
@@ -24,6 +24,7 @@ import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
 import { ApiService } from './services/api';
 import { useTheme } from './contexts/ThemeContext';
+import { UserProfile } from './types';
 
 type Page = 'login' | 'signup' | 'dashboard';
 type DashTab = 'home' | 'chat' | 'search' | 'documents' | 'evaluation';
@@ -43,6 +44,26 @@ export const App: React.FC = () => {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
+    try {
+      const stored = localStorage.getItem('omnirag_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Verify and sync authenticated user from backend on mount and navigation
+  useEffect(() => {
+    ApiService.getMe()
+      .then((user) => {
+        setCurrentUser(user);
+        localStorage.setItem('omnirag_user', JSON.stringify(user));
+      })
+      .catch(() => {
+        // Unauthenticated session
+      });
+  }, [currentPage]);
 
   const navigate = (page: Page) => {
     if (page === 'dashboard') {
@@ -51,6 +72,15 @@ export const App: React.FC = () => {
       window.location.hash = `#/${page}`;
     }
     setCurrentPage(page);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await ApiService.logout();
+    } catch {}
+    localStorage.removeItem('omnirag_user');
+    setCurrentUser(null);
+    navigate('login');
   };
 
   const navItems = [
@@ -110,6 +140,8 @@ export const App: React.FC = () => {
         onOpenUpload={() => setIsUploadModalOpen(true)}
         onQuickSearch={(_q) => setActiveTab('search')}
         onNavigateAuth={() => navigate('login')}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       {/* MAIN CONTAINER: LEFT DOCK + MAIN CONTENT */}

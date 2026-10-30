@@ -40,6 +40,17 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const domain = email.split('@')[1]?.toLowerCase().trim();
+    const disallowedPersonal = [
+      'gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'live.com',
+      'yahoo.com', 'ymail.com', 'icloud.com', 'email.com', 'mail.com', 'proton.me',
+      'protonmail.com', 'aol.com', 'zoho.com', 'gmx.com', 'yandex.com',
+    ];
+    if (domain && (disallowedPersonal.includes(domain) || disallowedPersonal.some(d => domain.endsWith(`.${d}`)))) {
+      setPwError(`Registration is restricted to corporate work emails. Personal email addresses (@${domain}) are not permitted. Please sign up with your company email.`);
+      return;
+    }
+
     if (password !== confirmPw) {
       setPwError('Passwords do not match');
       return;
@@ -57,11 +68,16 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
 
     try {
       await ApiService.register({
-        email,
+        email: email.trim(),
         password,
-        full_name: fullName,
-        tenant_name: `${fullName}'s Workspace`,
+        full_name: fullName.trim(),
+        tenant_name: `${fullName.trim()}'s Workspace`,
       });
+      // Store user identity for the session
+      localStorage.setItem(
+        'omnirag_user',
+        JSON.stringify({ full_name: fullName.trim(), email: email.trim(), roles: ['User'] })
+      );
       // Passwords never persisted locally
       setPassword('');
       setConfirmPw('');
@@ -196,22 +212,26 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                 required
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
-                placeholder="Amit Kumar"
+                placeholder="e.g. Sarah Jenkins"
                 className="glass-input w-full px-4 py-2.5 rounded-xl text-sm t-primary focus:outline-none placeholder:t-muted"
               />
             </div>
 
             {/* Work Email */}
             <div>
-              <label className="block text-xs font-semibold t-secondary mb-1.5">Work Email</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold t-secondary">Corporate Work Email</label>
+                <span className="text-[10px] text-indigo-500 dark:text-indigo-400 font-medium">Business emails only</span>
+              </div>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="you@company.com"
+                placeholder="name@company.com"
                 className="glass-input w-full px-4 py-2.5 rounded-xl text-sm t-primary focus:outline-none placeholder:t-muted"
               />
+              <p className="text-[10px] t-muted mt-1">Personal accounts (@gmail, @outlook, @email.com, etc.) are restricted.</p>
             </div>
 
             {/* Role */}

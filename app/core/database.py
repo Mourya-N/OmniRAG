@@ -74,3 +74,35 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
         finally:
             await session.close()
 
+
+async def init_database_tables() -> None:
+    """Ensure all required database tables exist for user authentication and multi-tenant data.
+
+    Attempts connection to the configured database (e.g. PostgreSQL).
+    If PostgreSQL is unavailable locally, automatically provisions a persistent SQLite database (omnirag.db).
+    """
+    global engine, AsyncSessionLocal
+    import app.models  # noqa: F401
+
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("database_tables_initialized", uri=str(engine.url))
+    except Exception as exc:
+        if "sqlite" not in str(engine.url):
+            logger.warning(
+                "postgres_connection_unavailable",
+                error=str(exc),
+                message="PostgreSQL is not running on localhost. Automatically switching to persistent SQLite database (omnirag.db) for user data storage.",
+            )
+            engine = create_async_engine(
+                "sqlite+aiosqlite:///./omnirag.db",
+                connect_args={"check_same_thread": False},
+            )
+            AsyncSessionLocal.configure(bind=engine)
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            logger.info("sqlite_fallback_tables_initialized", path="./omnirag.db")
+        else:
+            raise
+

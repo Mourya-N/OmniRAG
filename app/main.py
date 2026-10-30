@@ -19,7 +19,7 @@ from app.api.v1.organizations import router as org_router
 from app.api.v1.rag import router as rag_router
 from app.api.v1.search import router as search_router
 from app.core.config import settings
-from app.core.database import engine
+from app.core.database import engine, init_database_tables
 from app.core.exceptions import OmniRAGError
 from app.core.logging import get_logger, setup_logging
 from app.core.redis import close_redis
@@ -36,6 +36,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         environment=settings.ENVIRONMENT.value,
         debug=settings.DEBUG,
     )
+    # Automatically initialize and verify database tables for user data storage
+    try:
+        await init_database_tables()
+    except Exception as exc:
+        logger.error("database_table_initialization_error", error=str(exc))
+
     yield
     logger.info("omnirag_shutting_down")
     await engine.dispose()

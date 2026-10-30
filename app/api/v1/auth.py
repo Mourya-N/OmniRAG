@@ -27,6 +27,7 @@ from app.core.security import (
     decode_token,
     hash_password,
     validate_password_strength,
+    validate_work_email,
     verify_dummy_password,
     verify_password,
 )
@@ -123,26 +124,29 @@ async def register_user(
             status_code=429,
         )
 
-    # 1. Enforce password complexity policy
+    # 1. Enforce corporate/organization work email requirement (reject personal webmail)
+    validate_work_email(payload.email)
+
+    # 2. Enforce password complexity policy
     validate_password_strength(payload.password)
 
-    # 2. Check if user already exists
+    # 3. Check if user already exists
     existing = await db.execute(select(User).where(User.email == payload.email))
     if existing.scalar_one_or_none():
-        raise OmniRAGError("User with this email already exists", code="USER_EXISTS", status_code=409)
+        raise OmniRAGError("An account with this work email already exists. Please sign in.", code="USER_EXISTS", status_code=409)
 
-    # 3. Create Tenant
+    # 4. Create Tenant
     tenant_slug = slugify(payload.tenant_name)
     tenant = Tenant(name=payload.tenant_name, slug=tenant_slug)
     db.add(tenant)
     await db.flush()
 
-    # 4. Create Default Organization
+    # 5. Create Default Organization
     org = Organization(tenant_id=tenant.id, name="Default Organization", slug="default")
     db.add(org)
     await db.flush()
 
-    # 5. Create User with Argon2id cryptographic hash
+    # 6. Create User with Argon2id cryptographic hash
     user = User(
         email=payload.email,
         password_hash=hash_password(payload.password),
@@ -152,25 +156,25 @@ async def register_user(
     db.add(user)
     await db.flush()
 
-    # 6. Ensure Owner Role exists
-    role_res = await db.execute(select(Role).where(Role.name == "Owner"))
-    owner_role = role_res.scalar_one_or_none()
-    if not owner_role:
-        owner_role = Role(name="Owner", description="Full administrative owner of organization")
-        db.add(owner_role)
+    # 7. Ensure standard User Role exists (no admin concept)
+    role_res = await db.execute(select(Role).where(Role.name == "User"))
+    user_role = role_res.scalar_one_or_none()
+    if not user_role:
+        user_role = Role(name="User", description="Standard enterprise user account")
+        db.add(user_role)
         await db.flush()
 
-    # 7. Bind User to Organization with Owner Role
-    membership = Membership(user_id=user.id, organization_id=org.id, role_id=owner_role.id)
+    # 8. Bind User to Organization with standard User Role
+    membership = Membership(user_id=user.id, organization_id=org.id, role_id=user_role.id)
     db.add(membership)
     await db.commit()
 
-    # 8. Generate Tokens
+    # 9. Generate Tokens
     access_token = create_access_token(
         subject=user.id,
         tenant_id=tenant.id,
         organization_id=org.id,
-        roles=["Owner"],
+        roles=["User"],
     )
     refresh_token = create_refresh_token(subject=user.id, tenant_id=tenant.id)
 
@@ -218,10 +222,10 @@ async def login_user(
     # Timing attack prevention: if user doesn't exist, execute dummy verification
     if not user:
         verify_dummy_password()
-        raise AuthenticationError("Invalid email or password")
+        raise AuthenticationError("No account found with this email. Please sign up first.")
 
     if not verify_password(payload.password, user.password_hash):
-        raise AuthenticationError("Invalid email or password")
+        raise AuthenticationError("Incorrect password. Please verify your credentials.")
 
     if not user.is_active:
         raise AuthenticationError("User account has been disabled")
@@ -233,7 +237,7 @@ async def login_user(
     primary_membership = user.memberships[0]
     tenant_id = primary_membership.organization.tenant_id
     org_id = primary_membership.organization_id
-    roles = [m.role.name for m in user.memberships if m.organization_id == org_id]
+    roles = [m.role.name for m in user.memberships if m.organization_id == org_id] or ["User"]
 
     access_token = create_access_token(
         subject=user.id,

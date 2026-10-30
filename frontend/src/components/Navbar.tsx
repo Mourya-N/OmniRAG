@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Bell, Upload, LogOut, Shield, ChevronDown } from 'lucide-react';
+import { Search, Bell, Upload, LogOut, Shield, ChevronDown, LogIn } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ApiService } from '../services/api';
+import { UserProfile } from '../types';
 
 interface NavbarProps {
   activeTab: string;
@@ -9,13 +10,29 @@ interface NavbarProps {
   onOpenUpload: () => void;
   onQuickSearch: (query: string) => void;
   onNavigateAuth?: () => void;
+  currentUser?: UserProfile | null;
+  onLogout?: () => void;
 }
+
+const getInitials = (name?: string, email?: string): string => {
+  if (name && name.trim()) {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  if (email && email.trim()) {
+    return email.trim().slice(0, 2).toUpperCase();
+  }
+  return 'U';
+};
 
 export const Navbar: React.FC<NavbarProps> = ({
   setActiveTab,
   onOpenUpload,
   onQuickSearch,
   onNavigateAuth,
+  currentUser,
+  onLogout,
 }) => {
   const { theme } = useTheme();
   const dark = theme === 'dark';
@@ -42,17 +59,27 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const handleLogout = async () => {
+    setIsProfileOpen(false);
+    if (onLogout) {
+      onLogout();
+      return;
+    }
     try {
       await ApiService.logout();
     } catch {
       // Ignore network errors on logout
     }
+    localStorage.removeItem('omnirag_user');
     if (onNavigateAuth) {
       onNavigateAuth();
     } else {
       window.location.hash = '#/login';
     }
   };
+
+  const displayName = currentUser?.full_name?.trim() || (currentUser?.email ? currentUser.email.split('@')[0] : 'Enterprise User');
+  const displayEmail = currentUser?.email?.trim() || 'user@enterprise.ai';
+  const initials = getInitials(currentUser?.full_name, currentUser?.email);
 
   return (
     <header
@@ -145,34 +172,45 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="relative flex items-center pl-2"
             style={{ borderLeft: `1px solid var(--border)` }}
           >
-            <button
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center gap-2.5 p-1 rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all"
-            >
-              <div
-                className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-xs font-bold text-white shadow-md shadow-indigo-500/30"
+            {currentUser ? (
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2.5 p-1 rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all"
               >
-                AK
-              </div>
-              <div className="hidden sm:block text-left">
-                <p className="text-xs font-semibold leading-tight t-primary">Amit Kumar</p>
-                <p className="text-[10px] leading-tight t-muted">Engineering</p>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 t-muted" />
-            </button>
+                <div
+                  className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-500 flex items-center justify-center text-xs font-bold text-white shadow-md shadow-indigo-500/30"
+                >
+                  {initials}
+                </div>
+                <div className="hidden sm:block text-left max-w-[130px]">
+                  <p className="text-xs font-semibold leading-tight t-primary truncate">{displayName}</p>
+                  <p className="text-[10px] leading-tight t-muted truncate">Enterprise User</p>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 t-muted" />
+              </button>
+            ) : (
+              <button
+                onClick={onNavigateAuth}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bento-chip text-xs font-medium t-primary hover:opacity-90 transition-all border"
+                style={{ borderColor: 'var(--border)' }}
+              >
+                <LogIn className="w-3.5 h-3.5 icon-indigo" />
+                <span>Sign In</span>
+              </button>
+            )}
 
             {/* Profile Dropdown Menu */}
-            {isProfileOpen && (
+            {isProfileOpen && currentUser && (
               <div
-                className="absolute right-0 top-12 w-60 rounded-2xl bento-card p-2 shadow-2xl z-50 animate-fade-in"
+                className="absolute right-0 top-12 w-64 rounded-2xl bento-card p-2 shadow-2xl z-50 animate-fade-in"
                 style={{ borderColor: 'var(--border)' }}
               >
                 <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--border)' }}>
-                  <p className="text-xs font-bold t-primary">Amit Kumar</p>
-                  <p className="text-[11px] t-muted">amit.kumar@enterprise.ai</p>
+                  <p className="text-xs font-bold t-primary truncate">{displayName}</p>
+                  <p className="text-[11px] t-muted truncate">{displayEmail}</p>
                   <div className="mt-2 flex items-center gap-1.5 text-[10px] badge-emerald px-2 py-0.5 rounded-md w-fit">
                     <Shield className="w-3 h-3 icon-emerald" />
-                    <span>Role: Tenant Admin</span>
+                    <span>Role: Enterprise User</span>
                   </div>
                 </div>
 

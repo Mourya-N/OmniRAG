@@ -29,6 +29,105 @@ _DUMMY_HASH = _ph.hash("dummy_constant_time_mitigation_password_string")
 # In-memory sliding window fallback for rate limiting when Redis is unavailable
 _memory_rate_limit_store: dict[str, list[float]] = defaultdict(list)
 
+# Disallowed personal, free, and temporary email domains
+DISALLOWED_PERSONAL_DOMAINS = {
+    # Google
+    "gmail.com",
+    "googlemail.com",
+    # Microsoft
+    "outlook.com",
+    "hotmail.com",
+    "live.com",
+    "msn.com",
+    "passport.com",
+    # Yahoo
+    "yahoo.com",
+    "ymail.com",
+    "rocketmail.com",
+    "yahoo.co.uk",
+    "yahoo.fr",
+    "yahoo.in",
+    # Apple
+    "icloud.com",
+    "me.com",
+    "mac.com",
+    # Generic personal webmail
+    "email.com",
+    "mail.com",
+    "inbox.com",
+    "post.com",
+    # Privacy / encrypted personal webmail
+    "proton.me",
+    "protonmail.com",
+    "tutanota.com",
+    "tuta.io",
+    # Regional and other free providers
+    "aol.com",
+    "aim.com",
+    "zoho.com",
+    "zohomail.com",
+    "gmx.com",
+    "gmx.net",
+    "yandex.com",
+    "yandex.ru",
+    "ya.ru",
+    "mail.ru",
+    "bk.ru",
+    "inbox.ru",
+    "list.ru",
+    "rambler.ru",
+    "web.de",
+    "freenet.de",
+    "t-online.de",
+    "fastmail.com",
+    "fastmail.fm",
+    "hushmail.com",
+    "lycos.com",
+    # Temporary / disposable mail services
+    "mailinator.com",
+    "tempmail.com",
+    "guerrillamail.com",
+    "10minutemail.com",
+    "trashmail.com",
+    "throwawaymail.com",
+    "sharklasers.com",
+    "getairmail.com",
+    "yopmail.com",
+    "dispostable.com",
+}
+
+
+def validate_work_email(email: str) -> None:
+    """Validate that the given email is an enterprise or organization work email.
+
+    Rejects personal webmail (gmail.com, outlook.com, email.com, etc.) and disposable domains.
+    """
+    clean_email = email.strip().lower()
+    if "@" not in clean_email:
+        raise OmniRAGError(
+            "Invalid email address format.",
+            code="INVALID_EMAIL_FORMAT",
+            status_code=400,
+        )
+
+    parts = clean_email.split("@", 1)
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+        raise OmniRAGError(
+            "Invalid email address format.",
+            code="INVALID_EMAIL_FORMAT",
+            status_code=400,
+        )
+
+    domain = parts[1].strip()
+
+    if domain in DISALLOWED_PERSONAL_DOMAINS or any(domain.endswith(f".{d}") for d in DISALLOWED_PERSONAL_DOMAINS):
+        raise OmniRAGError(
+            f"Registration is restricted to business and enterprise work emails. "
+            f"Personal email addresses (@{domain}) are not permitted. Please sign up using your company or organization work email.",
+            code="PERSONAL_EMAIL_NOT_ALLOWED",
+            status_code=400,
+        )
+
 
 def validate_password_strength(password: str) -> None:
     """Enforce enterprise password complexity requirements.

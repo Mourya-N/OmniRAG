@@ -34,7 +34,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
 
     try {
       // Authenticate with zero-trust backend and issue HttpOnly cookie
-      await ApiService.login({ email, password });
+      await ApiService.login({ email: email.trim(), password });
+      // Fetch authenticated user profile to update navbar state
+      try {
+        const me = await ApiService.getMe();
+        localStorage.setItem('omnirag_user', JSON.stringify(me));
+      } catch {
+        const fallbackName = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        localStorage.setItem('omnirag_user', JSON.stringify({ full_name: fallbackName, email: email.trim(), roles: ['User'] }));
+      }
       // Clear password state immediately from memory
       setPassword('');
       onNavigate('dashboard');

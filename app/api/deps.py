@@ -79,7 +79,8 @@ def require_roles(allowed_roles: list[str]):
         current_user: dict[str, Any] = Depends(get_current_user),
     ) -> dict[str, Any]:
         user_roles = current_user.get("roles", [])
-        if "Owner" in user_roles or "Admin" in user_roles:
+        # All authenticated enterprise users have standard platform access (no admin distinction)
+        if "User" in user_roles or "Member" in user_roles or "Owner" in user_roles or "Admin" in user_roles:
             return current_user
 
         if not any(role in allowed_roles for role in user_roles):

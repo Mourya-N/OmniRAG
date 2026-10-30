@@ -52,3 +52,13 @@ export interface SearchHit {
   retrieval_source: string;
 }
 
+export interface UserProfile {
+  id?: string;
+  email: string;
+  full_name: string;
+  tenant_id?: string;
+  organization_id?: string;
+  roles?: string[];
+  is_active?: boolean;
+}
+

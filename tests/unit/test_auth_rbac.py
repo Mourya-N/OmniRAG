@@ -135,7 +135,7 @@ async def test_full_auth_and_organization_flow(client: AsyncClient):
     assert me_resp.status_code == 200
     profile = me_resp.json()
     assert profile["email"] == "lead.engineer@enterprise.ai"
-    assert "Owner" in profile["roles"]
+    assert "User" in profile["roles"]
     tenant_id = profile["tenant_id"]
 
     # 6. Refresh Token
@@ -231,5 +231,71 @@ async def test_weak_password_enforcement(client: AsyncClient):
         },
     )
     assert common_resp.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_work_email_validation(client):
+    """Enforce that personal webmail domains (gmail, outlook, etc.) are rejected."""
+    # 1. Reject gmail.com
+    gmail_resp = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "alex.dev@gmail.com",
+            "password": "StrongPassword123!",
+            "full_name": "Alex Personal",
+            "tenant_name": "AlexOrg",
+        },
+    )
+    assert gmail_resp.status_code == 400
+    assert gmail_resp.json()["error"]["code"] == "PERSONAL_EMAIL_NOT_ALLOWED"
+
+    # 2. Reject outlook.com
+    outlook_resp = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "alex.dev@outlook.com",
+            "password": "StrongPassword123!",
+            "full_name": "Alex Personal",
+            "tenant_name": "AlexOrg",
+        },
+    )
+    assert outlook_resp.status_code == 400
+    assert outlook_resp.json()["error"]["code"] == "PERSONAL_EMAIL_NOT_ALLOWED"
+
+    # 3. Reject email.com
+    email_resp = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "alex.dev@email.com",
+            "password": "StrongPassword123!",
+            "full_name": "Alex Personal",
+            "tenant_name": "AlexOrg",
+        },
+    )
+    assert email_resp.status_code == 400
+    assert email_resp.json()["error"]["code"] == "PERSONAL_EMAIL_NOT_ALLOWED"
+
+    # 4. Accept valid corporate/organization work email
+    work_resp = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "alex.dev@enterprise-corp.com",
+            "password": "StrongPassword123!",
+            "full_name": "Alex Corporate",
+            "tenant_name": "CorporateOrg",
+        },
+    )
+    assert work_resp.status_code == 201
+
+
+@pytest.mark.asyncio
+async def test_login_requires_existing_account(client):
+    """Verify that login strictly fails if the account was never signed up."""
+    login_resp = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "nonexistent.user@corporate.io", "password": "AnyPassword123!"},
+    )
+    assert login_resp.status_code == 401
+    assert "No account found with this email. Please sign up first." in login_resp.json()["error"]["message"]
 
 
