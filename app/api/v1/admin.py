@@ -5,17 +5,18 @@ Standard users without admin privileges are blocked with HTTP 403 Forbidden.
 """
 
 from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_db, require_admin
 from app.core.security import hash_password
+from app.models.document import Document
 from app.models.tenant import Organization, Tenant
 from app.models.user import Membership, Role, User
-from app.models.document import Document
 from app.models.workspace import Collection
 
 router = APIRouter(prefix="/admin", tags=["SuperAdmin Portal"])
@@ -145,7 +146,7 @@ async def list_admin_users(
 async def create_admin_user(
     payload: UserCreateRequest,
     db: AsyncSession = Depends(get_db),
-    admin_ctx: dict[str, Any] = Depends(require_admin),
+    _: dict[str, Any] = Depends(require_admin),
 ) -> dict[str, Any]:
     """Provision a new user account with assigned role and department."""
     existing_res = await db.execute(select(User).where(User.email == payload.email.lower()))

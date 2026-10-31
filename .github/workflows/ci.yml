@@ -10,6 +10,12 @@ jobs:
   backend-test:
     name: Backend Lint, Type-Check & Tests
     runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: development
+      DEBUG: "true"
+      USE_SQLITE_TEST_DB: "true"
+      DEFAULT_EMBEDDING_PROVIDER: mock
+      LLM_PROVIDER: mock
     steps:
       - uses: actions/checkout@v4
 
@@ -30,7 +36,7 @@ jobs:
 
       - name: Run Pytest Test Suite
         run: |
-          pytest -v --cov=app --cov-report=term-missing
+          pytest tests/ -v
 
   frontend-build:
     name: Frontend Lint & Production Bundle

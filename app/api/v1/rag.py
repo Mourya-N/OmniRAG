@@ -1,9 +1,8 @@
 """Enterprise Evidence-Grounded RAG Chat API Controller."""
 
-import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -14,7 +13,7 @@ from app.core.config import settings
 from app.core.exceptions import OmniRAGError
 from app.core.security import check_document_access
 from app.models.conversation import Citation, Conversation, Message
-from app.models.document import Document, DocumentPermission
+from app.models.document import DocumentPermission
 from app.models.tenant import Organization
 from app.schemas.rag import RAGChatRequest, RAGChatResponse
 from app.services.generation import get_llm_provider
