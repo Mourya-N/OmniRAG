@@ -38,7 +38,7 @@ jobs:
 
       - name: Run Pytest Test Suite
         run: |
-          pytest tests/ -v
+          python -m pytest tests/ -v
 
   frontend-build:
     name: Frontend Lint & Production Bundle

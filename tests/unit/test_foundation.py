@@ -22,6 +22,7 @@ def test_settings_initialization():
         POSTGRES_SERVER="db.internal",
         POSTGRES_PORT=5433,
         POSTGRES_DB="test_db",
+        USE_SQLITE_TEST_DB=False,
     )
     assert test_settings.PROJECT_NAME == "Test OmniRAG"
     assert "postgresql+asyncpg://test_user:test_password@db.internal:5433/test_db" in test_settings.async_database_uri
