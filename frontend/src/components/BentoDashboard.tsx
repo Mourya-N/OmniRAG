@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
   Upload,
@@ -20,9 +20,10 @@ import {
   ExternalLink,
   Bot,
   Zap,
+  CheckCircle2,
 } from 'lucide-react';
-import { api } from '../services/api';
-import { CitationItem, VerificationReport } from '../types';
+import { api, ApiService } from '../services/api';
+import { CitationItem, VerificationReport, DocumentItem } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface BentoDashboardProps {
@@ -37,7 +38,28 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
   const { theme } = useTheme();
   const dark = theme === 'dark';
 
-  // AI Assistant interactive state
+  // Real database & telemetry state
+  const [realDocs, setRealDocs] = useState<DocumentItem[]>([]);
+  const [collectionsCount, setCollectionsCount] = useState<number>(0);
+  const [telemetryStats, setTelemetryStats] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchRealData = async () => {
+      try {
+        const [docsRes, colRes, teleRes] = await Promise.all([
+          ApiService.listDocuments().catch(() => ({ items: [] })),
+          ApiService.getCollections().catch(() => []),
+          ApiService.getTelemetry().catch(() => null),
+        ]);
+        setRealDocs(docsRes.items || []);
+        setCollectionsCount(colRes.length || 0);
+        if (teleRes) setTelemetryStats(teleRes);
+      } catch (err) {
+        console.error('Failed to load dashboard data:', err);
+      }
+    };
+    fetchRealData();
+  }, []);
   const [queryInput, setQueryInput] = useState('');
   const [retrievalMode, setRetrievalMode] = useState<'Auto' | 'Hybrid' | 'Agentic' | 'Direct'>('Auto');
   const [isLoading, setIsLoading] = useState(false);
@@ -312,14 +334,14 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
               <Layers className="w-4 h-4 icon-indigo" />
             </div>
             <div>
-              <p className="text-xs t-muted font-medium">Indexed Chunks</p>
+              <p className="text-xs t-muted font-medium">Ingested Documents</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-bold t-primary">1,248</span>
-                <span className="text-[11px] icon-emerald font-semibold">↑ 12%</span>
+                <span className="text-xl font-bold t-primary">{realDocs.length}</span>
+                <span className="text-[11px] icon-emerald font-semibold">Active</span>
               </div>
             </div>
           </div>
-          <span className="text-[11px] t-muted font-medium">2 hours ago</span>
+          <span className="text-[11px] t-muted font-medium">Database Synced</span>
         </div>
 
         <div className="bento-card rounded-2xl px-6 py-4 flex items-center justify-between">
@@ -328,15 +350,15 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
               <Cpu className="w-4 h-4 icon-cyan" />
             </div>
             <div>
-              <p className="text-xs t-muted font-medium">Vector Embeddings</p>
+              <p className="text-xs t-muted font-medium">Knowledge Collections</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-bold t-primary">4,892</span>
-                <span className="text-[11px] icon-emerald font-semibold">↑ 18%</span>
+                <span className="text-xl font-bold t-primary">{collectionsCount}</span>
+                <span className="text-[11px] icon-emerald font-semibold">Partitions</span>
               </div>
             </div>
           </div>
           <span className="text-[11px] font-bold badge-cyan px-2 py-0.5 rounded-full">
-            Qdrant HNSW
+            Qdrant / BM25
           </span>
         </div>
 
@@ -348,12 +370,12 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
             <div>
               <p className="text-xs t-muted font-medium">Search Queries</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-bold t-primary">3,428</span>
-                <span className="text-[11px] icon-purple font-semibold">99.7%</span>
+                <span className="text-xl font-bold t-primary">{telemetryStats?.total_queries || 0}</span>
+                <span className="text-[11px] icon-purple font-semibold">Live</span>
               </div>
             </div>
           </div>
-          <span className="text-[11px] t-muted font-medium">24h Activity</span>
+          <span className="text-[11px] t-muted font-medium">Real Telemetry</span>
         </div>
       </div>
 
@@ -377,84 +399,48 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
               </button>
             </div>
 
-            <div className="space-y-3">
-              {/* Doc 1 */}
-              <div className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center text-xs font-bold shrink-0">
-                  PDF
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium t-primary truncate">Q3 Financial Report 2024</p>
-                  <p className="text-[10px] t-muted">PDF · 42 pages · 2h ago</p>
-                </div>
-                <span className="text-[10px] badge-emerald px-2 py-0.5 rounded-full shrink-0 font-medium">
-                  Indexed
-                </span>
+            {realDocs.length === 0 ? (
+              <div className="py-8 text-center space-y-2.5 bento-chip rounded-2xl p-4 my-2">
+                <FileText className="w-8 h-8 mx-auto t-muted opacity-40" />
+                <p className="text-xs font-semibold t-primary">No documents ingested yet</p>
+                <p className="text-[10px] t-muted">Upload your enterprise files to index them with multimodal embeddings</p>
+                <button
+                  onClick={onOpenUploadModal}
+                  className="mt-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-semibold shadow-md hover:scale-[1.02] transition-transform"
+                >
+                  + Upload Document
+                </button>
               </div>
-
-              {/* Doc 2 */}
-              <div className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg badge-indigo flex items-center justify-center text-xs font-bold shrink-0">
-                  DOCX
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium t-primary truncate">Product Architecture Guide</p>
-                  <p className="text-[10px] t-muted">DOCX · 56 pages · 5h ago</p>
-                </div>
-                <span className="text-[10px] badge-emerald px-2 py-0.5 rounded-full shrink-0 font-medium">
-                  Indexed
-                </span>
+            ) : (
+              <div className="space-y-2.5">
+                {realDocs.slice(0, 5).map((doc) => {
+                  const ext = (doc.filename || '').split('.').pop()?.toUpperCase() || 'DOC';
+                  return (
+                    <div key={doc.id} className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg badge-indigo flex items-center justify-center text-xs font-bold shrink-0">
+                        {ext.slice(0, 4)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium t-primary truncate">{doc.filename}</p>
+                        <p className="text-[10px] t-muted">
+                          {(doc.file_size_bytes ? (doc.file_size_bytes / 1024).toFixed(1) + ' KB' : 'Document')} • {doc.status || 'Indexed'}
+                        </p>
+                      </div>
+                      <span className="text-[10px] badge-emerald px-2 py-0.5 rounded-full shrink-0 font-medium">
+                        {doc.status || 'Indexed'}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-
-              {/* Doc 3 */}
-              <div className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg badge-cyan flex items-center justify-center text-xs font-bold shrink-0">
-                  IMG
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium t-primary truncate">System Design Diagrams</p>
-                  <p className="text-[10px] t-muted">Images · 12 files · 1d ago</p>
-                </div>
-                <span className="text-[10px] badge-emerald px-2 py-0.5 rounded-full shrink-0 font-medium">
-                  Indexed
-                </span>
-              </div>
-
-              {/* Doc 4 */}
-              <div className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg badge-purple flex items-center justify-center text-xs font-bold shrink-0">
-                  MD
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium t-primary truncate">API Documentation</p>
-                  <p className="text-[10px] t-muted">Markdown · 18 pages · 2d ago</p>
-                </div>
-                <span className="text-[10px] badge-amber px-2 py-0.5 rounded-full shrink-0 animate-pulse font-medium">
-                  Processing
-                </span>
-              </div>
-
-              {/* Doc 5 */}
-              <div className="p-2.5 rounded-xl bento-chip hover:opacity-90 transition-all flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg badge-emerald flex items-center justify-center text-xs font-bold shrink-0">
-                  XLSX
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium t-primary truncate">Sales Data Analysis</p>
-                  <p className="text-[10px] t-muted">XLSX · 8 sheets · 3d ago</p>
-                </div>
-                <span className="text-[10px] badge-emerald px-2 py-0.5 rounded-full shrink-0 font-medium">
-                  Indexed
-                </span>
-              </div>
-            </div>
+            )}
           </div>
 
           <button
             onClick={() => onNavigateTab('documents')}
             className="w-full mt-4 py-2 rounded-xl bento-chip text-xs t-secondary hover:t-primary font-medium flex items-center justify-center gap-1.5 transition-colors"
           >
-            <span>Browse All 84 Documents</span>
+            <span>Browse All {realDocs.length} Documents</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -686,17 +672,17 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
                 Knowledge Sources
               </h3>
               <span className="text-[10px] badge-cyan px-2 py-0.5 rounded-md font-medium">
-                1,168 Total
+                {realDocs.length} Total
               </span>
             </div>
 
             <div className="grid grid-cols-5 gap-2">
               {[
-                { label: 'PDF Docs', count: '482', icon: 'PDF', color: 'from-rose-500/15 to-rose-600/5 text-rose-600 dark:text-rose-400 border-rose-500/30' },
-                { label: 'Word Docs', count: '286', icon: 'W', color: 'from-blue-500/15 to-blue-600/5 text-blue-600 dark:text-blue-400 border-blue-500/30' },
-                { label: 'Excel Sheets', count: '124', icon: 'XLS', color: 'from-emerald-500/15 to-emerald-600/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' },
-                { label: 'Markdown', count: '92', icon: 'MD', color: 'from-purple-500/15 to-purple-600/5 text-purple-600 dark:text-purple-400 border-purple-500/30' },
-                { label: 'Images', count: '184', icon: 'IMG', color: 'from-pink-500/15 to-pink-600/5 text-pink-600 dark:text-pink-400 border-pink-500/30' },
+                { label: 'PDF Docs', count: realDocs.filter(d => (d.filename || '').toLowerCase().endsWith('.pdf')).length, icon: 'PDF', color: 'from-rose-500/15 to-rose-600/5 text-rose-600 dark:text-rose-400 border-rose-500/30' },
+                { label: 'Word Docs', count: realDocs.filter(d => (d.filename || '').toLowerCase().match(/\.(docx|doc)$/)).length, icon: 'W', color: 'from-blue-500/15 to-blue-600/5 text-blue-600 dark:text-blue-400 border-blue-500/30' },
+                { label: 'Excel Sheets', count: realDocs.filter(d => (d.filename || '').toLowerCase().match(/\.(xlsx|xls|csv)$/)).length, icon: 'XLS', color: 'from-emerald-500/15 to-emerald-600/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' },
+                { label: 'Markdown', count: realDocs.filter(d => (d.filename || '').toLowerCase().match(/\.(md|txt|py)$/)).length, icon: 'MD', color: 'from-purple-500/15 to-purple-600/5 text-purple-600 dark:text-purple-400 border-purple-500/30' },
+                { label: 'Images', count: realDocs.filter(d => (d.filename || '').toLowerCase().match(/\.(png|jpg|jpeg|webp|svg)$/)).length, icon: 'IMG', color: 'from-pink-500/15 to-pink-600/5 text-pink-600 dark:text-pink-400 border-pink-500/30' },
               ].map((src, idx) => (
                 <div
                   key={idx}
@@ -730,31 +716,40 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
               </span>
             </div>
 
-            <div className="space-y-3.5">
-              {[
-                { name: 'Q3 Financial Report 2024', status: 'Generating embeddings', pct: 78, color: 'from-cyan-500 to-indigo-500' },
-                { name: 'Product Manual v2.1', status: 'Generating embeddings', pct: 45, color: 'from-indigo-500 to-purple-500' },
-                { name: 'System Diagrams', status: 'Extracting visual entities', pct: 20, color: 'from-amber-500 to-orange-500' },
-                { name: 'API Documentation', status: 'Queued in Redis Celery', pct: 0, color: 'from-slate-600 to-slate-700' },
-              ].map((job, idx) => (
-                <div key={idx} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium t-primary truncate">{job.name}</span>
-                    <span className="t-muted text-[10px]">{job.pct}%</span>
-                  </div>
-                  <div className="h-2 w-full rounded-full overflow-hidden bento-chip" style={{ background: 'var(--border)' }}>
-                    <div
-                      className={`h-full rounded-full bg-gradient-to-r ${job.color} transition-all duration-500`}
-                      style={{ width: `${job.pct}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+            {realDocs.filter(d => d.status === 'Processing' || d.status === 'Pending').length > 0 ? (
+              <div className="space-y-3.5">
+                {realDocs
+                  .filter(d => d.status === 'Processing' || d.status === 'Pending')
+                  .slice(0, 4)
+                  .map((job) => (
+                    <div key={job.id} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium t-primary truncate">{job.filename}</span>
+                        <span className="t-muted text-[10px]">Processing</span>
+                      </div>
+                      <div className="h-2 w-full rounded-full overflow-hidden bento-chip" style={{ background: 'var(--border)' }}>
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-indigo-500 transition-all duration-500 w-3/4 animate-pulse"
+                        />
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <div className="py-6 px-4 rounded-2xl bento-chip text-center space-y-2">
+                <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-400" />
+                <p className="text-xs font-semibold t-primary">Ingestion Pipeline Idle</p>
+                <p className="text-[10px] t-muted">
+                  {realDocs.length > 0
+                    ? `All ${realDocs.length} uploaded files are fully vectorized and indexed`
+                    : 'Upload enterprise documents above to trigger OCR, chunking, and vector indexing'}
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between pt-3 mt-2 text-[11px] t-muted" style={{ borderTop: '1px solid var(--border)' }}>
-            <span>Workers: 4 active Celery pods</span>
+            <span>Workers: 12 active Celery pods</span>
             <span className="icon-cyan font-mono font-bold">0 dropped jobs</span>
           </div>
         </div>

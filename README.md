@@ -100,7 +100,35 @@ flowchart TD
 
 ---
 
-## 4. Benchmark Results
+## 4. Default Enterprise Credentials & Admin Layer
+
+The application features a strict Zero-Trust administrative layer separating regular workspace users from system superusers.
+
+### Founder / Superuser Credentials
+| Role | Email | Password | Access Portal |
+| :--- | :--- | :--- | :--- |
+| **Founder Admin (Superuser)** | `omnirag@founder.mou` | `qwe123456789` | Full System Access & Dedicated Admin Cockpit (`/#/admin/cockpit`) |
+| **Workspace User** | Any registered corporate email | User-defined | Standard Bento Dashboard & Multimodal Knowledge RAG |
+
+### Administrative Cockpit Features:
+- **Tenant & User Management**: Provision user roles (`Admin`, `Editor`, `Viewer`), manage departmental teams, and deactivate dormant accounts.
+- **Granular Permissions & ABAC**: Configure document-level security labels and vector collection isolation.
+- **Immutable SOC 2 Audit Logs**: Real-time event streams capturing auth events, document ingestions, deletions, and privileged operations.
+- **Vector DB Compaction & System Telemetry**: Direct operational controls for Qdrant vector index compaction, segment vacuuming, cache invalidation, and worker health monitoring.
+
+---
+
+## 5. UI Architecture & Design System
+
+- **Floating Expandable Slim Dock**: Sleek 64px floating sidebar that expands smoothly to 240px on hover, featuring restrained 18px iconography, zero intrusive scrollbars, and fluid spring transitions.
+- **Stationary Full-Width Navbar**: Edge-to-edge stationary navigation bar with an enlarged high-contrast OmniRAG logo mark, live search command palette (`⌘K`), upload shortcut, and authenticated user profile chip.
+- **Zero-Trust Role Separation**: Administrative panels (`Users & Teams`, `Permissions`, `Audit Logs`, `System Health`) are strictly isolated to the Admin Cockpit and completely hidden from standard users.
+- **Database-Backed Real-Time Bento Dashboard**: Live document counts, knowledge source format distributions (PDF, Word, Excel, Markdown, Images), and active ingestion pipeline stages fetched dynamically from the database with clean, informative empty states.
+- **Interactive Bento Landing Page**: High-impact landing page featuring multimodal AI illustrations, feature pop-in transitions, hybrid retrieval architecture walkthroughs, and seamless login/signup entry points.
+
+---
+
+## 6. Benchmark Results
 
 Evaluated against the versioned golden benchmark dataset (`evaluation/datasets/golden_qa.json`):
 

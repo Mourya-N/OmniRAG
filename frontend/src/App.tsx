@@ -227,8 +227,8 @@ export const App: React.FC = () => {
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
         />
 
-        {/* MAIN VIEW AREA: Steady padding on left (lg:pl-[96px]), no layout shift when sidebar expands */}
-        <main className="flex-1 w-full max-w-[1600px] mx-auto p-4 sm:p-6 lg:pl-[96px] min-w-0 transition-all">
+        {/* MAIN VIEW AREA: Steady padding on left (lg:pl-[84px]), no layout shift when sidebar expands */}
+        <main className="flex-1 w-full max-w-[1600px] mx-auto p-4 sm:p-6 lg:pl-[84px] min-w-0 transition-all">
           {currentLayer === 'admin' ? (
             <AdminPortal
               currentUser={currentUser}

@@ -17,32 +17,7 @@ interface TrashItem {
 }
 
 export const TrashView: React.FC = () => {
-  const [items, setItems] = useState<TrashItem[]>([
-    {
-      id: 'tr-1',
-      filename: 'Old_Marketing_Campaign_v1_Draft.pdf',
-      deletedBy: 'Sarah Jenkins',
-      deletedAt: '3 days ago',
-      daysRemaining: 27,
-      size: '3.2 MB',
-    },
-    {
-      id: 'tr-2',
-      filename: 'Deprecated_REST_Endpoints_v0.9.md',
-      deletedBy: 'Alex Chen',
-      deletedAt: '8 days ago',
-      daysRemaining: 22,
-      size: '420 KB',
-    },
-    {
-      id: 'tr-3',
-      filename: 'Preliminary_Q2_EBITDA_Estimates.xlsx',
-      deletedBy: 'Finance Bot',
-      deletedAt: '14 days ago',
-      daysRemaining: 16,
-      size: '1.8 MB',
-    },
-  ]);
+  const [items, setItems] = useState<TrashItem[]>([]);
 
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 

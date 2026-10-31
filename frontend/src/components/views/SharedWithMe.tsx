@@ -18,48 +18,7 @@ interface SharedDoc {
 
 export const SharedWithMe: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [docs] = useState<SharedDoc[]>([
-    {
-      id: 'sd-1',
-      filename: 'Q3 Financial Master Audit & Tax Accruals.xlsx',
-      sharedBy: 'Sarah Jenkins (VP Finance)',
-      role: 'Finance Admin',
-      department: 'Finance',
-      dateShared: 'Today at 09:30 AM',
-      size: '4.8 MB',
-      access: 'Editor',
-    },
-    {
-      id: 'sd-2',
-      filename: 'Zero-Trust SOC 2 Type II Final Auditor Signoff.pdf',
-      sharedBy: 'Marcus Brody (Head of Security)',
-      role: 'Security Officer',
-      department: 'Security & Compliance',
-      dateShared: 'Yesterday',
-      size: '12.4 MB',
-      access: 'Viewer',
-    },
-    {
-      id: 'sd-3',
-      filename: 'Distributed Vector Index Partitioning Spec.md',
-      sharedBy: 'Elena Rostova (Principal Architect)',
-      role: 'Staff Architect',
-      department: 'Infrastructure',
-      dateShared: '3 days ago',
-      size: '840 KB',
-      access: 'Admin',
-    },
-    {
-      id: 'sd-4',
-      filename: '2025 Enterprise Product Strategy Deck.pptx',
-      sharedBy: 'David Kim (Chief Product Officer)',
-      role: 'Executive',
-      department: 'Product',
-      dateShared: 'Oct 24, 2026',
-      size: '28.1 MB',
-      access: 'Viewer',
-    },
-  ]);
+  const [docs] = useState<SharedDoc[]>([]);
 
   const filtered = docs.filter(
     (d) =>
@@ -98,55 +57,67 @@ export const SharedWithMe: React.FC = () => {
 
       {/* Shared documents table */}
       <div className="bento-card rounded-3xl p-6 shadow-xl overflow-x-auto" style={{ borderColor: 'var(--border)' }}>
-        <table className="w-full text-left text-xs">
-          <thead>
-            <tr className="border-b t-muted uppercase font-mono text-[10px]" style={{ borderColor: 'var(--border)' }}>
-              <th className="pb-3 font-semibold">Document Asset</th>
-              <th className="pb-3 font-semibold">Shared By</th>
-              <th className="pb-3 font-semibold">Department</th>
-              <th className="pb-3 font-semibold">Access Level</th>
-              <th className="pb-3 font-semibold">Date Shared</th>
-              <th className="pb-3 font-semibold text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y" style={{ borderColor: 'var(--border)' }}>
-            {filtered.map((doc) => (
-              <tr key={doc.id} className="hover:bg-white/[0.02] transition-colors">
-                <td className="py-3.5 font-medium t-primary flex items-center gap-2.5">
-                  <FileText className="w-4 h-4 icon-indigo shrink-0" />
-                  <div>
-                    <div className="truncate max-w-xs">{doc.filename}</div>
-                    <div className="text-[10px] t-muted font-mono">{doc.size}</div>
-                  </div>
-                </td>
-                <td className="py-3.5 t-secondary">{doc.sharedBy}</td>
-                <td className="py-3.5 t-muted font-mono">{doc.department}</td>
-                <td className="py-3.5">
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold ${
-                      doc.access === 'Admin'
-                        ? 'badge-purple'
-                        : doc.access === 'Editor'
-                        ? 'badge-emerald'
-                        : 'badge-cyan'
-                    }`}
-                  >
-                    {doc.access}
-                  </span>
-                </td>
-                <td className="py-3.5 t-muted font-mono">{doc.dateShared}</td>
-                <td className="py-3.5 text-right">
-                  <button
-                    onClick={() => alert(`Opening ${doc.filename} in RAG query explorer`)}
-                    className="px-2.5 py-1 rounded-lg bento-chip text-indigo-400 hover:text-white hover:bg-indigo-600 transition-colors font-medium text-[11px]"
-                  >
-                    Open in RAG
-                  </button>
-                </td>
+        {filtered.length === 0 ? (
+          <div className="py-12 text-center space-y-3">
+            <div className="w-12 h-12 rounded-2xl badge-indigo mx-auto flex items-center justify-center">
+              <Share2 className="w-6 h-6" />
+            </div>
+            <h4 className="text-sm font-bold t-primary">No Shared Documents</h4>
+            <p className="text-xs t-muted max-w-sm mx-auto">
+              Documents and collections shared with you by team members and administrators will appear here with granular role permissions.
+            </p>
+          </div>
+        ) : (
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b t-muted uppercase font-mono text-[10px]" style={{ borderColor: 'var(--border)' }}>
+                <th className="pb-3 font-semibold">Document Asset</th>
+                <th className="pb-3 font-semibold">Shared By</th>
+                <th className="pb-3 font-semibold">Department</th>
+                <th className="pb-3 font-semibold">Access Level</th>
+                <th className="pb-3 font-semibold">Date Shared</th>
+                <th className="pb-3 font-semibold text-right">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y" style={{ borderColor: 'var(--border)' }}>
+              {filtered.map((doc) => (
+                <tr key={doc.id} className="hover:bg-white/[0.02] transition-colors">
+                  <td className="py-3.5 font-medium t-primary flex items-center gap-2.5">
+                    <FileText className="w-4 h-4 icon-indigo shrink-0" />
+                    <div>
+                      <div className="truncate max-w-xs">{doc.filename}</div>
+                      <div className="text-[10px] t-muted font-mono">{doc.size}</div>
+                    </div>
+                  </td>
+                  <td className="py-3.5 t-secondary">{doc.sharedBy}</td>
+                  <td className="py-3.5 t-muted font-mono">{doc.department}</td>
+                  <td className="py-3.5">
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold ${
+                        doc.access === 'Admin'
+                          ? 'badge-purple'
+                          : doc.access === 'Editor'
+                          ? 'badge-emerald'
+                          : 'badge-cyan'
+                      }`}
+                    >
+                      {doc.access}
+                    </span>
+                  </td>
+                  <td className="py-3.5 t-muted font-mono">{doc.dateShared}</td>
+                  <td className="py-3.5 text-right">
+                    <button
+                      onClick={() => alert(`Opening ${doc.filename} in RAG query explorer`)}
+                      className="px-2.5 py-1 rounded-lg bento-chip text-indigo-400 hover:text-white hover:bg-indigo-600 transition-colors font-medium text-[11px]"
+                    >
+                      Open in RAG
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

@@ -146,8 +146,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <aside
         className={`fixed top-[74px] left-3 z-40 h-[calc(100vh-86px)] flex flex-col justify-between shrink-0 select-none rounded-3xl bento-card shadow-2xl transition-all duration-300 ease-in-out group ${
           isOpenMobile
-            ? 'translate-x-0 w-64'
-            : '-translate-x-full lg:translate-x-0 w-[74px] hover:w-64'
+            ? 'translate-x-0 w-60'
+            : '-translate-x-full lg:translate-x-0 w-[64px] hover:w-60'
         }`}
         style={{
           background: dark ? 'rgba(10, 14, 30, 0.94)' : 'rgba(255, 255, 255, 0.95)',
@@ -159,29 +159,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Mobile close button (if drawer opened on small screens) */}
         {isOpenMobile && onCloseMobile && (
           <div
-            className="p-3 flex items-center justify-end border-b lg:hidden"
+            className="p-2.5 flex items-center justify-end border-b lg:hidden"
             style={{ borderColor: 'var(--border)' }}
           >
             <button
               onClick={onCloseMobile}
-              className="p-1.5 rounded-lg bento-chip t-muted hover:t-primary"
+              className="p-1 rounded-lg bento-chip t-muted hover:t-primary"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
 
         {/* Scrollable Navigation Sections — WITHOUT visible scrollbar thumb/slider */}
-        <div className="flex-1 overflow-y-auto px-2 group-hover:px-3 py-3 space-y-3 text-xs [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex-1 overflow-y-auto px-1.5 group-hover:px-2.5 py-3 space-y-2.5 text-xs [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {sections.map((sec, sIdx) => (
             <div key={sIdx} className="space-y-1">
               {sec.title && (
-                <div className="px-2.5 pb-0.5 text-[9px] font-mono font-bold tracking-wider uppercase t-muted opacity-0 group-hover:opacity-100 transition-opacity duration-200 overflow-hidden whitespace-nowrap">
+                <div className="px-2 pb-0.5 text-[8.5px] font-mono font-bold tracking-wider uppercase t-muted opacity-0 group-hover:opacity-100 transition-opacity duration-200 overflow-hidden whitespace-nowrap">
                   {sec.title}
                 </div>
               )}
 
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {sec.items.map((item) => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
@@ -191,7 +191,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       key={item.id}
                       onClick={() => handleItemClick(item)}
                       title={item.label}
-                      className={`w-full p-1.5 group-hover:px-2.5 rounded-2xl flex items-center transition-all duration-200 text-left ${
+                      className={`w-full p-1 group-hover:px-2 rounded-xl flex items-center transition-all duration-200 text-left ${
                         isActive
                           ? 'bg-gradient-to-r from-blue-600/30 to-indigo-600/30 border border-blue-500/40 text-white font-semibold shadow-sm'
                           : dark
@@ -199,12 +199,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           : 'text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]'
                       }`}
                     >
-                      {/* Enlarged Prominent Icon */}
-                      <div className={`w-10 h-10 shrink-0 flex items-center justify-center rounded-xl transition-all ${
+                      {/* Refined Prominent Icon */}
+                      <div className={`w-8 h-8 shrink-0 flex items-center justify-center rounded-lg transition-all ${
                         isActive ? 'bg-indigo-500/20 text-cyan-400' : ''
                       }`}>
                         <Icon
-                          className={`w-[22px] h-[22px] transition-colors ${
+                          className={`w-[18px] h-[18px] transition-colors ${
                             isActive
                               ? 'text-cyan-400'
                               : dark
@@ -215,13 +215,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </div>
 
                       {/* Label - smoothly reveals on hover */}
-                      <span className="ml-3 truncate opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap flex-1 font-medium text-xs">
+                      <span className="ml-2.5 truncate opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap flex-1 font-medium text-xs">
                         {item.label}
                       </span>
 
                       {item.badge !== undefined && (
                         <span
-                          className={`opacity-0 group-hover:opacity-100 transition-opacity duration-200 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ml-1.5 ${
+                          className={`opacity-0 group-hover:opacity-100 transition-opacity duration-200 px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold shrink-0 ml-1 ${
                             item.badgeColor || 'bg-indigo-600 text-white'
                           }`}
                         >
