@@ -23,10 +23,6 @@ import { TrashView } from './components/views/TrashView';
 import { BenchmarksView } from './components/views/BenchmarksView';
 import { ModelComparison } from './components/views/ModelComparison';
 import { InsightsView } from './components/views/InsightsView';
-import { UsersTeamsView } from './components/views/UsersTeamsView';
-import { PermissionsView } from './components/views/PermissionsView';
-import { AuditLogsView } from './components/views/AuditLogsView';
-import { SystemHealthView } from './components/views/SystemHealthView';
 import { SettingsView } from './components/views/SettingsView';
 import { UpgradePlanModal } from './components/views/UpgradePlanModal';
 import { LoginPage } from './pages/LoginPage';
@@ -205,35 +201,34 @@ export const App: React.FC = () => {
       <div className="nebula-blob-3 fixed top-1/3 -right-24 w-[500px] h-[500px] rounded-full blur-[140px] pointer-events-none -z-10" />
       <div className="nebula-blob-4 fixed -bottom-20 right-1/4 w-[400px] h-[400px] rounded-full blur-[120px] pointer-events-none -z-10" />
 
-      {/* FULL ENTERPRISE SIDEBAR MATCHING SCREENSHOT */}
-      <Sidebar
+      {/* 1. TOP NAVBAR: FULL-WIDTH ACROSS TOP (NEVER MOVES WHEN SIDEBAR HOVERS) */}
+      <Navbar
         activeTab={activeTab}
-        setActiveTab={(t) => setActiveTab(t)}
+        setActiveTab={(t) => setActiveTab(t as DashTab)}
         onOpenUpload={() => setIsUploadModalOpen(true)}
-        onOpenUpgradePlan={() => setIsUpgradePlanOpen(true)}
-        isOpenMobile={isMobileSidebarOpen}
-        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        onQuickSearch={(_q) => setActiveTab('search')}
+        onNavigateAuth={() => navigate('login')}
+        onNavigateLanding={() => navigate('landing')}
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onToggleMobileMenu={() => setIsMobileSidebarOpen(true)}
+        currentLayer={currentLayer}
+        onToggleLayer={() => setCurrentLayer((l) => (l === 'workspace' ? 'admin' : 'workspace'))}
       />
 
-      {/* MAIN VIEW AREA (NAVBAR + VIEW CONTENT) */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-x-hidden">
-        {/* TOP NAVBAR */}
-        <Navbar
+      {/* 2. BODY CONTAINER: FIXED FLOATING SIDEBAR + STEADY MAIN CONTENT */}
+      <div className="flex-1 flex relative w-full pt-[68px]">
+        {/* FLOATING HOVER EXPANDABLE SIDEBAR (Fixed dock, zero layout shift) */}
+        <Sidebar
           activeTab={activeTab}
-          setActiveTab={(t) => setActiveTab(t as DashTab)}
+          setActiveTab={(t) => setActiveTab(t)}
           onOpenUpload={() => setIsUploadModalOpen(true)}
-          onQuickSearch={(_q) => setActiveTab('search')}
-          onNavigateAuth={() => navigate('login')}
-          onNavigateLanding={() => navigate('landing')}
-          currentUser={currentUser}
-          onLogout={handleLogout}
-          onToggleMobileMenu={() => setIsMobileSidebarOpen(true)}
-          currentLayer={currentLayer}
-          onToggleLayer={() => setCurrentLayer((l) => (l === 'workspace' ? 'admin' : 'workspace'))}
+          isOpenMobile={isMobileSidebarOpen}
+          onCloseMobile={() => setIsMobileSidebarOpen(false)}
         />
 
-        {/* ACTIVE MAIN CONTENT VIEW (Workspace or Admin Portal) */}
-        <main className="flex-1 w-full max-w-[1600px] mx-auto p-4 sm:p-6 min-w-0">
+        {/* MAIN VIEW AREA: Steady padding on left (lg:pl-[96px]), no layout shift when sidebar expands */}
+        <main className="flex-1 w-full max-w-[1600px] mx-auto p-4 sm:p-6 lg:pl-[96px] min-w-0 transition-all">
           {currentLayer === 'admin' ? (
             <AdminPortal
               currentUser={currentUser}
@@ -268,10 +263,6 @@ export const App: React.FC = () => {
               {activeTab === 'benchmarks' && <BenchmarksView />}
               {activeTab === 'model-comparison' && <ModelComparison />}
               {activeTab === 'insights' && <InsightsView />}
-              {activeTab === 'users' && <UsersTeamsView />}
-              {activeTab === 'permissions' && <PermissionsView />}
-              {activeTab === 'audit-logs' && <AuditLogsView />}
-              {activeTab === 'health' && <SystemHealthView />}
               {activeTab === 'settings' && <SettingsView />}
             </>
           )}

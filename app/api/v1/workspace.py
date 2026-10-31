@@ -346,3 +346,4 @@ async def get_system_health() -> dict[str, Any]:
             {"name": "Monitoring Telemetry", "status": "Active", "latency": "Prometheus/OTel"},
         ],
     }
+

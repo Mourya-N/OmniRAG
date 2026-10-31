@@ -52,3 +52,4 @@ class QueryTelemetry(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     accuracy_score: Mapped[float] = mapped_column(Float, default=0.98, nullable=False)
     token_cost: Mapped[float] = mapped_column(Float, default=0.005, nullable=False)
     model_used: Mapped[str] = mapped_column(String(50), default="gemini-1.5-pro", nullable=False)
+

@@ -92,9 +92,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header
-      className="sticky top-0 z-40 w-full px-4 sm:px-6 py-3.5 backdrop-blur-xl"
+      className="fixed top-0 left-0 right-0 z-50 w-full px-4 sm:px-6 py-3.5 backdrop-blur-xl"
       style={{
-        background: dark ? 'rgba(9,12,26,0.75)' : 'rgba(255,255,255,0.80)',
+        background: dark ? 'rgba(9,12,26,0.85)' : 'rgba(255,255,255,0.90)',
         borderBottom: `1px solid var(--border)`,
       }}
     >
