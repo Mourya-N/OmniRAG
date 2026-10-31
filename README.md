@@ -1,7 +1,7 @@
 # OmniRAG — Enterprise Multimodal Knowledge Intelligence Platform
 ### Hybrid RAG + Bounded Agentic Search + Multimodal AI + Enterprise Intelligence
 
-[![CI/CD Pipeline](https://github.com/omnirag/omnirag/actions/workflows/ci.yml/badge.svg)](https://github.com/omnirag/omnirag/actions/workflows/ci.yml)
+[![CI/CD Pipeline](https://github.com/Mourya-N/OmniRAG/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Mourya-N/OmniRAG/actions/workflows/ci.yml)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![RAG Triad Faithfulness](https://img.shields.io/badge/Faithfulness-97%25-emerald.svg)]()
