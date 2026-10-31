@@ -21,11 +21,16 @@ export interface UserProfile {
 }
 
 export class ApiService {
-  private static tenantId: string | null = localStorage.getItem('omnirag_tenant_id') || '00000000-0000-0000-0000-000000000001';
+  private static tenantId: string | null = localStorage.getItem('omnirag_tenant_id');
 
   static setTenantId(tenantId: string) {
     this.tenantId = tenantId;
     localStorage.setItem('omnirag_tenant_id', tenantId);
+  }
+
+  static clearTenantId() {
+    this.tenantId = null;
+    localStorage.removeItem('omnirag_tenant_id');
   }
 
   private static getHeaders(isJson = true): HeadersInit {
@@ -60,7 +65,11 @@ export class ApiService {
       const err = await resp.json().catch(() => ({}));
       throw new Error(err.error?.message || err.detail || 'Registration failed');
     }
-    return resp.json();
+    const data = await resp.json();
+    if (data.user?.tenant_id) {
+      this.setTenantId(data.user.tenant_id);
+    }
+    return data;
   }
 
   static async login(payload: { email: string; password: string }): Promise<any> {
@@ -74,10 +83,15 @@ export class ApiService {
       const err = await resp.json().catch(() => ({}));
       throw new Error(err.error?.message || err.detail || 'Invalid email or password');
     }
-    return resp.json();
+    const data = await resp.json();
+    if (data.user?.tenant_id) {
+      this.setTenantId(data.user.tenant_id);
+    }
+    return data;
   }
 
   static async logout(): Promise<void> {
+    this.clearTenantId();
     await fetch(`${API_BASE}/auth/logout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -91,7 +105,11 @@ export class ApiService {
       credentials: 'include',
     });
     if (!resp.ok) throw new Error('Session unauthenticated');
-    return resp.json();
+    const user: UserProfile = await resp.json();
+    if (user.tenant_id) {
+      this.setTenantId(user.tenant_id);
+    }
+    return user;
   }
 
   static async getGoogleAuthUrl(redirectUri?: string): Promise<{ authorization_url: string; client_id: string | null; prompt: string; configured: boolean }> {
@@ -124,7 +142,11 @@ export class ApiService {
       const err = await resp.json().catch(() => ({}));
       throw new Error(err.error?.message || err.detail || 'Google authentication failed');
     }
-    return resp.json();
+    const data = await resp.json();
+    if (data.user?.tenant_id) {
+      this.setTenantId(data.user.tenant_id);
+    }
+    return data;
   }
 
   /* ─────────────────────────────────────────────────────────

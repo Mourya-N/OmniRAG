@@ -119,7 +119,12 @@ async def verify_tenant_boundary(
 ) -> str:
     """Ensures X-Tenant-ID header matches the authenticated user's token tenant ID."""
     token_tenant_id = current_user["tenant_id"]
+    if current_user.get("is_superuser"):
+        return x_tenant_id or token_tenant_id
     if x_tenant_id and x_tenant_id != token_tenant_id:
+        # Gracefully handle default/seed founder tenant fallback sent by cached frontends
+        if x_tenant_id == "00000000-0000-0000-0000-000000000001":
+            return token_tenant_id
         raise TenantMismatchError(
             f"Tenant context mismatch: header '{x_tenant_id}' does not match token '{token_tenant_id}'"
         )
