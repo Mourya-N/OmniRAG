@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Bell, Upload, LogOut, Shield, ChevronDown, LogIn } from 'lucide-react';
+import { Search, Bell, Upload, LogOut, Shield, ChevronDown, LogIn, Menu, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ApiService } from '../services/api';
 import { UserProfile } from '../types';
-import { OmniRAGLogo } from './OmniRAGLogo';
 
 interface NavbarProps {
   activeTab: string;
@@ -14,6 +13,7 @@ interface NavbarProps {
   onNavigateLanding?: () => void;
   currentUser?: UserProfile | null;
   onLogout?: () => void;
+  onToggleMobileMenu?: () => void;
 }
 
 const getInitials = (name?: string, email?: string): string => {
@@ -36,8 +36,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNavigateLanding,
   currentUser,
   onLogout,
+  onToggleMobileMenu,
 }) => {
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const dark = theme === 'dark';
   const [searchValue, setSearchValue] = useState('');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -86,32 +87,29 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header
-      className="sticky top-0 z-50 w-full px-6 py-3.5 backdrop-blur-xl"
+      className="sticky top-0 z-40 w-full px-4 sm:px-6 py-3.5 backdrop-blur-xl"
       style={{
         background: dark ? 'rgba(9,12,26,0.75)' : 'rgba(255,255,255,0.80)',
         borderBottom: `1px solid var(--border)`,
       }}
     >
-      <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-6">
-        {/* Left: Brand & Tagline with Innovative OmniRAG Logo */}
-        <div
-          onClick={() => setActiveTab('home')}
-          className="cursor-pointer group shrink-0"
-        >
-          <OmniRAGLogo
-            size="md"
-            showText={true}
-            subtitle="Enterprise Knowledge Intelligence"
-            badge="Enterprise"
-            interactive={true}
-          />
-        </div>
+      <div className="w-full flex items-center justify-between gap-4">
+        {/* Left: Mobile hamburger & search */}
+        <div className="flex items-center gap-3 flex-1 max-w-2xl">
+          {onToggleMobileMenu && (
+            <button
+              onClick={onToggleMobileMenu}
+              className="lg:hidden p-2 rounded-xl bento-chip t-muted hover:t-primary shrink-0"
+              title="Open Navigation Menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
 
-        {/* Center: Global Search Capsule */}
-        <div className="flex-1 max-w-xl">
+          {/* Global Search Capsule (Matching Screenshot: Search across documents, people, code, tables, images...) */}
           <form onSubmit={handleSearchSubmit} className="relative w-full">
             <div
-              className="flex items-center rounded-full px-4 py-2 transition-all shadow-inner"
+              className="flex items-center rounded-xl px-4 py-2.5 transition-all shadow-inner"
               style={{
                 background: dark ? 'rgba(19,23,51,0.80)' : 'rgba(238,240,255,0.90)',
                 border: `1px solid var(--border)`,
@@ -122,12 +120,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 type="text"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                placeholder="Search across your knowledge base..."
+                placeholder="Search across documents, people, code, tables, images..."
                 className="w-full bg-transparent text-xs focus:outline-none"
                 style={{ color: 'var(--text-primary)' }}
               />
               <div
-                className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono shrink-0"
+                className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono shrink-0"
                 style={{ background: 'var(--bg-chip)', border: `1px solid var(--border)`, color: 'var(--text-muted)' }}
               >
                 <span>⌘</span>
@@ -138,11 +136,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Right: Actions & User Capsule */}
-        <div className="flex items-center gap-4 shrink-0">
+        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           {/* Upload Button */}
           <button
             onClick={onOpenUpload}
-            className="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium text-xs flex items-center gap-1.5 shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-lg shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <Upload className="w-3.5 h-3.5" />
             <span>+ Upload</span>
@@ -150,11 +148,23 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Notification Bell */}
           <div className="relative">
-            <button className="w-9 h-9 rounded-full bento-chip flex items-center justify-center t-secondary hover:t-primary transition-colors">
+            <button
+              onClick={() => alert('No new enterprise security alerts')}
+              className="w-9 h-9 rounded-xl bento-chip flex items-center justify-center t-secondary hover:t-primary transition-colors"
+            >
               <Bell className="w-4 h-4" />
               <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
             </button>
           </div>
+
+          {/* Theme Switcher Toggle (Sun / Moon) */}
+          <button
+            onClick={toggleTheme}
+            title={dark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+            className="w-9 h-9 rounded-xl bento-chip flex items-center justify-center transition-colors"
+          >
+            {dark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-400" />}
+          </button>
 
           {/* User Profile Capsule with Interactive Dropdown */}
           <div
@@ -174,7 +184,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
                 <div className="hidden sm:block text-left max-w-[130px]">
                   <p className="text-xs font-semibold leading-tight t-primary truncate">{displayName}</p>
-                  <p className="text-[10px] leading-tight t-muted truncate">Enterprise User</p>
+                  <p className="text-[10px] leading-tight t-muted truncate">Enterprise Plan</p>
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 t-muted" />
               </button>

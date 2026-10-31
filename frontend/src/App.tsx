@@ -1,25 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Home,
-  MessageSquare,
-  Search,
-  Layers,
-  BarChart3,
-  ShieldCheck,
-  Settings,
   Upload,
   X,
   CheckCircle2,
   AlertCircle,
-  Sun,
-  Moon,
 } from 'lucide-react';
 import { Navbar } from './components/Navbar';
+import { Sidebar, DashTab } from './components/Sidebar';
 import { BentoDashboard } from './components/BentoDashboard';
 import { ChatExplorer } from './components/ChatExplorer';
 import { SearchExplorer } from './components/SearchExplorer';
 import { DocumentManager } from './components/DocumentManager';
 import { EvaluationDashboard } from './components/EvaluationDashboard';
+import { AgenticSearch } from './components/views/AgenticSearch';
+import { KnowledgeGraph } from './components/views/KnowledgeGraph';
+import { SavedQueries } from './components/views/SavedQueries';
+import { QueryAnalytics } from './components/views/QueryAnalytics';
+import { ProcessingQueue } from './components/views/ProcessingQueue';
+import { CollectionsView } from './components/views/CollectionsView';
+import { SharedWithMe } from './components/views/SharedWithMe';
+import { TrashView } from './components/views/TrashView';
+import { BenchmarksView } from './components/views/BenchmarksView';
+import { ModelComparison } from './components/views/ModelComparison';
+import { InsightsView } from './components/views/InsightsView';
+import { UsersTeamsView } from './components/views/UsersTeamsView';
+import { PermissionsView } from './components/views/PermissionsView';
+import { AuditLogsView } from './components/views/AuditLogsView';
+import { SystemHealthView } from './components/views/SystemHealthView';
+import { SettingsView } from './components/views/SettingsView';
+import { UpgradePlanModal } from './components/views/UpgradePlanModal';
 import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
 import { LandingPage } from './pages/LandingPage';
@@ -29,7 +38,6 @@ import { useTheme } from './contexts/ThemeContext';
 import { UserProfile } from './types';
 
 type Page = 'landing' | 'login' | 'signup' | 'dashboard' | 'google-callback';
-type DashTab = 'home' | 'chat' | 'search' | 'documents' | 'evaluation';
 
 const isGoogleCallback = (): boolean => {
   return (
@@ -53,10 +61,12 @@ const getInitialPage = (): Page => {
 };
 
 export const App: React.FC = () => {
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const [currentPage, setCurrentPage] = useState<Page>(getInitialPage);
   const [activeTab, setActiveTab] = useState<DashTab>('home');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isUpgradePlanOpen, setIsUpgradePlanOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
@@ -110,14 +120,6 @@ export const App: React.FC = () => {
     setCurrentUser(null);
     navigate('landing');
   };
-
-  const navItems = [
-    { id: 'home', label: 'Bento Dashboard', icon: Home },
-    { id: 'chat', label: 'RAG Chat Explorer', icon: MessageSquare },
-    { id: 'search', label: 'Intelligent Search', icon: Search },
-    { id: 'documents', label: 'Knowledge Ingestion', icon: Layers },
-    { id: 'evaluation', label: 'Evaluation & Benchmarks', icon: BarChart3 },
-  ];
 
   const handleModalUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,96 +194,42 @@ export const App: React.FC = () => {
   // ---- Dashboard ----
   return (
     <div
-      className="min-h-screen flex flex-col relative overflow-hidden font-sans selection:bg-indigo-500 selection:text-white"
+      className="min-h-screen flex relative overflow-hidden font-sans selection:bg-indigo-500 selection:text-white"
       style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}
     >
-      {/* Nebula blobs — theme-aware via CSS vars */}
+      {/* Nebula background atmospheric blobs — theme-aware */}
       <div className="nebula-blob-1 fixed -bottom-40 -left-40 w-[700px] h-[700px] rounded-full blur-[160px] pointer-events-none -z-10" />
       <div className="nebula-blob-2 fixed -top-32 left-1/3 w-[800px] h-[800px] rounded-full blur-[180px] pointer-events-none -z-10" />
       <div className="nebula-blob-3 fixed top-1/3 -right-24 w-[500px] h-[500px] rounded-full blur-[140px] pointer-events-none -z-10" />
       <div className="nebula-blob-4 fixed -bottom-20 right-1/4 w-[400px] h-[400px] rounded-full blur-[120px] pointer-events-none -z-10" />
 
-      {/* TOP NAVBAR */}
-      <Navbar
+      {/* FULL ENTERPRISE SIDEBAR MATCHING SCREENSHOT */}
+      <Sidebar
         activeTab={activeTab}
-        setActiveTab={(t) => setActiveTab(t as DashTab)}
+        setActiveTab={(t) => setActiveTab(t)}
         onOpenUpload={() => setIsUploadModalOpen(true)}
-        onQuickSearch={(_q) => setActiveTab('search')}
-        onNavigateAuth={() => navigate('login')}
-        onNavigateLanding={() => navigate('landing')}
-        currentUser={currentUser}
-        onLogout={handleLogout}
+        onOpenUpgradePlan={() => setIsUpgradePlanOpen(true)}
+        isOpenMobile={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
-      {/* MAIN CONTAINER: LEFT DOCK + MAIN CONTENT */}
-      <div className="flex-1 max-w-[1600px] w-full mx-auto px-6 py-6 flex gap-6 items-start">
-        {/* LEFT VERTICAL FLOATING DOCK */}
-        <aside
-          className="sticky top-24 z-40 hidden md:flex flex-col items-center gap-3 p-2 rounded-2xl bento-card shadow-2xl"
-          style={{ borderColor: 'var(--border)' }}
-        >
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id as DashTab)}
-                title={item.label}
-                className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 relative group ${
-                  isActive
-                    ? 'bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/40 scale-105'
-                    : dark
-                    ? 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]'
-                    : 'text-slate-500 hover:text-slate-700 hover:bg-black/[0.05]'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                {/* Tooltip */}
-                <div
-                  className="absolute left-14 px-2.5 py-1 text-xs font-medium rounded-lg shadow-xl border opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 bento-card"
-                  style={{ color: 'var(--text-primary)', borderColor: 'var(--border)' }}
-                >
-                  {item.label}
-                </div>
-              </button>
-            );
-          })}
+      {/* MAIN VIEW AREA (NAVBAR + VIEW CONTENT) */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-x-hidden">
+        {/* TOP NAVBAR */}
+        <Navbar
+          activeTab={activeTab}
+          setActiveTab={(t) => setActiveTab(t as DashTab)}
+          onOpenUpload={() => setIsUploadModalOpen(true)}
+          onQuickSearch={(_q) => setActiveTab('search')}
+          onNavigateAuth={() => navigate('login')}
+          onNavigateLanding={() => navigate('landing')}
+          currentUser={currentUser}
+          onLogout={handleLogout}
+          onToggleMobileMenu={() => setIsMobileSidebarOpen(true)}
+        />
 
-          <div className="w-6 h-[1px] my-1" style={{ background: 'var(--border)' }} />
-
-          {/* Theme toggle in dock */}
-          <button
-            onClick={toggleTheme}
-            title={dark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
-            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 ${
-              dark ? 'text-amber-300 hover:bg-amber-400/10' : 'text-indigo-600 hover:bg-indigo-500/10'
-            }`}
-          >
-            {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
-
-          {/* Security */}
-          <button
-            title="Tenant Security & ACL Active"
-            className="w-11 h-11 rounded-xl flex items-center justify-center icon-emerald hover:bg-emerald-500/10 transition-colors"
-          >
-            <ShieldCheck className="w-5 h-5" />
-          </button>
-
-          {/* Settings */}
-          <button
-            title="Enterprise Settings"
-            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${
-              dark ? 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]' : 'text-slate-600 hover:text-slate-900 hover:bg-black/[0.05]'
-            }`}
-          >
-            <Settings className="w-5 h-5" />
-          </button>
-        </aside>
-
-        {/* CENTER / MAIN CONTENT VIEW */}
-        <main className="flex-1 min-w-0">
+        {/* ACTIVE MAIN CONTENT VIEW */}
+        <main className="flex-1 w-full max-w-[1600px] mx-auto p-4 sm:p-6 min-w-0">
           {activeTab === 'home' && (
             <BentoDashboard
               onNavigateTab={(t) => setActiveTab(t as DashTab)}
@@ -289,11 +237,39 @@ export const App: React.FC = () => {
             />
           )}
           {activeTab === 'chat' && <ChatExplorer />}
+          {activeTab === 'agentic-search' && <AgenticSearch />}
           {activeTab === 'search' && <SearchExplorer />}
+          {activeTab === 'graph' && <KnowledgeGraph />}
+          {activeTab === 'saved-queries' && (
+            <SavedQueries
+              onRunQuery={(_q) => {
+                setActiveTab('chat');
+              }}
+            />
+          )}
+          {activeTab === 'analytics' && <QueryAnalytics />}
           {activeTab === 'documents' && <DocumentManager />}
+          {activeTab === 'processing' && <ProcessingQueue />}
+          {activeTab === 'collections' && <CollectionsView />}
+          {activeTab === 'shared' && <SharedWithMe />}
+          {activeTab === 'trash' && <TrashView />}
           {activeTab === 'evaluation' && <EvaluationDashboard />}
+          {activeTab === 'benchmarks' && <BenchmarksView />}
+          {activeTab === 'model-comparison' && <ModelComparison />}
+          {activeTab === 'insights' && <InsightsView />}
+          {activeTab === 'users' && <UsersTeamsView />}
+          {activeTab === 'permissions' && <PermissionsView />}
+          {activeTab === 'audit-logs' && <AuditLogsView />}
+          {activeTab === 'health' && <SystemHealthView />}
+          {activeTab === 'settings' && <SettingsView />}
         </main>
       </div>
+
+      {/* UPGRADE PLAN & STORAGE MODAL */}
+      <UpgradePlanModal
+        isOpen={isUpgradePlanOpen}
+        onClose={() => setIsUpgradePlanOpen(false)}
+      />
 
       {/* UPLOAD MODAL OVERLAY */}
       {isUploadModalOpen && (
