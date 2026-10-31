@@ -36,7 +36,17 @@ jobs:
 
       - name: Run Pytest Test Suite
         run: |
-          python -m pytest tests/ -v -ra --tb=short
+          python -c "
+          import subprocess, sys
+          res = subprocess.run([sys.executable, '-m', 'pytest', 'tests/', '-v', '-ra', '--tb=short'], capture_output=True, text=True)
+          print(res.stdout)
+          print(res.stderr)
+          if res.returncode != 0:
+              for line in (res.stdout + '\n' + res.stderr).splitlines()[-30:]:
+                  if line.strip():
+                      print(f'::error title=Pytest Diagnostic::{line}')
+          sys.exit(res.returncode)
+          "
 
   frontend-build:
     name: Frontend Lint & Production Bundle
