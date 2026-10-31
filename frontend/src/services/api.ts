@@ -222,6 +222,183 @@ export class ApiService {
     if (!resp.ok) throw new Error(await resp.text());
     return resp.json();
   }
+
+  /* ─────────────────────────────────────────────────────────
+     WORKSPACE DATA PERSISTENCE (Real Database Fetching)
+     ───────────────────────────────────────────────────────── */
+
+  static async getCollections(): Promise<any[]> {
+    const resp = await fetch(`${API_BASE}/workspace/collections`, {
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) return [];
+    return resp.json();
+  }
+
+  static async createCollection(data: { name: string; description: string; color?: string }): Promise<any> {
+    const resp = await fetch(`${API_BASE}/workspace/collections`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    return resp.json();
+  }
+
+  static async deleteCollection(id: string): Promise<any> {
+    const resp = await fetch(`${API_BASE}/workspace/collections/${id}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    return resp.json();
+  }
+
+  static async getSavedQueries(): Promise<any[]> {
+    const resp = await fetch(`${API_BASE}/workspace/saved-queries`, {
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) return [];
+    return resp.json();
+  }
+
+  static async createSavedQuery(data: { title: string; query_text: string; tag?: string }): Promise<any> {
+    const resp = await fetch(`${API_BASE}/workspace/saved-queries`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    return resp.json();
+  }
+
+  static async deleteSavedQuery(id: string): Promise<any> {
+    const resp = await fetch(`${API_BASE}/workspace/saved-queries/${id}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    return resp.json();
+  }
+
+  static async getUsers(): Promise<any[]> {
+    const resp = await fetch(`${API_BASE}/workspace/users`, {
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) return [];
+    return resp.json();
+  }
+
+  static async inviteUser(data: { email: string; full_name: string; department: string; role: string }): Promise<any> {
+    const resp = await fetch(`${API_BASE}/workspace/users/invite`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    return resp.json();
+  }
+
+  static async deleteUser(id: string): Promise<any> {
+    const resp = await fetch(`${API_BASE}/workspace/users/${id}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    return resp.json();
+  }
+
+  static async getAuditLogs(): Promise<any[]> {
+    const resp = await fetch(`${API_BASE}/workspace/audit-logs`, {
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) return [];
+    return resp.json();
+  }
+
+  static async getTelemetry(): Promise<any> {
+    const resp = await fetch(`${API_BASE}/workspace/telemetry`, {
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) return null;
+    return resp.json();
+  }
+
+  static async getSystemHealth(): Promise<any> {
+    const resp = await fetch(`${API_BASE}/workspace/system-health`, {
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) return null;
+    return resp.json();
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     SUPERADMIN CONTROL PLANE (Zero-Trust Admin-Only)
+     ───────────────────────────────────────────────────────── */
+
+  static async getAdminCockpit(): Promise<any> {
+    const resp = await fetch(`${API_BASE}/admin/cockpit`, {
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) throw new Error('Admin privileges required');
+    return resp.json();
+  }
+
+  static async getAdminTenants(): Promise<any[]> {
+    const resp = await fetch(`${API_BASE}/admin/tenants`, {
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) throw new Error('Admin privileges required');
+    return resp.json();
+  }
+
+  static async createAdminTenant(data: { name: string; slug: string; plan?: string }): Promise<any> {
+    const resp = await fetch(`${API_BASE}/admin/tenants`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    return resp.json();
+  }
+
+  static async updateAdminUserRole(userId: string, roleOrIsAdmin: string | boolean): Promise<any> {
+    const isAdmin = typeof roleOrIsAdmin === 'boolean' ? roleOrIsAdmin : roleOrIsAdmin === 'Admin';
+    const resp = await fetch(`${API_BASE}/admin/users/${userId}/role`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ is_admin: isAdmin, role: typeof roleOrIsAdmin === 'string' ? roleOrIsAdmin : undefined }),
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    return resp.json();
+  }
+
+  static async runAdminMaintenance(action?: string): Promise<any> {
+    const resp = await fetch(`${API_BASE}/admin/system/maintenance`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ action: action || 'vacuum' }),
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    return resp.json();
+  }
 }
 
 export const api = ApiService;

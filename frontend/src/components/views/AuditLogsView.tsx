@@ -1,79 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FileText,
   Search,
   Download,
 } from 'lucide-react';
+import { ApiService } from '../../services/api';
 
 interface AuditLogEntry {
   id: string;
-  timestamp: string;
-  actor: string;
+  timestamp?: string;
+  created_at?: string;
+  actor?: string;
   action: string;
-  resource: string;
-  ipAddress: string;
+  resource?: string;
+  resource_type?: string;
+  ipAddress?: string;
+  ip_address?: string;
   status: 'SUCCESS' | 'DENIED' | 'FLAGGED';
+  details?: string;
 }
 
 export const AuditLogsView: React.FC = () => {
+  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('ALL');
 
-  const logs: AuditLogEntry[] = [
-    {
-      id: 'log-1',
-      timestamp: '2026-10-31 02:28:14 UTC',
-      actor: 'sarah.jenkins@enterprise.ai',
-      action: 'DOCUMENT_INGESTED',
-      resource: 'Q3_Financial_Report_2024.pdf (SHA: 8f92a1c4)',
-      ipAddress: '198.51.100.45',
-      status: 'SUCCESS',
-    },
-    {
-      id: 'log-2',
-      timestamp: '2026-10-31 02:15:32 UTC',
-      actor: 'marcus.brody@enterprise.ai',
-      action: 'RBAC_POLICY_UPDATED',
-      resource: 'Tenant Security Matrix / Analyst Scope',
-      ipAddress: '203.0.113.88',
-      status: 'SUCCESS',
-    },
-    {
-      id: 'log-3',
-      timestamp: '2026-10-31 01:54:10 UTC',
-      actor: 'anonymous_probe_attempt',
-      action: 'UNAUTHORIZED_CROSS_TENANT_ACCESS',
-      resource: 'qdrant://tenant_00000000_collections',
-      ipAddress: '185.220.101.5',
-      status: 'DENIED',
-    },
-    {
-      id: 'log-4',
-      timestamp: '2026-10-31 01:42:05 UTC',
-      actor: 'alex.chen@enterprise.ai',
-      action: 'AGENTIC_QUERY_EXECUTED',
-      resource: 'rag_query://cloud_arr_expansion_multi_hop',
-      ipAddress: '198.51.100.12',
-      status: 'SUCCESS',
-    },
-    {
-      id: 'log-5',
-      timestamp: '2026-10-30 23:19:40 UTC',
-      actor: 'system_cron_worker',
-      action: 'STRESS_BENCHMARK_PROFILED',
-      resource: 'bge_reranker_large_throughput_suite',
-      ipAddress: '10.0.4.18 (VPC Internal)',
-      status: 'SUCCESS',
-    },
-  ];
+  const loadLogs = async () => {
+    try {
+      const data = await ApiService.getAuditLogs();
+      setLogs(data);
+    } catch (err) {
+      console.error('Failed to load audit logs:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadLogs();
+  }, []);
 
   const filtered = logs.filter((l) => {
-    const matchesFilter = selectedFilter === 'ALL' || l.status === selectedFilter;
+    const status = l.status || 'SUCCESS';
+    const matchesFilter = selectedFilter === 'ALL' || status === selectedFilter;
+    const actorStr = l.actor || 'system';
+    const actionStr = l.action || '';
+    const resStr = l.resource || l.resource_type || l.details || '';
+    const ipStr = l.ipAddress || l.ip_address || '';
+
     const matchesSearch =
-      l.actor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      l.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      l.resource.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      l.ipAddress.includes(searchTerm);
+      actorStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      actionStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      resStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ipStr.includes(searchTerm);
     return matchesFilter && matchesSearch;
   });
 

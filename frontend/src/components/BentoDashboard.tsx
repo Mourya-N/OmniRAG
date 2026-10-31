@@ -20,8 +20,6 @@ import {
   ExternalLink,
   Bot,
   Zap,
-  Sun,
-  Moon,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { CitationItem, VerificationReport } from '../types';
@@ -36,7 +34,7 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
   onNavigateTab,
   onOpenUploadModal,
 }) => {
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const dark = theme === 'dark';
 
   // AI Assistant interactive state
@@ -127,18 +125,6 @@ export const BentoDashboard: React.FC<BentoDashboardProps> = ({
           <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute top-1/2 -right-16 w-96 h-96 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-20 right-1/4 w-80 h-80 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
-
-          {/* Theme toggle button — top-right of hero */}
-          <button
-            onClick={toggleTheme}
-            title={dark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
-            className="absolute top-5 right-5 z-20 w-9 h-9 rounded-xl bento-chip flex items-center justify-center transition-all hover:scale-110"
-          >
-            {dark
-              ? <Sun className="w-4 h-4 text-amber-300" />
-              : <Moon className="w-4 h-4 text-indigo-500" />
-            }
-          </button>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10 items-center">
             {/* Left Content */}

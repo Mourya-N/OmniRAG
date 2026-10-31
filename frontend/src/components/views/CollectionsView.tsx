@@ -1,83 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Layers,
   FolderPlus,
   FileText,
   Users,
   ArrowRight,
+  Trash2,
 } from 'lucide-react';
+import { ApiService } from '../../services/api';
 
 interface CollectionItem {
   id: string;
   name: string;
   description: string;
-  docCount: number;
-  collaborators: number;
-  lastUpdated: string;
-  color: string;
+  docCount?: number;
+  collaborators?: number;
+  lastUpdated?: string;
+  color?: string;
 }
 
 export const CollectionsView: React.FC = () => {
-  const [collections, setCollections] = useState<CollectionItem[]>([
-    {
-      id: 'c-1',
-      name: 'Financial Reports & SEC Filings',
-      description: 'Quarterly 10-Q, 10-K filings, investor presentations, and auditor letters.',
-      docCount: 42,
-      collaborators: 8,
-      lastUpdated: '2 hours ago',
-      color: 'from-blue-600 to-cyan-600',
-    },
-    {
-      id: 'c-2',
-      name: 'Engineering System Design & RFCs',
-      description: 'Architecture blueprints, microservices APIs, database schemas, and postmortems.',
-      docCount: 128,
-      collaborators: 24,
-      lastUpdated: '5 hours ago',
-      color: 'from-purple-600 to-indigo-600',
-    },
-    {
-      id: 'c-3',
-      name: 'Legal, Compliance & SOC 2 Audits',
-      description: 'Security policies, pen-testing logs, GDPR data maps, and NDA templates.',
-      docCount: 56,
-      collaborators: 5,
-      lastUpdated: '1 day ago',
-      color: 'from-emerald-600 to-teal-600',
-    },
-    {
-      id: 'c-4',
-      name: 'Product Roadmaps & User Research',
-      description: 'Feature specs, customer interview transcripts, churn analyses, and Figma handoffs.',
-      docCount: 89,
-      collaborators: 18,
-      lastUpdated: '3 days ago',
-      color: 'from-pink-600 to-rose-600',
-    },
-  ]);
-
+  const [collections, setCollections] = useState<CollectionItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
 
-  const handleCreate = (e: React.FormEvent) => {
+  const loadCollections = async () => {
+    try {
+      const data = await ApiService.getCollections();
+      setCollections(data);
+    } catch (err) {
+      console.error('Failed to load collections:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadCollections();
+  }, []);
+
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
 
-    const created: CollectionItem = {
-      id: `c-${Date.now()}`,
-      name: newTitle.trim(),
-      description: newDesc.trim() || 'Custom enterprise knowledge collection.',
-      docCount: 0,
-      collaborators: 1,
-      lastUpdated: 'Just now',
-      color: 'from-indigo-600 to-purple-600',
-    };
-    setCollections([created, ...collections]);
-    setIsModalOpen(false);
-    setNewTitle('');
-    setNewDesc('');
+    try {
+      const created = await ApiService.createCollection({
+        name: newTitle.trim(),
+        description: newDesc.trim() || 'Custom enterprise knowledge collection.',
+        color: 'from-indigo-600 to-purple-600',
+      });
+      setCollections((prev) => [created, ...prev]);
+      setIsModalOpen(false);
+      setNewTitle('');
+      setNewDesc('');
+    } catch (err: any) {
+      alert(err?.response?.data?.detail || 'Failed to create collection');
+    }
+  };
+
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this collection?')) return;
+    try {
+      await ApiService.deleteCollection(id);
+      setCollections((prev) => prev.filter((c) => c.id !== id));
+    } catch (err: any) {
+      alert(err?.response?.data?.detail || 'Failed to delete collection');
+    }
   };
 
   return (
@@ -115,12 +103,21 @@ export const CollectionsView: React.FC = () => {
           >
             <div className="space-y-3">
               <div className="flex items-start justify-between">
-                <div className={`w-10 h-10 rounded-2xl bg-gradient-to-tr ${col.color} flex items-center justify-center text-white shadow-md`}>
+                <div className={`w-10 h-10 rounded-2xl bg-gradient-to-tr ${col.color || 'from-indigo-600 to-purple-600'} flex items-center justify-center text-white shadow-md`}>
                   <Layers className="w-5 h-5" />
                 </div>
-                <span className="text-xs t-muted flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5" /> {col.collaborators} members
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs t-muted flex items-center gap-1">
+                    <Users className="w-3.5 h-3.5" /> {col.collaborators || 1} members
+                  </span>
+                  <button
+                    onClick={(e) => handleDelete(col.id, e)}
+                    className="p-1 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                    title="Delete Collection"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
               <div>

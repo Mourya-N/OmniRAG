@@ -18,6 +18,8 @@ from app.api.v1.evaluation import router as eval_router
 from app.api.v1.organizations import router as org_router
 from app.api.v1.rag import router as rag_router
 from app.api.v1.search import router as search_router
+from app.api.v1.workspace import router as workspace_router
+from app.api.v1.admin import router as admin_router
 from app.core.config import settings
 from app.core.database import engine, init_database_tables
 from app.core.exceptions import OmniRAGError
@@ -130,6 +132,8 @@ app.include_router(search_router, prefix=settings.API_V1_PREFIX)
 app.include_router(rag_router, prefix=settings.API_V1_PREFIX)
 app.include_router(agent_router, prefix=settings.API_V1_PREFIX)
 app.include_router(eval_router, prefix=settings.API_V1_PREFIX)
+app.include_router(workspace_router, prefix=settings.API_V1_PREFIX)
+app.include_router(admin_router, prefix=settings.API_V1_PREFIX)
 
 # System Health, Readiness & Metrics Endpoints
 @app.get(f"{settings.API_V1_PREFIX}/system/health", tags=["System"])

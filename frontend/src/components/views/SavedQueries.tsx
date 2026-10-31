@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Bookmark,
   Search,
@@ -9,16 +9,17 @@ import {
   CheckCircle2,
   ArrowRight,
 } from 'lucide-react';
+import { ApiService } from '../../services/api';
 
 interface SavedQueryItem {
   id: string;
   title: string;
   query: string;
-  tag: string;
-  executions: number;
-  avgLatency: string;
-  lastRun: string;
-  isPinned: boolean;
+  tag?: string;
+  executions?: number;
+  avgLatency?: string;
+  lastRun?: string;
+  isPinned?: boolean;
 }
 
 interface SavedQueriesProps {
@@ -26,49 +27,7 @@ interface SavedQueriesProps {
 }
 
 export const SavedQueries: React.FC<SavedQueriesProps> = ({ onRunQuery }) => {
-  const [queries, setQueries] = useState<SavedQueryItem[]>([
-    {
-      id: 'q-1',
-      title: 'Q3 Enterprise Revenue & Net Retention Breakdown',
-      query: 'What was the Q3 subscription ARR growth and net expansion rate across enterprise contracts?',
-      tag: 'Finance',
-      executions: 142,
-      avgLatency: '1.2s',
-      lastRun: '10 mins ago',
-      isPinned: true,
-    },
-    {
-      id: 'q-2',
-      title: 'SOC 2 Type II Encryption at Rest & in Transit',
-      query: 'List all encryption protocols, KMS envelope keys, and access controls mandated by our SOC 2 Type II audit.',
-      tag: 'Security',
-      executions: 89,
-      avgLatency: '1.4s',
-      lastRun: '2 hours ago',
-      isPinned: true,
-    },
-    {
-      id: 'q-3',
-      title: 'Hybrid RAG Reciprocal Rank Fusion Formula',
-      query: 'Explain how dense vector distance and BM25 sparse rankings are fused using reciprocal rank fusion.',
-      tag: 'Architecture',
-      executions: 64,
-      avgLatency: '0.9s',
-      lastRun: 'Yesterday',
-      isPinned: false,
-    },
-    {
-      id: 'q-4',
-      title: 'Database Sharding & Connection Pool Limits',
-      query: 'What are the maximum connection pool parameters and read-replica replication lag thresholds?',
-      tag: 'Engineering',
-      executions: 31,
-      avgLatency: '1.1s',
-      lastRun: '3 days ago',
-      isPinned: false,
-    },
-  ]);
-
+  const [queries, setQueries] = useState<SavedQueryItem[]>([]);
   const [selectedTag, setSelectedTag] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -79,6 +38,19 @@ export const SavedQueries: React.FC<SavedQueriesProps> = ({ onRunQuery }) => {
 
   const tags = ['All', 'Finance', 'Security', 'Architecture', 'Engineering', 'General'];
 
+  const loadQueries = async () => {
+    try {
+      const data = await ApiService.getSavedQueries();
+      setQueries(data);
+    } catch (err) {
+      console.error('Failed to load saved queries:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadQueries();
+  }, []);
+
   const filteredQueries = queries.filter((q) => {
     const matchesTag = selectedTag === 'All' || q.tag === selectedTag;
     const matchesSearch =
@@ -87,29 +59,34 @@ export const SavedQueries: React.FC<SavedQueriesProps> = ({ onRunQuery }) => {
     return matchesTag && matchesSearch;
   });
 
-  const handleAddQuery = (e: React.FormEvent) => {
+  const handleAddQuery = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !newQuery.trim()) return;
 
-    const created: SavedQueryItem = {
-      id: `q-${Date.now()}`,
-      title: newTitle.trim(),
-      query: newQuery.trim(),
-      tag: newTag,
-      executions: 1,
-      avgLatency: '1.2s',
-      lastRun: 'Just now',
-      isPinned: false,
-    };
-    setQueries([created, ...queries]);
-    setIsModalOpen(false);
-    setNewTitle('');
-    setNewQuery('');
-    setNewTag('General');
+    try {
+      const created = await ApiService.createSavedQuery({
+        title: newTitle.trim(),
+        query_text: newQuery.trim(),
+        tag: newTag,
+      });
+      setQueries([created, ...queries]);
+      setIsModalOpen(false);
+      setNewTitle('');
+      setNewQuery('');
+      setNewTag('General');
+    } catch (err: any) {
+      alert(err?.response?.data?.detail || 'Failed to save query');
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setQueries(queries.filter((q) => q.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this query?')) return;
+    try {
+      await ApiService.deleteSavedQuery(id);
+      setQueries(queries.filter((q) => q.id !== id));
+    } catch (err: any) {
+      alert(err?.response?.data?.detail || 'Failed to delete query');
+    }
   };
 
   const handleCopy = (id: string, text: string) => {

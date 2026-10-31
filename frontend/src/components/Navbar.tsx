@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Bell, Upload, LogOut, Shield, ChevronDown, LogIn, Menu, Sun, Moon } from 'lucide-react';
+import { OmniRAGLogo } from './OmniRAGLogo';
 import { useTheme } from '../contexts/ThemeContext';
 import { ApiService } from '../services/api';
 import { UserProfile } from '../types';
@@ -14,6 +15,8 @@ interface NavbarProps {
   currentUser?: UserProfile | null;
   onLogout?: () => void;
   onToggleMobileMenu?: () => void;
+  currentLayer?: 'workspace' | 'admin';
+  onToggleLayer?: () => void;
 }
 
 const getInitials = (name?: string, email?: string): string => {
@@ -37,6 +40,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentUser,
   onLogout,
   onToggleMobileMenu,
+  currentLayer = 'workspace',
+  onToggleLayer,
 }) => {
   const { theme, toggleTheme } = useTheme();
   const dark = theme === 'dark';
@@ -94,8 +99,8 @@ export const Navbar: React.FC<NavbarProps> = ({
       }}
     >
       <div className="w-full flex items-center justify-between gap-4">
-        {/* Left: Mobile hamburger & search */}
-        <div className="flex items-center gap-3 flex-1 max-w-2xl">
+        {/* Left: Mobile hamburger & Brand Logo & Search */}
+        <div className="flex items-center gap-3 flex-1 max-w-3xl">
           {onToggleMobileMenu && (
             <button
               onClick={onToggleMobileMenu}
@@ -106,7 +111,30 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
-          {/* Global Search Capsule (Matching Screenshot: Search across documents, people, code, tables, images...) */}
+          {/* OmniRAG Logo & Name in Navbar */}
+          <div
+            onClick={onNavigateLanding}
+            className="flex items-center gap-2.5 cursor-pointer select-none group pr-3 border-r"
+            style={{ borderColor: 'var(--border)' }}
+            title="OmniRAG — Back to Landing / Home"
+          >
+            <OmniRAGLogo size={32} showText={false} className="group-hover:scale-105 transition-transform" />
+            <div className="hidden sm:flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-sm tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-400 to-pink-500 bg-clip-text text-transparent">
+                  OmniRAG
+                </span>
+                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full badge-indigo">
+                  Enterprise
+                </span>
+              </div>
+              <span className="text-[9px] font-medium t-muted -mt-0.5">
+                Knowledge Intelligence
+              </span>
+            </div>
+          </div>
+
+          {/* Global Search Capsule */}
           <form onSubmit={handleSearchSubmit} className="relative w-full">
             <div
               className="flex items-center rounded-xl px-4 py-2.5 transition-all shadow-inner"
@@ -135,8 +163,25 @@ export const Navbar: React.FC<NavbarProps> = ({
           </form>
         </div>
 
-        {/* Right: Actions & User Capsule */}
-        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+        {/* Right: Actions, Admin Switcher & User Capsule */}
+        <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
+          {/* Admin Layer Toggle (Visible only for Founder / Superuser Admin) */}
+          {Boolean(currentUser?.is_superuser || currentUser?.roles?.includes('Admin')) && onToggleLayer && (
+            <button
+              onClick={onToggleLayer}
+              title={currentLayer === 'admin' ? 'Switch back to User Workspace' : 'Switch to Enterprise Admin Portal'}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md ${
+                currentLayer === 'admin'
+                  ? 'bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white shadow-pink-600/30 ring-2 ring-pink-400/50'
+                  : 'bento-chip t-accent hover:border-indigo-500/40 text-indigo-300'
+              }`}
+            >
+              <Shield className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">{currentLayer === 'admin' ? 'User Workspace' : 'Admin Portal'}</span>
+              <span className="md:hidden">{currentLayer === 'admin' ? 'Workspace' : 'Admin'}</span>
+            </button>
+          )}
+
           {/* Upload Button */}
           <button
             onClick={onOpenUpload}

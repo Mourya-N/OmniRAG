@@ -8,6 +8,7 @@ from app.models.evaluation import EvaluationDataset, EvaluationResult, Evaluatio
 from app.models.job import IngestionJob, IngestionStage
 from app.models.tenant import Organization, Tenant
 from app.models.user import Membership, Role, User
+from app.models.workspace import Collection, QueryTelemetry, SavedQuery
 
 __all__ = [
     "Base",
@@ -29,4 +30,7 @@ __all__ = [
     "EvaluationDataset",
     "EvaluationRun",
     "EvaluationResult",
+    "Collection",
+    "SavedQuery",
+    "QueryTelemetry",
 ]

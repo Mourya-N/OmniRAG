@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Activity,
   CheckCircle2,
@@ -10,11 +10,33 @@ import {
   RefreshCw,
   Zap,
 } from 'lucide-react';
+import { ApiService } from '../../services/api';
 
 export const SystemHealthView: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [healthData, setHealthData] = useState<any>(null);
 
-  const systems = [
+  const loadHealth = async () => {
+    setIsRefreshing(true);
+    try {
+      const data = await ApiService.getSystemHealth();
+      setHealthData(data);
+    } catch (err) {
+      console.error('Failed to load system health:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadHealth();
+  }, []);
+
+  const handleRefresh = () => {
+    loadHealth();
+  };
+
+  const systems: any[] = healthData?.subsystems || [
     { name: 'API Gateway', status: 'Healthy', latency: '14ms', icon: Zap, color: 'text-emerald-400' },
     { name: 'Workers', status: '12/12 Active', latency: '100% cap', icon: Cpu, color: 'text-emerald-400' },
     { name: 'Vector DB (Qdrant)', status: 'Healthy', latency: '6.4ms P50', icon: Database, color: 'text-emerald-400' },
@@ -24,11 +46,6 @@ export const SystemHealthView: React.FC = () => {
     { name: 'Storage Cluster', status: 'Healthy', latency: '128 GB / 500 GB', icon: HardDrive, color: 'text-emerald-400' },
     { name: 'Monitoring Telemetry', status: 'Active', latency: 'OTel / Prom', icon: Activity, color: 'text-emerald-400' },
   ];
-
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 800);
-  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -61,7 +78,7 @@ export const SystemHealthView: React.FC = () => {
 
       {/* 8 System Status Cards Grid (matching screenshot) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {systems.map((s, idx) => {
+        {systems.map((s: any, idx: number) => {
           const Icon = s.icon;
           return (
             <div

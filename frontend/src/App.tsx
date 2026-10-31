@@ -33,6 +33,7 @@ import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
 import { LandingPage } from './pages/LandingPage';
 import { GoogleCallbackPage } from './pages/GoogleCallbackPage';
+import { AdminPortal } from './pages/AdminPortal';
 import { ApiService } from './services/api';
 import { useTheme } from './contexts/ThemeContext';
 import { UserProfile } from './types';
@@ -63,6 +64,7 @@ const getInitialPage = (): Page => {
 export const App: React.FC = () => {
   const { theme } = useTheme();
   const [currentPage, setCurrentPage] = useState<Page>(getInitialPage);
+  const [currentLayer, setCurrentLayer] = useState<'workspace' | 'admin'>('workspace');
   const [activeTab, setActiveTab] = useState<DashTab>('home');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isUpgradePlanOpen, setIsUpgradePlanOpen] = useState(false);
@@ -226,42 +228,53 @@ export const App: React.FC = () => {
           currentUser={currentUser}
           onLogout={handleLogout}
           onToggleMobileMenu={() => setIsMobileSidebarOpen(true)}
+          currentLayer={currentLayer}
+          onToggleLayer={() => setCurrentLayer((l) => (l === 'workspace' ? 'admin' : 'workspace'))}
         />
 
-        {/* ACTIVE MAIN CONTENT VIEW */}
+        {/* ACTIVE MAIN CONTENT VIEW (Workspace or Admin Portal) */}
         <main className="flex-1 w-full max-w-[1600px] mx-auto p-4 sm:p-6 min-w-0">
-          {activeTab === 'home' && (
-            <BentoDashboard
-              onNavigateTab={(t) => setActiveTab(t as DashTab)}
-              onOpenUploadModal={() => setIsUploadModalOpen(true)}
+          {currentLayer === 'admin' ? (
+            <AdminPortal
+              currentUser={currentUser}
+              onReturnToWorkspace={() => setCurrentLayer('workspace')}
             />
+          ) : (
+            <>
+              {activeTab === 'home' && (
+                <BentoDashboard
+                  onNavigateTab={(t) => setActiveTab(t as DashTab)}
+                  onOpenUploadModal={() => setIsUploadModalOpen(true)}
+                />
+              )}
+              {activeTab === 'chat' && <ChatExplorer />}
+              {activeTab === 'agentic-search' && <AgenticSearch />}
+              {activeTab === 'search' && <SearchExplorer />}
+              {activeTab === 'graph' && <KnowledgeGraph />}
+              {activeTab === 'saved-queries' && (
+                <SavedQueries
+                  onRunQuery={(_q) => {
+                    setActiveTab('chat');
+                  }}
+                />
+              )}
+              {activeTab === 'analytics' && <QueryAnalytics />}
+              {activeTab === 'documents' && <DocumentManager />}
+              {activeTab === 'processing' && <ProcessingQueue />}
+              {activeTab === 'collections' && <CollectionsView />}
+              {activeTab === 'shared' && <SharedWithMe />}
+              {activeTab === 'trash' && <TrashView />}
+              {activeTab === 'evaluation' && <EvaluationDashboard />}
+              {activeTab === 'benchmarks' && <BenchmarksView />}
+              {activeTab === 'model-comparison' && <ModelComparison />}
+              {activeTab === 'insights' && <InsightsView />}
+              {activeTab === 'users' && <UsersTeamsView />}
+              {activeTab === 'permissions' && <PermissionsView />}
+              {activeTab === 'audit-logs' && <AuditLogsView />}
+              {activeTab === 'health' && <SystemHealthView />}
+              {activeTab === 'settings' && <SettingsView />}
+            </>
           )}
-          {activeTab === 'chat' && <ChatExplorer />}
-          {activeTab === 'agentic-search' && <AgenticSearch />}
-          {activeTab === 'search' && <SearchExplorer />}
-          {activeTab === 'graph' && <KnowledgeGraph />}
-          {activeTab === 'saved-queries' && (
-            <SavedQueries
-              onRunQuery={(_q) => {
-                setActiveTab('chat');
-              }}
-            />
-          )}
-          {activeTab === 'analytics' && <QueryAnalytics />}
-          {activeTab === 'documents' && <DocumentManager />}
-          {activeTab === 'processing' && <ProcessingQueue />}
-          {activeTab === 'collections' && <CollectionsView />}
-          {activeTab === 'shared' && <SharedWithMe />}
-          {activeTab === 'trash' && <TrashView />}
-          {activeTab === 'evaluation' && <EvaluationDashboard />}
-          {activeTab === 'benchmarks' && <BenchmarksView />}
-          {activeTab === 'model-comparison' && <ModelComparison />}
-          {activeTab === 'insights' && <InsightsView />}
-          {activeTab === 'users' && <UsersTeamsView />}
-          {activeTab === 'permissions' && <PermissionsView />}
-          {activeTab === 'audit-logs' && <AuditLogsView />}
-          {activeTab === 'health' && <SystemHealthView />}
-          {activeTab === 'settings' && <SettingsView />}
         </main>
       </div>
 

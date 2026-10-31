@@ -66,10 +66,31 @@ async def get_current_user(
         "user_id": user.id,
         "email": user.email,
         "full_name": user.full_name,
+        "is_superuser": user.is_superuser,
         "tenant_id": tenant_id,
         "organization_id": org_id,
         "roles": roles,
     }
+
+
+async def require_admin(
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Strictly enforces that the authenticated user possesses SuperAdmin or Admin executive privilege.
+
+    Standard users without admin roles are blocked with HTTP 403 Forbidden.
+    """
+    user: User = current_user["user"]
+    user_roles = [r.lower() for r in current_user.get("roles", [])]
+    is_admin = user.is_superuser or "admin" in user_roles or "owner" in user_roles
+
+    if not is_admin:
+        raise AuthorizationError(
+            "Access Denied: Enterprise Admin privileges required. Regular users cannot access the Admin Portal.",
+            code="FORBIDDEN_ADMIN_REQUIRED",
+            status_code=403,
+        )
+    return current_user
 
 
 def require_roles(allowed_roles: list[str]):

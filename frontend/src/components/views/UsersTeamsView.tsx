@@ -1,70 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Users,
   UserPlus,
   Trash2,
   Search,
 } from 'lucide-react';
+import { ApiService } from '../../services/api';
 
 interface Member {
   id: string;
-  name: string;
+  name?: string;
+  full_name?: string;
   email: string;
-  department: string;
-  role: 'Admin' | 'Analyst' | 'Member' | 'Guest';
-  status: 'Active' | 'Invited';
-  lastActive: string;
+  department?: string;
+  role?: string;
+  status?: string;
+  lastActive?: string;
+  is_superuser?: boolean;
 }
 
 export const UsersTeamsView: React.FC = () => {
-  const [members, setMembers] = useState<Member[]>([
-    {
-      id: 'u-1',
-      name: 'Sarah Jenkins',
-      email: 'sarah.jenkins@enterprise.ai',
-      department: 'Finance & Operations',
-      role: 'Admin',
-      status: 'Active',
-      lastActive: '5 mins ago',
-    },
-    {
-      id: 'u-2',
-      name: 'Alex Chen',
-      email: 'alex.chen@enterprise.ai',
-      department: 'Platform Engineering',
-      role: 'Analyst',
-      status: 'Active',
-      lastActive: '2 hours ago',
-    },
-    {
-      id: 'u-3',
-      name: 'Marcus Brody',
-      email: 'marcus.brody@enterprise.ai',
-      department: 'Security & Compliance',
-      role: 'Admin',
-      status: 'Active',
-      lastActive: 'Yesterday',
-    },
-    {
-      id: 'u-4',
-      name: 'Elena Rostova',
-      email: 'elena.rostova@enterprise.ai',
-      department: 'AI Research',
-      role: 'Analyst',
-      status: 'Active',
-      lastActive: '3 days ago',
-    },
-    {
-      id: 'u-5',
-      name: 'Jordan Rivera',
-      email: 'jordan.rivera@enterprise.ai',
-      department: 'Product Management',
-      role: 'Member',
-      status: 'Invited',
-      lastActive: 'Pending accept',
-    },
-  ]);
-
+  const [members, setMembers] = useState<Member[]>([]);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
@@ -72,34 +28,54 @@ export const UsersTeamsView: React.FC = () => {
   const [inviteDept, setInviteDept] = useState('Engineering');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleInvite = (e: React.FormEvent) => {
+  const loadUsers = async () => {
+    try {
+      const data = await ApiService.getUsers();
+      setMembers(data);
+    } catch (err) {
+      console.error('Failed to load users:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inviteEmail.trim()) return;
 
-    const created: Member = {
-      id: `u-${Date.now()}`,
-      name: inviteName.trim() || inviteEmail.split('@')[0],
-      email: inviteEmail.trim(),
-      department: inviteDept,
-      role: inviteRole,
-      status: 'Invited',
-      lastActive: 'Just invited',
-    };
-    setMembers([created, ...members]);
-    setIsInviteOpen(false);
-    setInviteEmail('');
-    setInviteName('');
+    try {
+      const created = await ApiService.inviteUser({
+        email: inviteEmail.trim(),
+        full_name: inviteName.trim() || inviteEmail.split('@')[0],
+        role: inviteRole,
+        department: inviteDept,
+      });
+      setMembers((prev) => [created, ...prev]);
+      setIsInviteOpen(false);
+      setInviteEmail('');
+      setInviteName('');
+    } catch (err: any) {
+      alert(err?.response?.data?.detail || 'Failed to invite user');
+    }
   };
 
-  const handleRemove = (id: string) => {
-    setMembers(members.filter((m) => m.id !== id));
+  const handleRemove = async (id: string) => {
+    if (!confirm('Are you sure you want to remove this user from the workspace?')) return;
+    try {
+      await ApiService.deleteUser(id);
+      setMembers(members.filter((m) => m.id !== id));
+    } catch (err: any) {
+      alert(err?.response?.data?.detail || 'Failed to remove user');
+    }
   };
 
   const filtered = members.filter(
     (m) =>
-      m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (m.full_name || m.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       m.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.department.toLowerCase().includes(searchTerm.toLowerCase())
+      (m.department || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -160,10 +136,10 @@ export const UsersTeamsView: React.FC = () => {
                 <tr key={m.id} className="hover:bg-white/[0.02] transition-colors">
                   <td className="py-3.5 font-medium t-primary flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-white font-bold flex items-center justify-center text-xs shrink-0">
-                      {m.name.slice(0, 2).toUpperCase()}
+                      {(m.full_name || m.name || 'User').slice(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      <div className="font-semibold">{m.name}</div>
+                      <div className="font-semibold">{m.full_name || m.name || 'User'}</div>
                       <div className="text-[11px] t-muted font-mono">{m.email}</div>
                     </div>
                   </td>
