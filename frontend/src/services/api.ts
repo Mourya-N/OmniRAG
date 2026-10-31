@@ -186,6 +186,34 @@ export class ApiService {
     return resp.json();
   }
 
+  static async getRAGConversations(): Promise<any[]> {
+    const resp = await fetch(`${API_BASE}/rag/conversations`, {
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) return [];
+    return resp.json();
+  }
+
+  static async getRAGConversation(conversationId: string): Promise<any> {
+    const resp = await fetch(`${API_BASE}/rag/conversations/${conversationId}`, {
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    return resp.json();
+  }
+
+  static async deleteRAGConversation(conversationId: string): Promise<any> {
+    const resp = await fetch(`${API_BASE}/rag/conversations/${conversationId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    return resp.json();
+  }
+
   static async queryRAG(params: {
     query: string;
     tenant_id?: string;
@@ -377,6 +405,35 @@ export class ApiService {
     return resp.json();
   }
 
+  static async getAdminUsers(): Promise<any[]> {
+    const resp = await fetch(`${API_BASE}/admin/users`, {
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) throw new Error('Admin privileges required');
+    return resp.json();
+  }
+
+  static async createAdminUser(data: {
+    email: string;
+    full_name: string;
+    password: string;
+    role: string;
+    department?: string;
+  }): Promise<any> {
+    const resp = await fetch(`${API_BASE}/admin/users`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to create user');
+    }
+    return resp.json();
+  }
+
   static async updateAdminUserRole(userId: string, roleOrIsAdmin: string | boolean): Promise<any> {
     const isAdmin = typeof roleOrIsAdmin === 'boolean' ? roleOrIsAdmin : roleOrIsAdmin === 'Admin';
     const resp = await fetch(`${API_BASE}/admin/users/${userId}/role`, {
@@ -384,6 +441,26 @@ export class ApiService {
       headers: this.getHeaders(),
       credentials: 'include',
       body: JSON.stringify({ is_admin: isAdmin, role: typeof roleOrIsAdmin === 'string' ? roleOrIsAdmin : undefined }),
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    return resp.json();
+  }
+
+  static async getAdminPermissions(): Promise<any[]> {
+    const resp = await fetch(`${API_BASE}/admin/permissions`, {
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) return [];
+    return resp.json();
+  }
+
+  static async updateAdminPermissions(permissions: any[]): Promise<any> {
+    const resp = await fetch(`${API_BASE}/admin/permissions`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(permissions),
     });
     if (!resp.ok) throw new Error(await resp.text());
     return resp.json();

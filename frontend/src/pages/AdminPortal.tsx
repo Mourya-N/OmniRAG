@@ -35,16 +35,25 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   );
 
   const [activeTab, setActiveTab] = useState<
-    'cockpit' | 'tenants' | 'users' | 'maintenance' | 'quotas' | 'audit'
+    'cockpit' | 'tenants' | 'users' | 'permissions' | 'maintenance' | 'quotas' | 'audit'
   >('cockpit');
 
   // Admin Data State
   const [cockpitData, setCockpitData] = useState<any>(null);
   const [tenants, setTenants] = useState<any[]>([]);
   const [usersList, setUsersList] = useState<any[]>([]);
+  const [permissionsList, setPermissionsList] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // New User Form State
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserRole, setNewUserRole] = useState('Engineer');
+  const [newUserDept, setNewUserDept] = useState('Engineering');
 
   // New Tenant Form
   const [newTenantName, setNewTenantName] = useState('');
@@ -70,8 +79,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       }
 
       if (activeTab === 'users' || activeTab === 'cockpit') {
-        const usersRes = await ApiService.getUsers().catch(() => []);
+        const usersRes = await ApiService.getAdminUsers().catch(() => ApiService.getUsers().catch(() => []));
         setUsersList(usersRes);
+      }
+
+      if (activeTab === 'permissions') {
+        const permsRes = await ApiService.getAdminPermissions().catch(() => []);
+        setPermissionsList(permsRes);
       }
 
       if (activeTab === 'audit' || activeTab === 'cockpit') {
@@ -113,11 +127,53 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     try {
       await ApiService.updateAdminUserRole(userId, newRole);
       setUsersList((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+        prev.map((u) => (u.id === userId ? { ...u, role: newRole, is_superuser: newRole.toLowerCase() === 'admin' } : u))
       );
       showNotification('success', `Privileges updated to ${newRole}`);
     } catch (err: any) {
-      showNotification('error', err?.response?.data?.detail || 'Failed to update user role');
+      showNotification('error', err?.message || 'Failed to update user role');
+    }
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUserEmail.trim() || !newUserName.trim() || !newUserPassword.trim()) {
+      showNotification('error', 'Please fill in all required user fields');
+      return;
+    }
+
+    try {
+      const created = await ApiService.createAdminUser({
+        email: newUserEmail.trim(),
+        full_name: newUserName.trim(),
+        password: newUserPassword,
+        role: newUserRole,
+        department: newUserDept,
+      });
+      setUsersList((prev) => [created, ...prev]);
+      setShowAddUserModal(false);
+      setNewUserEmail('');
+      setNewUserName('');
+      setNewUserPassword('');
+      showNotification('success', `User "${created.full_name}" created successfully with role ${created.role}`);
+    } catch (err: any) {
+      showNotification('error', err?.message || 'Failed to create user account');
+    }
+  };
+
+  const handleTogglePermission = (permId: string, roleKey: 'admin' | 'engineer' | 'analyst' | 'viewer') => {
+    if (roleKey === 'admin') return; // Admin always retains foundational root privileges
+    setPermissionsList((prev) =>
+      prev.map((p) => (p.id === permId ? { ...p, [roleKey]: !p[roleKey] } : p))
+    );
+  };
+
+  const handleSavePermissions = async () => {
+    try {
+      await ApiService.updateAdminPermissions(permissionsList);
+      showNotification('success', 'Enterprise RBAC permission matrix updated and active across all nodes.');
+    } catch (err: any) {
+      showNotification('error', err?.message || 'Failed to save permissions matrix');
     }
   };
 
@@ -233,6 +289,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           { id: 'cockpit', label: 'Cockpit Overview', icon: Cpu },
           { id: 'tenants', label: 'Multi-Tenant Partitioning', icon: Building2 },
           { id: 'users', label: 'User Roles & Access', icon: Users },
+          { id: 'permissions', label: 'Role Permissions & RBAC', icon: Lock },
           { id: 'maintenance', label: 'Vector DB & Workers', icon: Server },
           { id: 'quotas', label: 'Model Spend & Quotas', icon: DollarSign },
           { id: 'audit', label: 'Global Audit Logs', icon: FileText },
@@ -468,13 +525,122 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       {/* TAB 3: USER ROLES & ACCESS */}
       {activeTab === 'users' && (
         <div className="bento-card p-6 rounded-3xl space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold t-primary flex items-center gap-2">
-              <Users className="w-4 h-4 text-indigo-400" />
-              <span>Enterprise User Directory & Privileges</span>
-            </h3>
-            <span className="text-xs font-mono t-muted">{usersList.length} Accounts Registered</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-bold t-primary flex items-center gap-2">
+                <Users className="w-4 h-4 text-indigo-400" />
+                <span>Enterprise User Directory & Privileges</span>
+              </h3>
+              <p className="text-xs t-muted mt-0.5">Manage team accounts, modify organizational roles, and enforce security policies</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-mono t-muted">{usersList.length} Accounts Registered</span>
+              <button
+                onClick={() => setShowAddUserModal(true)}
+                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs shadow-md shadow-indigo-600/30 flex items-center gap-1.5 transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add User</span>
+              </button>
+            </div>
           </div>
+
+          {/* Add User Modal */}
+          {showAddUserModal && (
+            <div className="p-5 rounded-2xl bento-chip border border-indigo-500/30 space-y-4 animate-fade-in">
+              <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
+                <h4 className="text-xs font-bold t-primary flex items-center gap-2">
+                  <Plus className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Provision New Enterprise User Account</span>
+                </h4>
+                <button
+                  onClick={() => setShowAddUserModal(false)}
+                  className="text-xs t-muted hover:t-primary font-mono"
+                >
+                  ✕ Close
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateUser} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <div>
+                  <label className="text-[11px] font-medium t-muted block mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Alice Mercer"
+                    value={newUserName}
+                    onChange={(e) => setNewUserName(e.target.value)}
+                    className="w-full p-2 rounded-xl glass-input text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-medium t-muted block mb-1">Corporate Email</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="alice@company.com"
+                    value={newUserEmail}
+                    onChange={(e) => setNewUserEmail(e.target.value)}
+                    className="w-full p-2 rounded-xl glass-input text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-medium t-muted block mb-1">Initial Password</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Min 8 characters"
+                    value={newUserPassword}
+                    onChange={(e) => setNewUserPassword(e.target.value)}
+                    className="w-full p-2 rounded-xl glass-input text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-medium t-muted block mb-1">Department</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Engineering"
+                    value={newUserDept}
+                    onChange={(e) => setNewUserDept(e.target.value)}
+                    className="w-full p-2 rounded-xl glass-input text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-medium t-muted block mb-1">Assigned Role</label>
+                  <select
+                    value={newUserRole}
+                    onChange={(e) => setNewUserRole(e.target.value)}
+                    className="w-full p-2 rounded-xl glass-input text-xs font-mono"
+                  >
+                    <option value="Engineer">Engineer</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Analyst">Analyst</option>
+                    <option value="Viewer">Viewer</option>
+                  </select>
+                </div>
+
+                <div className="sm:col-span-2 lg:col-span-5 flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddUserModal(false)}
+                    className="px-4 py-2 rounded-xl bento-chip text-xs t-secondary hover:t-primary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-xs shadow-md shadow-emerald-600/30"
+                  >
+                    Create User Account
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -482,9 +648,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 <tr className="border-b border-[var(--border)] text-slate-400 font-mono text-[10px] uppercase">
                   <th className="pb-3 pl-3">User</th>
                   <th className="pb-3">Email</th>
-                  <th className="pb-3">Role Privilege</th>
-                  <th className="pb-3">Root Status</th>
-                  <th className="pb-3 text-right pr-3">Actions</th>
+                  <th className="pb-3">Change Role</th>
+                  <th className="pb-3">Privilege Status</th>
+                  <th className="pb-3 text-right pr-3">Quick Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
@@ -500,7 +666,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                       <select
                         value={user.role || (user.is_superuser ? 'Admin' : 'Engineer')}
                         onChange={(e) => handleUpdateRole(user.id, e.target.value)}
-                        className="px-2 py-1 rounded-lg glass-input text-xs font-mono"
+                        className="px-2.5 py-1.5 rounded-lg glass-input text-xs font-mono font-semibold"
                       >
                         <option value="Admin">Admin</option>
                         <option value="Engineer">Engineer</option>
@@ -510,22 +676,116 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                     </td>
                     <td className="py-3 font-mono text-[11px]">
                       {user.is_superuser ? (
-                        <span className="px-2 py-0.5 rounded-full text-pink-400 bg-pink-500/10 font-bold">
-                          ★ Root Founder
+                        <span className="px-2.5 py-1 rounded-full text-pink-400 bg-pink-500/10 border border-pink-500/20 font-bold">
+                          ★ SuperAdmin / Root
                         </span>
                       ) : (
-                        <span className="text-slate-500">Standard</span>
+                        <span className="text-slate-400 font-mono">Standard Member</span>
                       )}
                     </td>
-                    <td className="py-3 text-right pr-3">
-                      {!user.is_superuser && (
+                    <td className="py-3 text-right pr-3 space-x-2">
+                      {!user.is_superuser ? (
                         <button
                           onClick={() => handleUpdateRole(user.id, 'Admin')}
-                          className="px-2 py-1 rounded-md bento-chip text-[10px] font-semibold text-indigo-300 hover:text-white"
+                          className="px-2.5 py-1 rounded-lg bento-chip text-[11px] font-semibold text-indigo-400 hover:text-white hover:bg-indigo-600 transition-colors"
                         >
                           Promote to Admin
                         </button>
+                      ) : (
+                        <span className="text-[11px] t-muted font-mono italic">Primary Root</span>
                       )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3.5: ROLE PERMISSIONS & RBAC MATRIX */}
+      {activeTab === 'permissions' && (
+        <div className="bento-card p-6 rounded-3xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-bold t-primary flex items-center gap-2">
+                <Lock className="w-4 h-4 text-purple-400" />
+                <span>Role-Based Access Control (RBAC) & Permission Policies</span>
+              </h3>
+              <p className="text-xs t-muted mt-1">
+                Configure fine-grained capabilities across Admin, Engineer, Analyst, and Viewer tiers
+              </p>
+            </div>
+            <button
+              onClick={handleSavePermissions}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-lg shadow-purple-600/30 flex items-center gap-2 self-start sm:self-auto"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Save Permissions Matrix</span>
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-[var(--border)] text-slate-400 font-mono text-[10px] uppercase">
+                  <th className="pb-3 pl-3">Capability / Operation</th>
+                  <th className="pb-3">Description</th>
+                  <th className="pb-3 text-center">Admin (Superuser)</th>
+                  <th className="pb-3 text-center">Engineer</th>
+                  <th className="pb-3 text-center">Analyst</th>
+                  <th className="pb-3 text-center pr-3">Viewer</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {permissionsList.map((perm) => (
+                  <tr key={perm.id} className="hover:bg-white/[0.02]">
+                    <td className="py-3.5 pl-3 font-semibold t-primary font-mono text-xs">
+                      {perm.name}
+                    </td>
+                    <td className="py-3.5 text-slate-400 text-xs">
+                      {perm.description}
+                    </td>
+                    <td className="py-3.5 text-center">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                        Always Granted
+                      </span>
+                    </td>
+                    <td className="py-3.5 text-center">
+                      <button
+                        onClick={() => handleTogglePermission(perm.id, 'engineer')}
+                        className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                          perm.engineer
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30'
+                            : 'bg-slate-800 text-slate-500 hover:bg-slate-700'
+                        }`}
+                      >
+                        {perm.engineer ? '✓' : '✕'}
+                      </button>
+                    </td>
+                    <td className="py-3.5 text-center">
+                      <button
+                        onClick={() => handleTogglePermission(perm.id, 'analyst')}
+                        className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                          perm.analyst
+                            ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 hover:bg-cyan-500/30'
+                            : 'bg-slate-800 text-slate-500 hover:bg-slate-700'
+                        }`}
+                      >
+                        {perm.analyst ? '✓' : '✕'}
+                      </button>
+                    </td>
+                    <td className="py-3.5 text-center pr-3">
+                      <button
+                        onClick={() => handleTogglePermission(perm.id, 'viewer')}
+                        className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                          perm.viewer
+                            ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/40 hover:bg-indigo-500/30'
+                            : 'bg-slate-800 text-slate-500 hover:bg-slate-700'
+                        }`}
+                      >
+                        {perm.viewer ? '✓' : '✕'}
+                      </button>
                     </td>
                   </tr>
                 ))}
