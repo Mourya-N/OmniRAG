@@ -37,17 +37,18 @@ export const ProcessingQueue: React.FC = () => {
       const docs = res.items || [];
       const mapped: QueueJob[] = docs.map((d: any) => {
         const ext = (d.filename || '').split('.').pop()?.toUpperCase() || 'FILE';
-        const isCompleted = d.status === 'Indexed' || d.status === 'Completed';
-        const isProcessing = d.status === 'Processing';
+        const statusUpper = (d.status || '').toUpperCase();
+        const isCompleted = statusUpper === 'INDEXED' || statusUpper === 'COMPLETED';
+        const isProcessing = statusUpper === 'PROCESSING';
         return {
           id: d.id,
           filename: d.filename,
           filetype: ext,
           stage: isCompleted
-            ? 'Parent-child chunking & vector indexing complete in Qdrant'
+            ? 'Parent-child chunking & vector indexing complete'
             : isProcessing
-            ? 'Processing multimodal vision OCR & vector embedding generation'
-            : 'Queued in distributed Celery ingestion pipeline',
+            ? 'Processing multimodal text extraction & vector embeddings'
+            : 'Queued for background ingestion & chunking',
           progress: isCompleted ? 100 : isProcessing ? 65 : 10,
           timeAgo: d.created_at ? new Date(d.created_at).toLocaleTimeString() : 'Recent',
           status: isCompleted ? 'completed' : isProcessing ? 'processing' : 'queued',
@@ -173,21 +174,23 @@ export const ProcessingQueue: React.FC = () => {
       )}
       </div>
 
-      {/* Worker Fleet Telemetry */}
+      {/* Pipeline Status & Telemetry */}
       <div className="bento-card rounded-3xl p-6 shadow-xl space-y-3" style={{ borderColor: 'var(--border)' }}>
-        <h3 className="text-sm font-bold t-primary">Celery Worker Fleet Telemetry</h3>
+        <h3 className="text-sm font-bold t-primary">Ingestion Pipeline Telemetry</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
           <div className="p-3 rounded-xl bento-chip">
-            <span className="t-muted block mb-1">Active Worker Nodes</span>
-            <span className="text-emerald-400 font-bold text-base">12 / 12 Online</span>
+            <span className="t-muted block mb-1">Indexed Documents</span>
+            <span className="text-emerald-400 font-bold text-base">
+              {jobs.filter((j) => j.status === 'completed').length} / {jobs.length} Ready
+            </span>
           </div>
           <div className="p-3 rounded-xl bento-chip">
-            <span className="t-muted block mb-1">Mean Vectorization Latency</span>
-            <span className="t-primary font-bold text-base">142ms / batch</span>
+            <span className="t-muted block mb-1">Pipeline Engine</span>
+            <span className="t-primary font-bold text-base">Async Ingestion</span>
           </div>
           <div className="p-3 rounded-xl bento-chip">
-            <span className="t-muted block mb-1">HNSW Index Throughput</span>
-            <span className="text-indigo-400 font-bold text-base">2,800 chunks/sec</span>
+            <span className="t-muted block mb-1">Index Retrieval Format</span>
+            <span className="text-indigo-400 font-bold text-base">HNSW + BM25</span>
           </div>
         </div>
       </div>
