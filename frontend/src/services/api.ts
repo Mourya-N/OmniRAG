@@ -178,6 +178,23 @@ export class ApiService {
     return resp.json();
   }
 
+  static async deleteDocument(documentId: string): Promise<void> {
+    const resp = await fetch(`${API_BASE}/documents/${documentId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      let errorMsg = errText;
+      try {
+        const parsed = JSON.parse(errText);
+        errorMsg = parsed.error?.message || parsed.detail || errText;
+      } catch {}
+      throw new Error(errorMsg);
+    }
+  }
+
   /* ─────────────────────────────────────────────────────────
      SEARCH & RETRIEVAL
      ───────────────────────────────────────────────────────── */

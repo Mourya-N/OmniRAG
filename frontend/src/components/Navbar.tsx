@@ -233,12 +233,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* OmniRAG Logo & Name in Navbar */}
           <div
             onClick={onNavigateLanding}
-            className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none group pr-1 sm:pr-4 border-r-0 sm:border-r shrink-0"
+            className="flex items-center gap-3 cursor-pointer select-none group pr-4 border-r shrink-0"
             style={{ borderColor: 'var(--border)' }}
             title="OmniRAG — Back to Landing / Home"
           >
-            <OmniRAGLogo size={32} showText={false} className="group-hover:scale-105 transition-transform sm:hidden" />
-            <OmniRAGLogo size={38} showText={false} className="group-hover:scale-105 transition-transform hidden sm:block" />
+            <OmniRAGLogo size={40} showText={false} className="group-hover:scale-105 transition-transform" />
             <div className="hidden sm:flex flex-col">
               <div className="flex items-center gap-2">
                 <span className="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-400 to-pink-500 bg-clip-text text-transparent">

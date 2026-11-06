@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
   Search,
@@ -25,9 +25,10 @@ interface AgentStep {
 }
 
 export const AgenticSearch: React.FC = () => {
-  const [query, setQuery] = useState(
-    "What technical skills, internship experience, and responsibilities are mentioned in the documents?"
-  );
+  const [query, setQuery] = useState('');
+  const [uploadedDocs, setUploadedDocs] = useState<any[]>([]);
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
+  const [loadingDocs, setLoadingDocs] = useState(true);
   const [isRunning, setIsRunning] = useState(false);
   const [hasRun, setHasRun] = useState(false);
   const [expandedStep, setExpandedStep] = useState<number | null>(1);
@@ -37,12 +38,63 @@ export const AgenticSearch: React.FC = () => {
   const [faithfulness, setFaithfulness] = useState<number>(100);
   const [totalLatency, setTotalLatency] = useState<string>('0.0s');
 
-  const presetQueries = [
-    'Where did the candidate complete their internship and what were their responsibilities?',
-    'What technical skills, programming languages, and databases are listed in the resume?',
-    'Summarize key backend engineering projects, architectures, and achievements',
-    'Synthesize core competencies, tools, and educational qualifications',
-  ];
+  useEffect(() => {
+    const fetchUserDocsAndQuestions = async () => {
+      setLoadingDocs(true);
+      try {
+        const res = await ApiService.listDocuments();
+        const items = res.items || [];
+        setUploadedDocs(items);
+
+        if (items.length > 0) {
+          const generated: string[] = [];
+          items.forEach((doc: any) => {
+            const fname = (doc.filename || '').trim();
+            const lower = fname.toLowerCase();
+
+            if (lower.includes('resume') || lower.includes('cv')) {
+              generated.push(`Where did the candidate complete their internship and what were their responsibilities?`);
+              generated.push(`What technical skills, programming languages, and projects are listed in ${fname}?`);
+              generated.push(`Summarize the professional background, experience, and education from ${fname}`);
+            } else if (lower.includes('financial') || lower.includes('earnings') || lower.includes('revenue') || lower.includes('budget') || lower.includes('annual')) {
+              generated.push(`What are the key financial metrics, revenue trends, and projections in ${fname}?`);
+              generated.push(`Summarize quarterly performance, expenses, and guidance in ${fname}`);
+            } else if (lower.includes('architecture') || lower.includes('design') || lower.includes('spec') || lower.includes('rfc') || lower.includes('tech')) {
+              generated.push(`What are the core architectural components and design constraints in ${fname}?`);
+              generated.push(`Summarize the system components, data flows, and trade-offs in ${fname}`);
+            } else if (lower.includes('paper') || lower.includes('research') || lower.includes('study') || lower.includes('thesis')) {
+              generated.push(`Summarize the methodology, empirical findings, and conclusions in ${fname}`);
+              generated.push(`What core problem is addressed and what are the key contributions of ${fname}?`);
+            } else {
+              generated.push(`Summarize the key topics, conclusions, and evidence documented in ${fname}`);
+              generated.push(`What are the main findings, actionable insights, and core data in ${fname}?`);
+            }
+          });
+
+          // Unique questions capped at 4
+          const unique = Array.from(new Set(generated)).slice(0, 4);
+          setSuggestedQuestions(unique);
+          if (unique.length > 0) {
+            setQuery(unique[0]);
+          } else {
+            setQuery('');
+          }
+        } else {
+          // If no files uploaded, DO NOT suggest random questions
+          setSuggestedQuestions([]);
+          setQuery('');
+        }
+      } catch {
+        setUploadedDocs([]);
+        setSuggestedQuestions([]);
+        setQuery('');
+      } finally {
+        setLoadingDocs(false);
+      }
+    };
+
+    fetchUserDocsAndQuestions();
+  }, []);
 
   const handleRunAgent = async () => {
     if (!query.trim()) return;
@@ -171,7 +223,11 @@ export const AgenticSearch: React.FC = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleRunAgent()}
-              placeholder="Ask a complex enterprise question requiring multi-step investigation..."
+              placeholder={
+                uploadedDocs.length > 0
+                  ? `Ask a multi-hop question across ${uploadedDocs.map((d: any) => d.filename).slice(0, 2).join(', ')}...`
+                  : "Upload documents to formulate multi-step agentic questions..."
+              }
               className="w-full px-4 sm:px-5 py-3.5 sm:py-4 sm:pr-48 rounded-2xl glass-input text-xs sm:text-sm"
             />
             <button
@@ -193,21 +249,31 @@ export const AgenticSearch: React.FC = () => {
             </button>
           </div>
 
-          {/* Quick preset chips */}
-          <div className="flex items-center gap-2 flex-wrap pt-1">
-            <span className="text-xs t-muted flex items-center gap-1">
-              <Clock className="w-3 h-3" /> Sample questions:
-            </span>
-            {presetQueries.map((preset, idx) => (
-              <button
-                key={idx}
-                onClick={() => setQuery(preset)}
-                className="text-xs px-3 py-1 rounded-lg bento-chip hover:border-indigo-500/40 transition-colors truncate max-w-xs"
-              >
-                {preset}
-              </button>
-            ))}
-          </div>
+          {/* Quick preset chips strictly based on uploaded files */}
+          {suggestedQuestions.length > 0 ? (
+            <div className="flex items-center gap-2 flex-wrap pt-1 animate-fade-in">
+              <span className="text-xs t-muted flex items-center gap-1 font-medium">
+                <Clock className="w-3 h-3 icon-indigo" /> Suggested questions for your files:
+              </span>
+              {suggestedQuestions.map((preset, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setQuery(preset)}
+                  className="text-xs px-3 py-1 rounded-xl bento-chip hover:border-indigo-500/50 hover:text-white transition-all text-left truncate max-w-sm active:scale-95 border"
+                  style={{ borderColor: 'var(--border)' }}
+                  title={preset}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+          ) : !loadingDocs && uploadedDocs.length === 0 ? (
+            <div className="text-[11px] t-muted italic pt-1 flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5 opacity-60" />
+              <span>No uploaded documents found. Upload files in Document Manager to see tailored agentic search questions.</span>
+            </div>
+          ) : null}
         </div>
       </div>
 

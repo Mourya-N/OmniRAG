@@ -105,23 +105,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, currentUse
               setIsMobileNavOpen(false);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="cursor-pointer group flex items-center gap-2 sm:gap-3 shrink-0"
+            className="cursor-pointer group flex items-center gap-3 shrink-0"
           >
-            <OmniRAGLogo
-              size="sm"
-              showText={true}
-              subtitle="Enterprise Knowledge Intelligence"
-              badge="Enterprise"
-              interactive={true}
-              className="sm:hidden"
-            />
             <OmniRAGLogo
               size="md"
               showText={true}
               subtitle="Enterprise Knowledge Intelligence"
               badge="Enterprise"
               interactive={true}
-              className="hidden sm:flex"
             />
           </div>
 

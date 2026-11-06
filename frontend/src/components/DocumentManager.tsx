@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, FileText, CheckCircle2, RefreshCw, AlertCircle } from 'lucide-react';
+import { Upload, FileText, CheckCircle2, RefreshCw, AlertCircle, Trash2 } from 'lucide-react';
 import { ApiService } from '../services/api';
 import { DocumentItem } from '../types';
 
 export const DocumentManager: React.FC = () => {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const fetchDocs = async () => {
@@ -20,6 +21,22 @@ export const DocumentManager: React.FC = () => {
   useEffect(() => {
     fetchDocs();
   }, []);
+
+  const handleDelete = async (docId: string, filename: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${filename}"? This will remove the file and all indexed knowledge chunks.`)) {
+      return;
+    }
+    setDeletingId(docId);
+    try {
+      await ApiService.deleteDocument(docId);
+      setStatusMessage(`Document "${filename}" was successfully removed.`);
+      await fetchDocs();
+    } catch (err: any) {
+      setStatusMessage(`Failed to delete document: ${err.message}`);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -97,10 +114,25 @@ export const DocumentManager: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs px-2 py-0.5 rounded-full badge-emerald flex items-center gap-1">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full badge-emerald flex items-center gap-1 font-mono font-medium">
                     <CheckCircle2 className="h-3 w-3" />
                     {doc.status}
                   </span>
+                  <button
+                    onClick={() => handleDelete(doc.id, doc.filename)}
+                    disabled={deletingId === doc.id}
+                    title={`Delete ${doc.filename}`}
+                    className="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/30 transition-all flex items-center gap-1 text-xs active:scale-95 disabled:opacity-50"
+                  >
+                    {deletingId === doc.id ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-rose-400" />
+                    ) : (
+                      <>
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Delete</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             ))}

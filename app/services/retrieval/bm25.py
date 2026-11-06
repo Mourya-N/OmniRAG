@@ -42,6 +42,20 @@ class BM25Retriever:
         self._corpus[tenant_id] = chunks
         self._indexes[tenant_id] = BM25Okapi(safe_corpus)
 
+    def remove_document(self, document_id: str) -> None:
+        """Purge all chunks associated with a document ID from in-memory BM25 index."""
+        for tid in list(self._corpus.keys()):
+            self._corpus[tid] = [
+                c for c in self._corpus[tid]
+                if c.get("document_id") != document_id and c.get("doc_id") != document_id
+            ]
+            if self._corpus[tid]:
+                tokenized_corpus = [tokenize_text(c["raw_text"]) for c in self._corpus[tid]]
+                safe_corpus = [t if t else ["unknown"] for t in tokenized_corpus]
+                self._indexes[tid] = BM25Okapi(safe_corpus)
+            else:
+                self._indexes.pop(tid, None)
+
     def _load_from_db(self, tenant_id: str, organization_id: str | None = None) -> None:
         """Hydrate in-memory index from persistent SQLite storage if cold."""
         try:
@@ -62,7 +76,7 @@ class BM25Retriever:
                 WHERE o.tenant_id = ? OR d.organization_id = ?
             """
             rows = conn.execute(query, (tenant_id, organization_id or tenant_id)).fetchall()
-            if not rows:
+            if not rows and tenant_id in ("default", "default_tenant", "dev_tenant", "dev", ""):
                 fallback_query = """
                     SELECT c.id, d.id as doc_id, o.tenant_id, c.raw_text, c.page_number, c.section_heading, c.content_type, c.parent_chunk_id, d.filename
                     FROM document_chunks c

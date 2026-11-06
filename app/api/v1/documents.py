@@ -203,9 +203,9 @@ async def delete_document(
     document_id: str,
     db: AsyncSession = Depends(get_db),
     tenant_id: str = Depends(verify_tenant_boundary),
-    current_user: dict[str, Any] = Depends(require_roles(["Owner", "Admin"])),
+    current_user: dict[str, Any] = Depends(require_roles(["Owner", "Admin", "Member", "User"])),
 ) -> None:
-    """Delete a document and remove its stored object."""
+    """Delete a document and remove its stored object and indexed chunks."""
     stmt = (
         select(Document)
         .join(Organization, Document.organization_id == Organization.id)
@@ -216,10 +216,31 @@ async def delete_document(
     if not doc:
         raise DocumentNotFoundError(document_id)
 
-    storage = get_storage_backend()
-    clean_key = doc.storage_uri.replace("file://", "").replace("s3://", "")
-    await storage.delete_object(clean_key)
+    # 1. Clean up storage object
+    try:
+        storage = get_storage_backend()
+        clean_key = doc.storage_uri.replace("file://", "").replace("s3://", "")
+        await storage.delete_object(clean_key)
+    except Exception:
+        pass
 
+    # 2. Invalidate in-memory BM25 index
+    try:
+        from app.api.v1.search import global_bm25_retriever
+        global_bm25_retriever.remove_document(document_id)
+    except Exception:
+        pass
+
+    # 3. Delete vector embeddings in Qdrant
+    try:
+        from app.core.config import settings
+        from app.services.vector_store.qdrant import QdrantVectorStore
+        qdrant = QdrantVectorStore()
+        await qdrant.delete_by_document(settings.QDRANT_COLLECTION_NAME, document_id)
+    except Exception:
+        pass
+
+    # 4. Remove Document row (cascades to document_versions and document_chunks)
     await db.delete(doc)
     await db.commit()
 

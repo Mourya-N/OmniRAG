@@ -195,22 +195,22 @@ export const OmniRAGLogo: React.FC<OmniRAGLogoProps> = ({
 
       {/* Brand Typography */}
       {showText && (
-        <div className="flex flex-col min-w-0">
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="text-base sm:text-lg font-extrabold tracking-tight t-primary flex items-center">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-extrabold tracking-tight t-primary flex items-center">
               <span>Omni</span>
               <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 bg-clip-text text-transparent ml-0.5">
                 RAG
               </span>
             </span>
             {badge && (
-              <span className="text-[9px] sm:text-[10px] uppercase font-mono px-1.5 sm:px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 font-semibold tracking-wider hidden xs:inline-block">
+              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 font-semibold tracking-wider">
                 {badge}
               </span>
             )}
           </div>
           {subtitle && (
-            <p className="text-[10px] sm:text-[11px] t-muted font-medium tracking-normal mt-0.5 hidden sm:block truncate">{subtitle}</p>
+            <p className="text-[11px] t-muted font-medium tracking-normal mt-0.5">{subtitle}</p>
           )}
         </div>
       )}
