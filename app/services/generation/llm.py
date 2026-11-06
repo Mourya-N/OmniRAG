@@ -143,6 +143,155 @@ class OpenAILLMProvider(LLMProvider):
             )
 
 
+class GeminiLLMProvider(LLMProvider):
+    """Google Gemini generation provider using Google AI Studio API."""
+
+    def __init__(self, api_key: str | None = None, model: str = "gemini-1.5-flash") -> None:
+        self.api_key = api_key or settings.GEMINI_API_KEY
+        self.model = model
+
+    async def generate_grounded_answer(
+        self,
+        query: str,
+        context_chunks: list[ScoredChunk],
+    ) -> GroundedAnswer:
+        if not self.api_key:
+            raise OmniRAGError("GEMINI_API_KEY not configured", code="MISSING_API_KEY")
+
+        if not context_chunks:
+            return GroundedAnswer(
+                answer_text="I cannot find sufficient evidence in the authorized documents to answer this question.",
+                citations=[],
+                has_abstained=True,
+                confidence_score=0.0,
+                model_name=self.model,
+            )
+
+        user_content = build_grounded_prompt(query, context_chunks)
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
+
+        payload = {
+            "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+            "contents": [{"parts": [{"text": user_content}]}],
+            "generationConfig": {"temperature": 0.1},
+        }
+
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(url, json=payload, timeout=60.0)
+            if resp.status_code != 200:
+                raise OmniRAGError(f"Gemini API completion failed: {resp.text}", code="LLM_PROVIDER_ERROR")
+
+            data = resp.json()
+            raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+
+            cited_ids = set(re.findall(r"\[([a-zA-Z0-9_-]+)\]", raw_text))
+            chunk_lookup = {c.chunk_id: c for c in context_chunks}
+
+            citations: list[CitationMetadata] = []
+            for cid in cited_ids:
+                if cid in chunk_lookup:
+                    c = chunk_lookup[cid]
+                    citations.append(
+                        CitationMetadata(
+                            citation_id=str(uuid.uuid4()),
+                            chunk_id=c.chunk_id,
+                            document_id=c.document_id,
+                            page_number=c.page_number,
+                            cited_snippet=c.raw_text[:200],
+                            is_valid=True,
+                            confidence_score=c.score,
+                        )
+                    )
+
+            has_abstained = "cannot find sufficient evidence" in raw_text.lower()
+            return GroundedAnswer(
+                answer_text=raw_text,
+                citations=citations,
+                has_abstained=has_abstained,
+                confidence_score=0.95 if citations else 0.8,
+                model_name=self.model,
+            )
+
+
+class GroqLLMProvider(LLMProvider):
+    """Groq ultra-fast Llama-3 / Mixtral provider (OpenAI API format)."""
+
+    def __init__(self, api_key: str | None = None, model: str = "llama-3.3-70b-versatile") -> None:
+        self.api_key = api_key or settings.GROQ_API_KEY
+        self.model = model
+
+    async def generate_grounded_answer(
+        self,
+        query: str,
+        context_chunks: list[ScoredChunk],
+    ) -> GroundedAnswer:
+        if not self.api_key:
+            raise OmniRAGError("GROQ_API_KEY not configured", code="MISSING_API_KEY")
+
+        if not context_chunks:
+            return GroundedAnswer(
+                answer_text="I cannot find sufficient evidence in the authorized documents to answer this question.",
+                citations=[],
+                has_abstained=True,
+                confidence_score=0.0,
+                model_name=self.model,
+            )
+
+        user_content = build_grounded_prompt(query, context_chunks)
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_content},
+        ]
+
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                json={
+                    "model": self.model,
+                    "messages": messages,
+                    "temperature": 0.1,
+                },
+                headers={"Authorization": f"Bearer {self.api_key}"},
+                timeout=60.0,
+            )
+            if resp.status_code != 200:
+                raise OmniRAGError(f"Groq completion failed: {resp.text}", code="LLM_PROVIDER_ERROR")
+
+            data = resp.json()
+            raw_text = data["choices"][0]["message"]["content"]
+            usage = data.get("usage", {})
+
+            cited_ids = set(re.findall(r"\[([a-zA-Z0-9_-]+)\]", raw_text))
+            chunk_lookup = {c.chunk_id: c for c in context_chunks}
+
+            citations: list[CitationMetadata] = []
+            for cid in cited_ids:
+                if cid in chunk_lookup:
+                    c = chunk_lookup[cid]
+                    citations.append(
+                        CitationMetadata(
+                            citation_id=str(uuid.uuid4()),
+                            chunk_id=c.chunk_id,
+                            document_id=c.document_id,
+                            page_number=c.page_number,
+                            cited_snippet=c.raw_text[:200],
+                            is_valid=True,
+                            confidence_score=c.score,
+                        )
+                    )
+
+            has_abstained = "cannot find sufficient evidence" in raw_text.lower()
+            return GroundedAnswer(
+                answer_text=raw_text,
+                citations=citations,
+                has_abstained=has_abstained,
+                confidence_score=0.95 if citations else 0.8,
+                prompt_tokens=usage.get("prompt_tokens", 0),
+                completion_tokens=usage.get("completion_tokens", 0),
+                model_name=self.model,
+            )
+
+
 _llm_instance: LLMProvider | None = None
 
 
@@ -150,7 +299,11 @@ def get_llm_provider() -> LLMProvider:
     """Return configured LLM provider instance."""
     global _llm_instance
     if _llm_instance is None:
-        if settings.DEFAULT_LLM_PROVIDER == "openai" and settings.OPENAI_API_KEY:
+        if settings.GEMINI_API_KEY:
+            _llm_instance = GeminiLLMProvider()
+        elif settings.GROQ_API_KEY:
+            _llm_instance = GroqLLMProvider()
+        elif settings.OPENAI_API_KEY:
             _llm_instance = OpenAILLMProvider()
         else:
             _llm_instance = MockLLMProvider()

@@ -96,10 +96,11 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_BYTES: int = 100 * 1024 * 1024  # 100 MB
 
     # Model & AI Configuration
-    DEFAULT_LLM_PROVIDER: Literal["openai", "anthropic", "gemini", "mock"] = "mock"
+    DEFAULT_LLM_PROVIDER: Literal["openai", "anthropic", "gemini", "groq", "mock"] = "mock"
     OPENAI_API_KEY: str | None = None
     ANTHROPIC_API_KEY: str | None = None
     GEMINI_API_KEY: str | None = None
+    GROQ_API_KEY: str | None = None
     DEFAULT_EMBEDDING_PROVIDER: Literal["openai", "huggingface", "mock"] = "mock"
     DEFAULT_EMBEDDING_MODEL: str = "text-embedding-3-small"
     EMBEDDING_DIMENSION: int = 1536

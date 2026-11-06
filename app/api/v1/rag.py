@@ -94,6 +94,52 @@ async def chat_rag(
         organization_id=target_org_id,
     )
 
+    # 3b. Resilient Database Fallback:
+    # If external vector store and in-memory BM25 are empty, retrieve directly from indexed chunks in DB
+    if not retrieved_chunks:
+        from app.models.document import Document, DocumentChunk, DocumentVersion
+        from app.services.vector_store.schema import ScoredChunk
+        import re
+
+        chunk_stmt = (
+            select(DocumentChunk, Document.id)
+            .join(DocumentVersion, DocumentChunk.version_id == DocumentVersion.id)
+            .join(Document, DocumentVersion.document_id == Document.id)
+        )
+        if target_org_id:
+            chunk_stmt = chunk_stmt.where(Document.organization_id == target_org_id)
+
+        db_chunk_res = await db.execute(chunk_stmt)
+        all_db_chunks = db_chunk_res.all()
+
+        if all_db_chunks:
+            q_words = [w.lower() for w in re.findall(r"\w+", payload.query) if len(w) > 2]
+            scored = []
+            for chunk_row, doc_id in all_db_chunks:
+                text_lower = chunk_row.raw_text.lower()
+                matches = sum(1 for w in q_words if w in text_lower)
+                score = matches / (len(q_words) or 1)
+                scored.append((score, chunk_row, doc_id))
+
+            scored.sort(key=lambda x: x[0], reverse=True)
+            top_scored = [s for s in scored if s[0] > 0][:payload.top_k]
+            if not top_scored and scored:
+                top_scored = scored[:payload.top_k]
+
+            retrieved_chunks = [
+                ScoredChunk(
+                    chunk_id=c.id,
+                    score=max(0.65, sc),
+                    document_id=did,
+                    raw_text=c.raw_text,
+                    page_number=c.page_number,
+                    section_heading=c.section_heading,
+                    content_type=c.content_type,
+                    retrieval_source="db_keyword_fallback",
+                )
+                for sc, c, did in top_scored
+            ]
+
     # 4. Neural Reranking
     candidate_chunks = retrieved_chunks
     if payload.enable_reranking and retrieved_chunks:

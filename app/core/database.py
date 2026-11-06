@@ -316,3 +316,36 @@ async def init_database_tables() -> None:
     except Exception as exc:
         logger.error("seed_failed_during_init", error=str(exc))
 
+    # Warm up in-memory BM25 index with existing chunks
+    try:
+        from collections import defaultdict
+        from app.api.v1.search import global_bm25_retriever
+        from app.models.document import Document, DocumentChunk, DocumentVersion
+        from app.models.tenant import Organization
+        from sqlalchemy import select
+
+        async with AsyncSessionLocal() as session:
+            stmt = (
+                select(DocumentChunk, Document.id, Document.organization_id, Organization.tenant_id)
+                .join(DocumentVersion, DocumentChunk.version_id == DocumentVersion.id)
+                .join(Document, DocumentVersion.document_id == Document.id)
+                .join(Organization, Document.organization_id == Organization.id)
+            )
+            rows = (await session.execute(stmt)).all()
+            if rows:
+                chunks_by_tenant = defaultdict(list)
+                for chunk_row, doc_id, org_id, tid in rows:
+                    chunks_by_tenant[tid].append({
+                        "chunk_id": chunk_row.id,
+                        "document_id": doc_id,
+                        "raw_text": chunk_row.raw_text,
+                        "page_number": chunk_row.page_number,
+                        "section_heading": chunk_row.section_heading,
+                        "organization_id": org_id,
+                    })
+                for tid, ch_list in chunks_by_tenant.items():
+                    global_bm25_retriever.index_chunks(tid, ch_list)
+                logger.info("bm25_index_warmed_up", total_chunks=len(rows))
+    except Exception as b_err:
+        logger.warning("bm25_warmup_deferred", error=str(b_err))
+
