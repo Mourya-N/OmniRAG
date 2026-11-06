@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowRight,
   ShieldCheck,
@@ -17,6 +17,8 @@ import {
   Zap,
   SlidersHorizontal,
   FileCheck,
+  Menu,
+  X,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { OmniRAGLogo } from '../components/OmniRAGLogo';
@@ -34,8 +36,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, currentUse
   const dark = theme === 'dark';
   const [activeSection, setActiveSection] = useState<SectionKey>('all');
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (isMobileNavOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileNavOpen]);
 
   const handleNavClick = (section: SectionKey | 'contact') => {
+    setIsMobileNavOpen(false);
     if (section === 'contact') {
       const footerEl = document.getElementById('footer');
       if (footerEl) {
@@ -75,31 +91,41 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, currentUse
          STICKY HEADER & NAVIGATION WITH POP-IN/OUT LINKS
          ───────────────────────────────────────────────────────── */}
       <header
-        className="sticky top-0 z-50 w-full px-6 py-4 backdrop-blur-xl border-b transition-colors"
+        className="sticky top-0 z-50 w-full px-3 sm:px-6 py-2.5 sm:py-4 backdrop-blur-xl border-b transition-colors"
         style={{
           background: dark ? 'rgba(9,12,26,0.85)' : 'rgba(255,255,255,0.88)',
           borderColor: 'var(--border)',
         }}
       >
-        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-6">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-2 sm:gap-6">
           {/* Logo & Brand */}
           <div
             onClick={() => {
               setActiveSection('all');
+              setIsMobileNavOpen(false);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="cursor-pointer group flex items-center gap-3"
+            className="cursor-pointer group flex items-center gap-2 sm:gap-3 shrink-0"
           >
+            <OmniRAGLogo
+              size="sm"
+              showText={true}
+              subtitle="Enterprise Knowledge Intelligence"
+              badge="Enterprise"
+              interactive={true}
+              className="sm:hidden"
+            />
             <OmniRAGLogo
               size="md"
               showText={true}
               subtitle="Enterprise Knowledge Intelligence"
               badge="Enterprise"
               interactive={true}
+              className="hidden sm:flex"
             />
           </div>
 
-          {/* Navigation Links with Pop-In Switching */}
+          {/* Navigation Links with Pop-In Switching (Desktop) */}
           <nav className="hidden lg:flex items-center gap-2 text-xs font-semibold t-secondary bento-chip px-3 py-1.5 rounded-full border"
                style={{ borderColor: 'var(--border)' }}>
             <button
@@ -172,12 +198,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, currentUse
           </nav>
 
           {/* Right Action Controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
               title={dark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
-              className="w-10 h-10 rounded-xl bento-chip flex items-center justify-center t-secondary hover:t-primary transition-all border"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bento-chip flex items-center justify-center t-secondary hover:t-primary transition-all border shrink-0"
               style={{ borderColor: 'var(--border)' }}
             >
               {dark ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-indigo-600" />}
@@ -186,16 +212,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, currentUse
             {currentUser ? (
               <button
                 onClick={() => onNavigate('dashboard')}
-                className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02]"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] active:scale-95 shrink-0"
               >
-                <UserCheck className="w-4 h-4" />
-                <span>Go to Workspace ({currentUser.full_name?.split(' ')[0] || 'Dashboard'})</span>
+                <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden xs:inline">Workspace</span>
               </button>
             ) : (
               <>
                 <button
                   onClick={() => onNavigate('login')}
-                  className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bento-chip text-xs font-semibold t-primary hover:opacity-90 transition-all border"
+                  className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl bento-chip text-xs font-semibold t-primary hover:opacity-90 transition-all border"
                   style={{ borderColor: 'var(--border)' }}
                 >
                   <LogIn className="w-3.5 h-3.5 icon-indigo" />
@@ -204,7 +230,122 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, currentUse
 
                 <button
                   onClick={() => onNavigate('signup')}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] active:scale-95 shrink-0"
+                >
+                  <span>Get Started</span>
+                  <ArrowRight className="w-3.5 h-3.5 hidden xs:inline" />
+                </button>
+              </>
+            )}
+
+            {/* Mobile Hamburger Toggle Button */}
+            <button
+              onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
+              className="lg:hidden p-2 rounded-xl bento-chip t-muted hover:t-primary active:scale-95 transition-all shrink-0 border"
+              style={{ borderColor: 'var(--border)' }}
+              aria-label="Toggle Navigation Menu"
+            >
+              {isMobileNavOpen ? <X className="w-5 h-5 text-indigo-400" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Backdrop */}
+        {isMobileNavOpen && (
+          <div
+            onClick={() => setIsMobileNavOpen(false)}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[90] lg:hidden animate-fade-in"
+          />
+        )}
+
+        {/* Mobile Slide-in Drawer */}
+        <div
+          className={`fixed top-0 right-0 bottom-0 w-72 max-w-[85vw] z-[100] bento-card shadow-2xl flex flex-col justify-between p-5 transition-transform duration-300 ease-in-out lg:hidden ${
+            isMobileNavOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
+          style={{
+            background: dark ? 'rgba(10, 14, 30, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+            borderLeft: '1px solid var(--border)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+          }}
+        >
+          {/* Drawer Header */}
+          <div>
+            <div className="flex items-center justify-between pb-4 mb-4 border-b" style={{ borderColor: 'var(--border)' }}>
+              <div className="flex items-center gap-2">
+                <OmniRAGLogo size="sm" showText={true} badge="Enterprise" interactive={false} />
+              </div>
+              <button
+                onClick={() => setIsMobileNavOpen(false)}
+                className="p-1.5 rounded-lg bento-chip t-muted hover:t-primary active:scale-95"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Navigation Links */}
+            <div className="space-y-1 font-medium text-xs">
+              <div className="text-[10px] font-mono uppercase tracking-wider t-muted px-2 pb-1 font-bold">
+                Platform Sections
+              </div>
+              {[
+                { id: 'all', label: 'Overview', color: 'text-indigo-400' },
+                { id: 'features', label: 'Features & Capabilities', color: 'text-indigo-400' },
+                { id: 'hybrid', label: 'Hybrid Retrieval Engine', color: 'text-cyan-400' },
+                { id: 'architecture', label: 'System Architecture', color: 'text-purple-400' },
+                { id: 'security', label: 'Zero-Trust Security', color: 'text-pink-400' },
+                { id: 'benchmarks', label: 'Performance Benchmarks', color: 'text-amber-400' },
+                { id: 'contact', label: 'Contact Team', color: 'text-emerald-400' },
+              ].map((sec) => (
+                <button
+                  key={sec.id}
+                  onClick={() => handleNavClick(sec.id as any)}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl transition-all flex items-center justify-between ${
+                    activeSection === sec.id
+                      ? 'bg-indigo-600/20 text-white font-semibold border border-indigo-500/40 shadow-sm'
+                      : 't-secondary hover:t-primary hover:bg-white/[0.05]'
+                  }`}
+                >
+                  <span>{sec.label}</span>
+                  <span className={`text-[10px] font-mono ${sec.color}`}>→</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Drawer Bottom Actions */}
+          <div className="pt-4 border-t space-y-2 shrink-0" style={{ borderColor: 'var(--border)' }}>
+            {currentUser ? (
+              <button
+                onClick={() => {
+                  setIsMobileNavOpen(false);
+                  onNavigate('dashboard');
+                }}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
+              >
+                <UserCheck className="w-4 h-4" />
+                <span>Launch Workspace</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setIsMobileNavOpen(false);
+                    onNavigate('login');
+                  }}
+                  className="w-full py-2.5 rounded-xl bento-chip border text-xs font-semibold t-primary flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                  style={{ borderColor: 'var(--border)' }}
+                >
+                  <LogIn className="w-3.5 h-3.5 icon-indigo" />
+                  <span>Sign In to Account</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileNavOpen(false);
+                    onNavigate('signup');
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
                 >
                   <span>Start Free Trial</span>
                   <ArrowRight className="w-3.5 h-3.5" />
