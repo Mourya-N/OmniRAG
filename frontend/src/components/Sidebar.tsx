@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Home,
   MessageSquare,
@@ -20,6 +20,7 @@ import {
   Settings,
   X,
 } from 'lucide-react';
+import { OmniRAGLogo } from './OmniRAGLogo';
 import { useTheme } from '../contexts/ThemeContext';
 
 export type DashTab =
@@ -132,51 +133,84 @@ export const Sidebar: React.FC<SidebarProps> = ({
     if (onCloseMobile) onCloseMobile();
   };
 
+  // Prevent body scroll when mobile drawer is open on phones
+  useEffect(() => {
+    if (isOpenMobile) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpenMobile]);
+
   return (
     <>
-      {/* Mobile Backdrop */}
+      {/* Mobile Backdrop with high z-index and touch dismissal */}
       {isOpenMobile && (
         <div
           onClick={onCloseMobile}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[90] lg:hidden animate-fade-in"
         />
       )}
 
-      {/* Floating Hover Expandable Sidebar (Fixed dock on left — zero layout shift) */}
+      {/* Floating Hover Expandable Sidebar (Desktop) / Native Drawer (Mobile) */}
       <aside
-        className={`fixed top-[74px] left-3 z-40 h-[calc(100vh-86px)] flex flex-col justify-between shrink-0 select-none rounded-3xl bento-card shadow-2xl transition-all duration-300 ease-in-out group ${
+        className={`fixed z-[100] flex flex-col justify-between shrink-0 select-none shadow-2xl transition-all duration-300 ease-in-out group ${
           isOpenMobile
-            ? 'translate-x-0 w-60'
-            : '-translate-x-full lg:translate-x-0 w-[64px] hover:w-60'
+            ? 'inset-y-0 left-0 w-72 max-w-[85vw] h-full rounded-r-3xl rounded-l-none translate-x-0'
+            : 'top-[74px] left-3 h-[calc(100vh-86px)] rounded-3xl -translate-x-full lg:translate-x-0 w-[64px] hover:w-60'
         }`}
         style={{
-          background: dark ? 'rgba(10, 14, 30, 0.94)' : 'rgba(255, 255, 255, 0.95)',
+          background: dark ? 'rgba(10, 14, 30, 0.98)' : 'rgba(255, 255, 255, 0.98)',
           border: `1px solid var(--border)`,
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
         }}
       >
-        {/* Mobile close button (if drawer opened on small screens) */}
-        {isOpenMobile && onCloseMobile && (
+        {/* Mobile Drawer Header with Branding and Close Button */}
+        {isOpenMobile && (
           <div
-            className="p-2.5 flex items-center justify-end border-b lg:hidden"
+            className="p-4 flex items-center justify-between border-b lg:hidden shrink-0"
             style={{ borderColor: 'var(--border)' }}
           >
-            <button
-              onClick={onCloseMobile}
-              className="p-1 rounded-lg bento-chip t-muted hover:t-primary"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2.5">
+              <OmniRAGLogo size={32} showText={false} />
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-sm tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-400 to-pink-500 bg-clip-text text-transparent">
+                    OmniRAG
+                  </span>
+                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full badge-indigo">
+                    Enterprise
+                  </span>
+                </div>
+                <p className="text-[10px] t-muted">Knowledge Intelligence</p>
+              </div>
+            </div>
+            {onCloseMobile && (
+              <button
+                onClick={onCloseMobile}
+                className="p-2 rounded-xl bento-chip t-muted hover:t-primary active:scale-95 transition-transform"
+                title="Close Navigation Menu"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         )}
 
         {/* Scrollable Navigation Sections — WITHOUT visible scrollbar thumb/slider */}
-        <div className="flex-1 overflow-y-auto px-1.5 group-hover:px-2.5 py-3 space-y-2.5 text-xs [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex-1 overflow-y-auto px-2 group-hover:px-2.5 py-3 space-y-3 text-xs [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {sections.map((sec, sIdx) => (
             <div key={sIdx} className="space-y-1">
               {sec.title && (
-                <div className="px-2 pb-0.5 text-[8.5px] font-mono font-bold tracking-wider uppercase t-muted opacity-0 group-hover:opacity-100 transition-opacity duration-200 overflow-hidden whitespace-nowrap">
+                <div
+                  className={`px-2 pb-0.5 text-[8.5px] font-mono font-bold tracking-wider uppercase t-muted transition-opacity duration-200 overflow-hidden whitespace-nowrap ${
+                    isOpenMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                  }`}
+                >
                   {sec.title}
                 </div>
               )}
@@ -191,7 +225,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       key={item.id}
                       onClick={() => handleItemClick(item)}
                       title={item.label}
-                      className={`w-full p-1 group-hover:px-2 rounded-xl flex items-center transition-all duration-200 text-left ${
+                      className={`w-full p-1.5 group-hover:px-2 rounded-xl flex items-center transition-all duration-200 text-left ${
                         isActive
                           ? 'bg-gradient-to-r from-blue-600/30 to-indigo-600/30 border border-blue-500/40 text-white font-semibold shadow-sm'
                           : dark
@@ -214,16 +248,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         />
                       </div>
 
-                      {/* Label - smoothly reveals on hover */}
-                      <span className="ml-2.5 truncate opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap flex-1 font-medium text-xs">
+                      {/* Label - visible on mobile drawer and reveals on hover on desktop */}
+                      <span
+                        className={`ml-2.5 truncate transition-opacity duration-200 whitespace-nowrap flex-1 font-medium text-xs ${
+                          isOpenMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                        }`}
+                      >
                         {item.label}
                       </span>
 
                       {item.badge !== undefined && (
                         <span
-                          className={`opacity-0 group-hover:opacity-100 transition-opacity duration-200 px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold shrink-0 ml-1 ${
+                          className={`transition-opacity duration-200 px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold shrink-0 ml-1 ${
                             item.badgeColor || 'bg-indigo-600 text-white'
-                          }`}
+                          } ${isOpenMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                         >
                           {item.badge}
                         </span>

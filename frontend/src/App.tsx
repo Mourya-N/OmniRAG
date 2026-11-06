@@ -221,7 +221,7 @@ export const App: React.FC = () => {
       />
 
       {/* 2. BODY CONTAINER: FIXED FLOATING SIDEBAR + STEADY MAIN CONTENT */}
-      <div className="flex-1 flex relative w-full pt-[68px]">
+      <div className="flex-1 flex relative w-full pt-[58px] sm:pt-[68px]">
         {/* FLOATING HOVER EXPANDABLE SIDEBAR (Fixed dock, zero layout shift) */}
         <Sidebar
           activeTab={activeTab}
@@ -232,7 +232,7 @@ export const App: React.FC = () => {
         />
 
         {/* MAIN VIEW AREA: Steady padding on left (lg:pl-[84px]), no layout shift when sidebar expands */}
-        <main className="flex-1 w-full max-w-[1600px] mx-auto p-4 sm:p-6 lg:pl-[84px] min-w-0 transition-all">
+        <main className="flex-1 w-full max-w-[1600px] mx-auto p-3 sm:p-6 lg:pl-[84px] min-w-0 transition-all">
           {currentLayer === 'admin' ? (
             <AdminPortal
               currentUser={currentUser}

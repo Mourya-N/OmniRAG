@@ -254,11 +254,11 @@ export const ChatExplorer: React.FC = () => {
   const selectedDoc = uploadedDocs.find((doc) => doc.id === selectedDocId);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-130px)] animate-fade-in">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[calc(100vh-100px)] lg:h-[calc(100vh-130px)] animate-fade-in">
       {/* ─────────────────────────────────────────────────────────
           LEFT & CENTER (70%): FULL TERMINAL / CLI CONSOLE
           ───────────────────────────────────────────────────────── */}
-      <div className="lg:col-span-8 flex flex-col rounded-3xl overflow-hidden shadow-2xl border border-slate-800 bg-[#070913] text-slate-200 font-mono">
+      <div className="lg:col-span-8 flex flex-col rounded-3xl overflow-hidden shadow-2xl border border-slate-800 bg-[#070913] text-slate-200 font-mono min-h-[500px] lg:min-h-0">
         {/* Terminal Title Bar */}
         <div className="bg-[#0b0e1d] px-4 py-3 flex items-center justify-between border-b border-slate-800/80 select-none">
           {/* Traffic light window controls */}
@@ -370,45 +370,50 @@ export const ChatExplorer: React.FC = () => {
         {/* Command Line Input Bar */}
         <form
           onSubmit={handleSend}
-          className="bg-[#0b0e1d] p-3 border-t border-slate-800 flex items-center gap-2 relative"
+          className="bg-[#0b0e1d] p-2.5 sm:p-3 border-t border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 relative"
         >
-          <div className="flex items-center gap-1.5 text-emerald-400 font-mono font-bold text-xs sm:text-sm pl-2 select-none shrink-0">
-            <span>omnirag:~$</span>
+          {/* Top Row / Input */}
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <div className="flex items-center gap-1 text-emerald-400 font-mono font-bold text-xs sm:text-sm pl-1 select-none shrink-0">
+              <span>omnirag:~$</span>
+            </div>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                selectedDoc
+                  ? `Ask question scoped to "${selectedDoc.filename}"...`
+                  : "Type query to retrieve evidence across indexed documents..."
+              }
+              className="flex-1 min-w-0 bg-transparent px-1.5 py-1.5 sm:py-2 text-xs sm:text-sm text-slate-100 placeholder:text-slate-600 font-mono focus:outline-none"
+              autoFocus
+            />
           </div>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={
-              selectedDoc
-                ? `Ask question scoped to "${selectedDoc.filename}"...`
-                : "Type query to retrieve evidence across indexed documents..."
-            }
-            className="flex-1 min-w-[140px] bg-transparent px-2 py-2 text-xs sm:text-sm text-slate-100 placeholder:text-slate-600 font-mono focus:outline-none"
-            autoFocus
-          />
 
-          {/* 1. FILE SELECTOR DROPDOWN (WITH INBUILT SEARCH) */}
-          <div className="relative shrink-0" ref={docDropdownRef}>
-            <button
-              type="button"
-              onClick={() => {
-                setDocDropdownOpen(!docDropdownOpen);
-                setModelDropdownOpen(false);
-              }}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border font-mono text-xs transition-all max-w-[160px] sm:max-w-[200px] ${
-                selectedDocId
-                  ? "bg-cyan-950/60 text-cyan-300 border-cyan-500/50 shadow-sm"
-                  : "bg-slate-900/90 text-slate-300 border-slate-700/80 hover:bg-slate-800"
-              }`}
-              title="Select document filter scope"
-            >
-              <FileText className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-              <span className="truncate">
-                {selectedDoc ? selectedDoc.filename : "All Files"}
-              </span>
-              <ChevronDown className="w-3 h-3 text-slate-400 shrink-0 ml-auto" />
-            </button>
+          {/* Action Row on Mobile / Inline on Desktop */}
+          <div className="flex items-center justify-between sm:justify-end gap-1.5 shrink-0 pt-1 sm:pt-0 border-t border-slate-800/60 sm:border-t-0">
+            {/* 1. FILE SELECTOR DROPDOWN (WITH INBUILT SEARCH) */}
+            <div className="relative shrink-0" ref={docDropdownRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setDocDropdownOpen(!docDropdownOpen);
+                  setModelDropdownOpen(false);
+                }}
+                className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl border font-mono text-xs transition-all max-w-[140px] sm:max-w-[200px] ${
+                  selectedDocId
+                    ? "bg-cyan-950/60 text-cyan-300 border-cyan-500/50 shadow-sm"
+                    : "bg-slate-900/90 text-slate-300 border-slate-700/80 hover:bg-slate-800"
+                }`}
+                title="Select document filter scope"
+              >
+                <FileText className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <span className="truncate">
+                  {selectedDoc ? selectedDoc.filename : "All Files"}
+                </span>
+                <ChevronDown className="w-3 h-3 text-slate-400 shrink-0 ml-auto" />
+              </button>
 
             {/* Document Dropdown Popover */}
             {docDropdownOpen && (
@@ -594,15 +599,16 @@ export const ChatExplorer: React.FC = () => {
             )}
           </div>
 
-          {/* 3. RUN BUTTON */}
-          <button
-            type="submit"
-            disabled={loading || !input.trim()}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 disabled:opacity-40 text-white font-mono font-semibold text-xs flex items-center gap-1.5 shadow-lg shadow-cyan-600/20 transition-all shrink-0"
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">RUN</span>
-          </button>
+            {/* 3. RUN BUTTON */}
+            <button
+              type="submit"
+              disabled={loading || !input.trim()}
+              className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 disabled:opacity-40 text-white font-mono font-semibold text-xs flex items-center gap-1.5 shadow-lg shadow-cyan-600/20 transition-all shrink-0 active:scale-95"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>RUN</span>
+            </button>
+          </div>
         </form>
       </div>
 
@@ -611,7 +617,7 @@ export const ChatExplorer: React.FC = () => {
           TOP: CITATION EVIDENCE INSPECTOR
           BOTTOM: CHAT HISTORY (DATABASE PERSISTED SESSIONS)
           ───────────────────────────────────────────────────────── */}
-      <div className="lg:col-span-4 flex flex-col gap-5 h-full overflow-hidden">
+      <div className="lg:col-span-4 flex flex-col gap-5 lg:h-full overflow-hidden">
         {/* TOP: Citation Evidence Inspector */}
         <div className="bento-card rounded-3xl p-5 flex flex-col overflow-hidden shadow-xl flex-1 max-h-[50%]">
           <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border)]">

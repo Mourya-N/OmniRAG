@@ -165,27 +165,29 @@ export const AgenticSearch: React.FC = () => {
 
         {/* Input box */}
         <div className="space-y-3">
-          <div className="relative">
+          <div className="relative flex flex-col sm:block gap-2">
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleRunAgent()}
               placeholder="Ask a complex enterprise question requiring multi-step investigation..."
-              className="w-full px-5 py-4 pr-32 rounded-2xl glass-input text-sm"
+              className="w-full px-4 sm:px-5 py-3.5 sm:py-4 sm:pr-48 rounded-2xl glass-input text-xs sm:text-sm"
             />
             <button
               onClick={handleRunAgent}
               disabled={isRunning || !query.trim()}
-              className="absolute right-2 top-2 bottom-2 px-5 rounded-xl font-medium text-xs text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all flex items-center gap-2 shadow-md shadow-indigo-600/30 disabled:opacity-50"
+              className="sm:absolute sm:right-2 sm:top-2 sm:bottom-2 px-4 sm:px-5 py-2.5 sm:py-0 rounded-xl font-medium text-xs text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all flex items-center justify-center gap-2 shadow-md shadow-indigo-600/30 disabled:opacity-50 shrink-0 active:scale-95"
             >
               {isRunning ? (
                 <>
-                  <RefreshCw className="w-4 h-4 animate-spin" /> Reasoning Across Documents...
+                  <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
+                  <span>Reasoning...</span>
                 </>
               ) : (
                 <>
-                  <Search className="w-4 h-4" /> Run Agentic Search
+                  <Search className="w-4 h-4 shrink-0" />
+                  <span>Run Agentic Search</span>
                 </>
               )}
             </button>

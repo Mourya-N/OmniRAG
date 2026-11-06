@@ -210,20 +210,21 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 w-full px-4 sm:px-6 py-3.5 backdrop-blur-xl"
+      className="fixed top-0 left-0 right-0 z-50 w-full px-3 sm:px-6 py-2.5 sm:py-3.5 backdrop-blur-xl"
       style={{
-        background: dark ? 'rgba(9,12,26,0.85)' : 'rgba(255,255,255,0.90)',
+        background: dark ? 'rgba(9,12,26,0.88)' : 'rgba(255,255,255,0.92)',
         borderBottom: `1px solid var(--border)`,
       }}
     >
-      <div className="w-full flex items-center justify-between gap-4">
+      <div className="w-full flex items-center justify-between gap-2 sm:gap-4">
         {/* Left: Mobile hamburger & Brand Logo & Search */}
-        <div className="flex items-center gap-3 flex-1 max-w-3xl">
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 max-w-3xl">
           {onToggleMobileMenu && (
             <button
               onClick={onToggleMobileMenu}
-              className="lg:hidden p-2 rounded-xl bento-chip t-muted hover:t-primary shrink-0"
+              className="lg:hidden p-2 rounded-xl bento-chip t-muted hover:t-primary shrink-0 active:scale-95 transition-transform"
               title="Open Navigation Menu"
+              aria-label="Open Navigation Menu"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -232,11 +233,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* OmniRAG Logo & Name in Navbar */}
           <div
             onClick={onNavigateLanding}
-            className="flex items-center gap-3 cursor-pointer select-none group pr-4 border-r"
+            className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none group pr-1 sm:pr-4 border-r-0 sm:border-r shrink-0"
             style={{ borderColor: 'var(--border)' }}
             title="OmniRAG — Back to Landing / Home"
           >
-            <OmniRAGLogo size={40} showText={false} className="group-hover:scale-105 transition-transform" />
+            <OmniRAGLogo size={32} showText={false} className="group-hover:scale-105 transition-transform sm:hidden" />
+            <OmniRAGLogo size={38} showText={false} className="group-hover:scale-105 transition-transform hidden sm:block" />
             <div className="hidden sm:flex flex-col">
               <div className="flex items-center gap-2">
                 <span className="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-400 to-pink-500 bg-clip-text text-transparent">
@@ -253,16 +255,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Global Search Capsule */}
-          <div ref={searchContainerRef} className="relative w-full">
+          <div ref={searchContainerRef} className="relative flex-1 min-w-0">
             <form onSubmit={handleSearchSubmit} className="relative w-full">
               <div
-                className="flex items-center rounded-xl px-4 py-2.5 transition-all shadow-inner"
+                className="flex items-center rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2.5 transition-all shadow-inner"
                 style={{
                   background: dark ? 'rgba(19,23,51,0.80)' : 'rgba(238,240,255,0.90)',
                   border: isSearchOpen ? '1px solid rgba(99,102,241,0.8)' : '1px solid var(--border)',
                 }}
               >
-                <Search className="w-4 h-4 shrink-0 mr-2.5 t-muted" style={{ color: 'var(--text-muted)' }} />
+                <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 mr-1.5 sm:mr-2.5 t-muted" style={{ color: 'var(--text-muted)' }} />
                 <input
                   ref={searchInputRef}
                   type="text"
@@ -275,8 +277,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                     setSearchValue(e.target.value);
                     if (!isSearchOpen) setIsSearchOpen(true);
                   }}
-                  placeholder="Search across documents, evidence, conversations, views..."
-                  className="w-full bg-transparent text-xs focus:outline-none"
+                  placeholder="Search files, evidence, views..."
+                  className="w-full bg-transparent text-xs focus:outline-none min-w-0"
                   style={{ color: 'var(--text-primary)' }}
                 />
                 <div
@@ -296,11 +298,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Global Search Dropdown Results Popover */}
             {isSearchOpen && (
               <div
-                className="absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl p-3 shadow-2xl backdrop-blur-2xl max-h-[75vh] overflow-y-auto space-y-3"
+                className="fixed sm:absolute top-[58px] sm:top-full left-2 right-2 sm:left-0 sm:right-0 mt-2 z-[70] rounded-2xl p-3 shadow-2xl backdrop-blur-2xl max-h-[75vh] overflow-y-auto space-y-3"
                 style={{
-                  background: dark ? 'rgba(15,18,37,0.97)' : 'rgba(255,255,255,0.98)',
+                  background: dark ? 'rgba(15,18,37,0.98)' : 'rgba(255,255,255,0.98)',
                   border: '1px solid var(--border)',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
                 }}
               >
                 {/* Status bar */}
@@ -494,13 +496,13 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Right: Actions, Admin Switcher & User Capsule */}
-        <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {/* Admin Layer Toggle (Visible only for Founder / Superuser Admin) */}
           {Boolean(currentUser?.is_superuser || currentUser?.roles?.includes('Admin')) && onToggleLayer && (
             <button
               onClick={onToggleLayer}
               title={currentLayer === 'admin' ? 'Switch back to User Workspace' : 'Switch to Enterprise Admin Portal'}
-              className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md ${
+              className={`p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md ${
                 currentLayer === 'admin'
                   ? 'bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white shadow-pink-600/30 ring-2 ring-pink-400/50'
                   : 'bento-chip t-accent hover:border-indigo-500/40 text-indigo-300'
@@ -508,27 +510,29 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Shield className="w-3.5 h-3.5" />
               <span className="hidden md:inline">{currentLayer === 'admin' ? 'User Workspace' : 'Admin Portal'}</span>
-              <span className="md:hidden">{currentLayer === 'admin' ? 'Workspace' : 'Admin'}</span>
+              <span className="hidden sm:inline md:hidden">{currentLayer === 'admin' ? 'Workspace' : 'Admin'}</span>
             </button>
           )}
 
           {/* Upload Button */}
           <button
             onClick={onOpenUpload}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-lg shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="p-2 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-lg shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-95 shrink-0"
+            title="Upload Documents"
           >
-            <Upload className="w-3.5 h-3.5" />
-            <span>+ Upload</span>
+            <Upload className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+            <span className="hidden sm:inline">+ Upload</span>
           </button>
 
           {/* Notification Bell */}
-          <div className="relative">
+          <div className="relative hidden xs:block">
             <button
               onClick={() => alert('No new enterprise security alerts')}
-              className="w-9 h-9 rounded-xl bento-chip flex items-center justify-center t-secondary hover:t-primary transition-colors"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bento-chip flex items-center justify-center t-secondary hover:t-primary transition-colors"
+              title="Notifications"
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
             </button>
           </div>
 
@@ -536,7 +540,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={toggleTheme}
             title={dark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
-            className="w-9 h-9 rounded-xl bento-chip flex items-center justify-center transition-colors"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bento-chip flex items-center justify-center transition-colors shrink-0"
           >
             {dark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-400" />}
           </button>
@@ -544,16 +548,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* User Profile Capsule with Interactive Dropdown */}
           <div
             ref={dropdownRef}
-            className="relative flex items-center pl-2"
+            className="relative flex items-center pl-1 sm:pl-2 shrink-0"
             style={{ borderLeft: `1px solid var(--border)` }}
           >
             {currentUser ? (
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center gap-2.5 p-1 rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all"
+                className="flex items-center gap-1.5 sm:gap-2.5 p-0.5 sm:p-1 rounded-2xl hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all"
               >
                 <div
-                  className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-500 flex items-center justify-center text-xs font-bold text-white shadow-md shadow-indigo-500/30"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-500 flex items-center justify-center text-xs font-bold text-white shadow-md shadow-indigo-500/30 shrink-0"
                 >
                   {initials}
                 </div>
@@ -561,16 +565,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <p className="text-xs font-semibold leading-tight t-primary truncate">{displayName}</p>
                   <p className="text-[10px] leading-tight t-muted truncate">Enterprise Plan</p>
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 t-muted" />
+                <ChevronDown className="w-3.5 h-3.5 t-muted hidden sm:block" />
               </button>
             ) : (
               <button
                 onClick={onNavigateAuth}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bento-chip text-xs font-medium t-primary hover:opacity-90 transition-all border"
+                className="flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bento-chip text-xs font-medium t-primary hover:opacity-90 transition-all border shrink-0"
                 style={{ borderColor: 'var(--border)' }}
               >
                 <LogIn className="w-3.5 h-3.5 icon-indigo" />
-                <span>Sign In</span>
+                <span className="hidden sm:inline">Sign In</span>
               </button>
             )}
 

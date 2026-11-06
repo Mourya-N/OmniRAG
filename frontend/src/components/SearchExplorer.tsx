@@ -46,40 +46,40 @@ export const SearchExplorer: React.FC<SearchExplorerProps> = ({ initialQuery = '
     <div className="space-y-6 animate-fade-in">
       <form onSubmit={handleSearch} className="bento-card rounded-3xl p-6 shadow-2xl space-y-4" style={{ borderColor: 'var(--border)' }}>
         <h2 className="text-lg font-semibold t-primary">Intelligent Multimodal Search</h2>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search keywords, natural language questions, code, or identifiers..."
-            className="flex-1 bento-chip border rounded-2xl px-4 py-3 text-sm t-primary placeholder:t-muted focus:outline-none focus:border-indigo-500/60 shadow-inner"
+            placeholder="Search keywords, natural language questions, code..."
+            className="flex-1 bento-chip border rounded-2xl px-4 py-3 text-xs sm:text-sm t-primary placeholder:t-muted focus:outline-none focus:border-indigo-500/60 shadow-inner min-w-0"
             style={{ borderColor: 'var(--border)' }}
           />
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm flex items-center gap-2 shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] shrink-0"
           >
             <Search className="h-4 w-4" /> Search
           </button>
         </div>
 
         {/* Strategy Selector */}
-        <div className="flex items-center space-x-3 text-xs pt-1">
-          <span className="t-muted">Retrieval Strategy:</span>
+        <div className="flex items-center flex-wrap gap-2 text-xs pt-1">
+          <span className="t-muted text-[11px]">Strategy:</span>
           {(['hybrid', 'dense', 'bm25'] as const).map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => setStrategy(s)}
-              className={`px-3.5 py-1.5 rounded-xl border font-medium uppercase tracking-wider transition-all ${
+              className={`px-3 py-1.5 rounded-xl border text-[11px] font-medium tracking-wide transition-all ${
                 strategy === s
                   ? 'badge-indigo shadow-md font-semibold'
                   : 'bento-chip t-muted hover:t-primary'
               }`}
               style={{ borderColor: strategy === s ? undefined : 'var(--border)' }}
             >
-              {s === 'hybrid' ? 'Hybrid (Dense + BM25 + RRF)' : s === 'dense' ? 'Dense Vector' : 'BM25 Lexical'}
+              {s === 'hybrid' ? 'Hybrid (Dense + BM25)' : s === 'dense' ? 'Dense Vector' : 'BM25 Lexical'}
             </button>
           ))}
         </div>

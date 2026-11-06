@@ -278,7 +278,7 @@ export const KnowledgeGraph: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* SVG Graph Canvas (8 cols) */}
         <div
-          className="lg:col-span-8 bento-card rounded-3xl p-4 shadow-2xl relative overflow-hidden h-[540px] flex items-center justify-center select-none"
+          className="lg:col-span-8 bento-card rounded-3xl p-4 shadow-2xl relative overflow-hidden h-[360px] sm:h-[460px] lg:h-[540px] flex items-center justify-center select-none"
           style={{ borderColor: 'var(--border)' }}
         >
           {loading ? (
