@@ -263,11 +263,13 @@ export class ApiService {
     user_role?: string;
     conversation_history?: any[];
   }): Promise<any> {
-    const resp = await fetch(`${API_BASE}/rag/query`, {
+    const resp = await fetch(`${API_BASE}/rag/chat`, {
       method: 'POST',
       headers: this.getHeaders(),
       credentials: 'include',
-      body: JSON.stringify(params),
+      body: JSON.stringify({
+        query: params.query,
+      }),
     });
     if (!resp.ok) throw new Error(await resp.text());
     return resp.json();

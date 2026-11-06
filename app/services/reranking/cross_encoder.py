@@ -30,7 +30,10 @@ class CrossEncoderReranker(Reranker):
         This algorithm computes dense query term coverage, consecutive matching terms,
         and term-frequency weighting to produce normalized scores in [0.0, 1.0].
         """
-        q_tokens = [w for w in re.findall(r"\w+", query.lower()) if len(w) > 2]
+        from app.services.retrieval.bm25 import STOPWORDS
+        q_tokens = [w for w in re.findall(r"\w+", query.lower()) if len(w) > 2 and w not in STOPWORDS]
+        if not q_tokens:
+            q_tokens = [w for w in re.findall(r"\w+", query.lower()) if len(w) > 2]
         if not q_tokens:
             return 0.5
 
@@ -45,7 +48,7 @@ class CrossEncoderReranker(Reranker):
                 matches += 1
             else:
                 stem = re.sub(r"(ship|ing|ed|ers|er|es|s)$", "", q)
-                if len(stem) >= 3 and stem in t_text:
+                if len(stem) >= 3 and (stem in t_text or any(stem in tok or tok in stem for tok in t_tokens)):
                     matches += 1
         coverage_ratio = matches / len(q_tokens)
 
@@ -56,16 +59,16 @@ class CrossEncoderReranker(Reranker):
         t_freq = sum(t_tokens.count(q) for q in q_tokens)
         density = min(0.3, (t_freq / len(t_tokens)) * 5.0)
 
-        raw_score = (coverage_ratio * 0.6) + phrase_bonus + density
+        raw_score = (coverage_ratio * 0.7) + phrase_bonus + density
         # Sigmoid squash into [0.0, 1.0]
-        return 1.0 / (1.0 + math.exp(-6.0 * (raw_score - 0.4)))
+        return 1.0 / (1.0 + math.exp(-6.0 * (raw_score - 0.35)))
 
     async def rerank(
         self,
         query: str,
         candidates: list[ScoredChunk],
         top_k: int = 10,
-        score_threshold: float = 0.35,
+        score_threshold: float = 0.10,
         max_token_budget: int = 4000,
     ) -> list[ScoredChunk]:
         """Reranks candidate chunks with thresholding, duplicate removal, and token budget limit."""

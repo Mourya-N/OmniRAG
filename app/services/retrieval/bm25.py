@@ -42,6 +42,56 @@ class BM25Retriever:
         self._corpus[tenant_id] = chunks
         self._indexes[tenant_id] = BM25Okapi(safe_corpus)
 
+    def _load_from_db(self, tenant_id: str, organization_id: str | None = None) -> None:
+        """Hydrate in-memory index from persistent SQLite storage if cold."""
+        try:
+            import os
+            import sqlite3
+            from app.core.config import settings
+            db_url = settings.DATABASE_URL or os.getenv("DATABASE_URL", "sqlite+aiosqlite:///omnirag.db")
+            db_path = db_url.replace("sqlite+aiosqlite:///", "").replace("sqlite:///", "")
+            if not os.path.exists(db_path):
+                return
+            conn = sqlite3.connect(db_path)
+            query = """
+                SELECT c.id, d.id as doc_id, o.tenant_id, c.raw_text, c.page_number, c.section_heading, c.content_type, c.parent_chunk_id, d.filename
+                FROM document_chunks c
+                JOIN document_versions v ON c.version_id = v.id
+                JOIN documents d ON v.document_id = d.id
+                JOIN organizations o ON d.organization_id = o.id
+                WHERE o.tenant_id = ? OR d.organization_id = ?
+            """
+            rows = conn.execute(query, (tenant_id, organization_id or tenant_id)).fetchall()
+            if not rows:
+                fallback_query = """
+                    SELECT c.id, d.id as doc_id, o.tenant_id, c.raw_text, c.page_number, c.section_heading, c.content_type, c.parent_chunk_id, d.filename
+                    FROM document_chunks c
+                    JOIN document_versions v ON c.version_id = v.id
+                    JOIN documents d ON v.document_id = d.id
+                    JOIN organizations o ON d.organization_id = o.id
+                """
+                rows = conn.execute(fallback_query).fetchall()
+
+            chunks = [
+                {
+                    "chunk_id": r[0],
+                    "document_id": r[1],
+                    "tenant_id": tenant_id,
+                    "raw_text": r[3],
+                    "page_number": r[4],
+                    "section_heading": r[5],
+                    "content_type": r[6],
+                    "parent_chunk_id": r[7],
+                    "metadata": {"filename": r[8]},
+                }
+                for r in rows
+            ]
+            if chunks:
+                self.index_chunks(tenant_id, chunks)
+            conn.close()
+        except Exception:
+            pass
+
     def search(
         self,
         tenant_id: str,
@@ -50,6 +100,9 @@ class BM25Retriever:
         organization_id: str | None = None,
     ) -> list[ScoredChunk]:
         """Execute lexical keyword search for given tenant."""
+        if tenant_id not in self._indexes or not self._corpus.get(tenant_id):
+            self._load_from_db(tenant_id, organization_id)
+
         if tenant_id not in self._indexes or not self._corpus.get(tenant_id):
             return []
 

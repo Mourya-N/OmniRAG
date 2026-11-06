@@ -25,6 +25,7 @@ router = APIRouter(prefix="/rag", tags=["RAG & Generation"])
 
 
 @router.post("/chat", response_model=RAGChatResponse)
+@router.post("/query", response_model=RAGChatResponse)
 async def chat_rag(
     payload: RAGChatRequest,
     db: AsyncSession = Depends(get_db),

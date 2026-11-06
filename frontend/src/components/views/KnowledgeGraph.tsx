@@ -286,6 +286,14 @@ export const KnowledgeGraph: React.FC = () => {
               <Sparkles className="w-6 h-6 animate-spin text-indigo-400" />
               <span>Synthesizing knowledge graph from indexed documents...</span>
             </div>
+          ) : nodes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center text-center p-6 space-y-2">
+              <Share2 className="w-8 h-8 text-indigo-400 opacity-60 mb-1" />
+              <div className="text-sm font-semibold t-primary">No Documents Indexed in Graph</div>
+              <p className="text-xs t-muted max-w-sm">
+                Upload knowledge documents to automatically generate interactive semantic entity graphs and relationship links.
+              </p>
+            </div>
           ) : (
             <>
               {/* Subtle grid background */}
