@@ -3,12 +3,13 @@
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Query, UploadFile, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_current_user, get_db, require_roles, verify_tenant_boundary
+from app.core.database import AsyncSessionLocal
 from app.core.exceptions import (
     DocumentNotFoundError,
     DuplicateDocumentError,
@@ -30,8 +31,30 @@ from app.services.storage import get_storage_backend
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
 
+async def run_document_ingestion_background(document_id: str) -> None:
+    """Asynchronously execute parsing, chunking, and vector/BM25 indexing for an uploaded document."""
+    async with AsyncSessionLocal() as session:
+        try:
+            job = IngestionJob(
+                document_id=document_id,
+                status=IngestionStage.UPLOADED.value,
+                progress_percent=0,
+                current_stage=IngestionStage.UPLOADED.value,
+            )
+            session.add(job)
+            await session.commit()
+
+            runner = IngestionPipelineRunner(session)
+            await runner.execute_pipeline(job.id)
+        except Exception as exc:
+            import structlog
+            logger = structlog.get_logger(__name__)
+            logger.error("background_ingestion_failed", document_id=document_id, error=str(exc))
+
+
 @router.post("/upload", response_model=DocumentUploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     organization_id: str | None = Query(None, description="Target organization ID"),
     db: AsyncSession = Depends(get_db),
@@ -97,6 +120,9 @@ async def upload_document(
     )
     db.add(version)
     await db.commit()
+
+    # Trigger asynchronous parsing, chunking, and vector/BM25 indexing
+    background_tasks.add_task(run_document_ingestion_background, doc.id)
 
     return DocumentUploadResponse(
         document_id=doc.id,

@@ -188,6 +188,25 @@ class IngestionPipelineRunner:
             except Exception as v_err:
                 logger.warning("vector_store_indexing_deferred", error=str(v_err))
 
+            # Index into in-memory BM25 lexical retriever for hybrid retrieval
+            try:
+                from app.api.v1.search import global_bm25_retriever
+                bm25_chunks = [
+                    {
+                        "chunk_id": p.chunk_id,
+                        "document_id": doc.id,
+                        "raw_text": p.raw_text,
+                        "page_number": p.page_number,
+                        "section_heading": p.section_heading,
+                        "organization_id": doc.organization_id,
+                    }
+                    for p in chunk_payloads
+                ]
+                existing = global_bm25_retriever._corpus.get(tenant_id, [])
+                global_bm25_retriever.index_chunks(tenant_id, existing + bm25_chunks)
+            except Exception as bm25_err:
+                logger.warning("bm25_indexing_deferred", error=str(bm25_err))
+
             # Update document status and complete job
             doc.status = "INDEXED"
             await self.update_job_stage(job, IngestionStage.COMPLETED)
