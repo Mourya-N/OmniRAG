@@ -13,6 +13,13 @@ import {
   Database,
   Hash,
   ChevronRight,
+  ChevronDown,
+  FileText,
+  Search,
+  Sparkles,
+  Bot,
+  Check,
+  Layers,
 } from 'lucide-react';
 import { ApiService } from '../services/api';
 import { CitationItem, RAGMessage } from '../types';
@@ -22,6 +29,13 @@ interface ConversationSummary {
   title: string;
   created_at: string;
   message_count: number;
+}
+
+interface UploadedDocItem {
+  id: string;
+  filename: string;
+  file_size_bytes?: number;
+  status?: string;
 }
 
 export const ChatExplorer: React.FC = () => {
@@ -38,20 +52,60 @@ export const ChatExplorer: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [activeCitation, setActiveCitation] = useState<CitationItem | null>(null);
 
+  // Document Scope Selection with Inbuilt Search
+  const [uploadedDocs, setUploadedDocs] = useState<UploadedDocItem[]>([]);
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const [docDropdownOpen, setDocDropdownOpen] = useState(false);
+  const [docSearchQuery, setDocSearchQuery] = useState('');
+
+  // LLM Model Provider Selection (Default: Groq)
+  type LLMModelKey = 'groq' | 'openai' | 'gemini';
+  const [selectedModel, setSelectedModel] = useState<LLMModelKey>('groq');
+  const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
+
   // Database Conversation State
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
   const terminalEndRef = useRef<HTMLDivElement>(null);
+  const docDropdownRef = useRef<HTMLDivElement>(null);
+  const modelDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadConversationHistory();
+    loadUploadedDocs();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (docDropdownRef.current && !docDropdownRef.current.contains(event.target as Node)) {
+        setDocDropdownOpen(false);
+      }
+      if (modelDropdownRef.current && !modelDropdownRef.current.contains(event.target as Node)) {
+        setModelDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
+
+  const loadUploadedDocs = async () => {
+    try {
+      const data = await ApiService.listDocuments();
+      if (data && data.items) {
+        setUploadedDocs(data.items);
+      }
+    } catch (err) {
+      console.warn('Failed to load documents for chat selector:', err);
+    }
+  };
 
   const loadConversationHistory = async () => {
     setLoadingHistory(true);
@@ -130,7 +184,12 @@ export const ChatExplorer: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await ApiService.executeRAGChat(queryText, activeConversationId || undefined);
+      const response = await ApiService.executeRAGChat(
+        queryText,
+        activeConversationId || undefined,
+        selectedDocId || undefined,
+        selectedModel
+      );
       if (response.conversation_id) {
         setActiveConversationId(response.conversation_id);
       }
@@ -148,47 +207,14 @@ export const ChatExplorer: React.FC = () => {
         setActiveCitation(response.citations[0]);
       }
       loadConversationHistory();
-    } catch {
-      // Graceful offline fallback
-      const fallbackMsg: RAGMessage = {
+    } catch (err: any) {
+      const errorMsg: RAGMessage = {
         id: String(Date.now() + 1),
         role: 'assistant',
-        content: `OmniRAG integrates hybrid retrieval with dense vector indexing and BM25 sparse search [chunk-sample-01]. The reciprocal rank fusion module merges disparate candidate pools without score calibration issues [chunk-sample-02].`,
-        citations: [
-          {
-            citation_id: 'c-1',
-            chunk_id: 'chunk-sample-01',
-            document_id: 'system_architecture.md',
-            page_number: 1,
-            cited_snippet: 'OmniRAG integrates hybrid retrieval with dense vector indexing and BM25 sparse search.',
-            is_valid: true,
-            confidence_score: 0.96,
-          },
-          {
-            citation_id: 'c-2',
-            chunk_id: 'chunk-sample-02',
-            document_id: 'system_architecture.md',
-            page_number: 3,
-            cited_snippet: 'The reciprocal rank fusion module merges disparate candidate pools without score calibration issues.',
-            is_valid: true,
-            confidence_score: 0.94,
-          },
-        ],
-        verification: {
-          is_grounded: true,
-          faithfulness_score: 0.98,
-          citation_accuracy_score: 1.0,
-          total_citations: 2,
-          valid_citations_count: 2,
-          phantom_citations: [],
-          unsupported_claims: [],
-        },
+        content: `[ERROR: CHAT_EXECUTION_FAILED] ${err?.message || 'Unable to retrieve grounded evidence or generate response from selected model.'}`,
         timestamp: new Date().toLocaleTimeString(),
       };
-      setMessages((prev) => [...prev, fallbackMsg]);
-      if (fallbackMsg.citations && fallbackMsg.citations.length > 0) {
-        setActiveCitation(fallbackMsg.citations[0]);
-      }
+      setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setLoading(false);
     }
@@ -221,6 +247,11 @@ export const ChatExplorer: React.FC = () => {
       return <span key={index}>{part}</span>;
     });
   };
+
+  const filteredDocs = uploadedDocs.filter((doc) =>
+    doc.filename.toLowerCase().includes(docSearchQuery.toLowerCase())
+  );
+  const selectedDoc = uploadedDocs.find((doc) => doc.id === selectedDocId);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-130px)] animate-fade-in">
@@ -339,23 +370,235 @@ export const ChatExplorer: React.FC = () => {
         {/* Command Line Input Bar */}
         <form
           onSubmit={handleSend}
-          className="bg-[#0b0e1d] p-3 border-t border-slate-800 flex items-center gap-2"
+          className="bg-[#0b0e1d] p-3 border-t border-slate-800 flex items-center gap-2 relative"
         >
-          <div className="flex items-center gap-2 text-emerald-400 font-mono font-bold text-xs sm:text-sm pl-2 select-none">
+          <div className="flex items-center gap-1.5 text-emerald-400 font-mono font-bold text-xs sm:text-sm pl-2 select-none shrink-0">
             <span>omnirag:~$</span>
           </div>
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type query to retrieve evidence across indexed documents..."
-            className="flex-1 bg-transparent px-2 py-2 text-xs sm:text-sm text-slate-100 placeholder:text-slate-600 font-mono focus:outline-none"
+            placeholder={
+              selectedDoc
+                ? `Ask question scoped to "${selectedDoc.filename}"...`
+                : "Type query to retrieve evidence across indexed documents..."
+            }
+            className="flex-1 min-w-[140px] bg-transparent px-2 py-2 text-xs sm:text-sm text-slate-100 placeholder:text-slate-600 font-mono focus:outline-none"
             autoFocus
           />
+
+          {/* 1. FILE SELECTOR DROPDOWN (WITH INBUILT SEARCH) */}
+          <div className="relative shrink-0" ref={docDropdownRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setDocDropdownOpen(!docDropdownOpen);
+                setModelDropdownOpen(false);
+              }}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border font-mono text-xs transition-all max-w-[160px] sm:max-w-[200px] ${
+                selectedDocId
+                  ? "bg-cyan-950/60 text-cyan-300 border-cyan-500/50 shadow-sm"
+                  : "bg-slate-900/90 text-slate-300 border-slate-700/80 hover:bg-slate-800"
+              }`}
+              title="Select document filter scope"
+            >
+              <FileText className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              <span className="truncate">
+                {selectedDoc ? selectedDoc.filename : "All Files"}
+              </span>
+              <ChevronDown className="w-3 h-3 text-slate-400 shrink-0 ml-auto" />
+            </button>
+
+            {/* Document Dropdown Popover */}
+            {docDropdownOpen && (
+              <div className="absolute right-0 bottom-full mb-2 w-72 sm:w-80 bg-[#0f1429] border border-slate-700 rounded-2xl shadow-2xl z-50 p-2.5 space-y-2 backdrop-blur-xl">
+                <div className="flex items-center justify-between px-2 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider font-mono">
+                  <span>Document Filter</span>
+                  <span className="text-[10px] text-cyan-400 font-normal">{uploadedDocs.length} files</span>
+                </div>
+
+                {/* Inbuilt Search Input */}
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+                  <input
+                    type="text"
+                    value={docSearchQuery}
+                    onChange={(e) => setDocSearchQuery(e.target.value)}
+                    placeholder="Search uploaded files..."
+                    className="w-full bg-slate-950/90 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 font-mono focus:outline-none focus:border-cyan-500"
+                    autoFocus
+                  />
+                </div>
+
+                {/* Document List */}
+                <div className="max-h-56 overflow-y-auto space-y-1 pr-1 font-mono text-xs [scrollbar-width:thin]">
+                  {/* Option: All Documents */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedDocId(null);
+                      setDocDropdownOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all ${
+                      selectedDocId === null
+                        ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
+                        : "hover:bg-slate-800/60 text-slate-300 border border-transparent"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <Layers className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                      <span className="truncate font-medium">All Uploaded Files</span>
+                    </div>
+                    {selectedDocId === null && <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />}
+                  </button>
+
+                  {/* Filtered Documents List */}
+                  {filteredDocs.length === 0 ? (
+                    <div className="text-center py-4 text-slate-500 text-[11px]">
+                      No matching documents found
+                    </div>
+                  ) : (
+                    filteredDocs.map((doc) => {
+                      const isSelected = selectedDocId === doc.id;
+                      return (
+                        <button
+                          key={doc.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedDocId(doc.id);
+                            setDocDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all ${
+                            isSelected
+                              ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
+                              : "hover:bg-slate-800/60 text-slate-300 border border-transparent"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate min-w-0 pr-2">
+                            <FileText className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                            <div className="truncate">
+                              <p className="truncate font-medium text-xs text-slate-200">{doc.filename}</p>
+                              {doc.file_size_bytes ? (
+                                <p className="text-[10px] text-slate-500">{(doc.file_size_bytes / 1024).toFixed(0)} KB</p>
+                              ) : null}
+                            </div>
+                          </div>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 2. LLM MODEL SELECTOR DROPDOWN (DEFAULT: GROQ) */}
+          <div className="relative shrink-0" ref={modelDropdownRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setModelDropdownOpen(!modelDropdownOpen);
+                setDocDropdownOpen(false);
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 font-mono text-xs transition-all"
+              title="Select generation LLM provider"
+            >
+              {selectedModel === 'groq' && <Cpu className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+              {selectedModel === 'openai' && <Bot className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
+              {selectedModel === 'gemini' && <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />}
+              <span className="font-semibold capitalize">{selectedModel}</span>
+              <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
+            </button>
+
+            {/* Model Dropdown Popover */}
+            {modelDropdownOpen && (
+              <div className="absolute right-0 bottom-full mb-2 w-64 bg-[#0f1429] border border-slate-700 rounded-2xl shadow-2xl z-50 p-2 space-y-1 backdrop-blur-xl">
+                <div className="px-2 pt-1 pb-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider font-mono">
+                  LLM Provider
+                </div>
+
+                {/* Groq (Default) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedModel('groq');
+                    setModelDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all ${
+                    selectedModel === 'groq'
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                      : 'hover:bg-slate-800/60 text-slate-300 border border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Cpu className="w-4 h-4 text-amber-400 shrink-0" />
+                    <div>
+                      <div className="font-bold text-xs flex items-center gap-1.5">
+                        <span>Groq</span>
+                        <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/30 text-amber-300 font-mono">Default</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400">openai/gpt-oss-120b (&lt;1s)</p>
+                    </div>
+                  </div>
+                  {selectedModel === 'groq' && <Check className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+                </button>
+
+                {/* OpenAI */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedModel('openai');
+                    setModelDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all ${
+                    selectedModel === 'openai'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                      : 'hover:bg-slate-800/60 text-slate-300 border border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Bot className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <div>
+                      <div className="font-bold text-xs">OpenAI</div>
+                      <p className="text-[10px] text-slate-400">gpt-4o reasoning</p>
+                    </div>
+                  </div>
+                  {selectedModel === 'openai' && <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
+                </button>
+
+                {/* Gemini */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedModel('gemini');
+                    setModelDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all ${
+                    selectedModel === 'gemini'
+                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                      : 'hover:bg-slate-800/60 text-slate-300 border border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <div>
+                      <div className="font-bold text-xs">Gemini</div>
+                      <p className="text-[10px] text-slate-400">gemini-1.5-flash</p>
+                    </div>
+                  </div>
+                  {selectedModel === 'gemini' && <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 3. RUN BUTTON */}
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 disabled:opacity-40 text-white font-mono font-semibold text-xs flex items-center gap-1.5 shadow-lg shadow-cyan-600/20 transition-all"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 disabled:opacity-40 text-white font-mono font-semibold text-xs flex items-center gap-1.5 shadow-lg shadow-cyan-600/20 transition-all shrink-0"
           >
             <Send className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">RUN</span>

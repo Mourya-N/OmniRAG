@@ -197,14 +197,35 @@ export class ApiService {
      RAG REASONING & CHAT
      ───────────────────────────────────────────────────────── */
 
-  static async executeRAGChat(query: string, conversationId?: string): Promise<any> {
+  static async executeRAGChat(
+    query: string,
+    conversationId?: string,
+    documentId?: string,
+    modelProvider?: string
+  ): Promise<any> {
+    const payload: Record<string, any> = {
+      query,
+      conversation_id: conversationId,
+      top_k: 5,
+    };
+    if (documentId) payload.document_id = documentId;
+    if (modelProvider) payload.model_provider = modelProvider;
+
     const resp = await fetch(`${API_BASE}/rag/chat`, {
       method: 'POST',
       headers: this.getHeaders(),
       credentials: 'include',
-      body: JSON.stringify({ query, conversation_id: conversationId, top_k: 5 }),
+      body: JSON.stringify(payload),
     });
-    if (!resp.ok) throw new Error(await resp.text());
+    if (!resp.ok) {
+      const errText = await resp.text();
+      let errorMsg = errText;
+      try {
+        const parsed = JSON.parse(errText);
+        errorMsg = parsed.error?.message || parsed.detail || errText;
+      } catch {}
+      throw new Error(errorMsg);
+    }
     return resp.json();
   }
 

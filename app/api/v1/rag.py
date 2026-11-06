@@ -93,6 +93,8 @@ async def chat_rag(
         top_k=payload.top_k * 2 if payload.enable_reranking else payload.top_k,
         organization_id=target_org_id,
     )
+    if payload.document_id and retrieved_chunks:
+        retrieved_chunks = [c for c in retrieved_chunks if c.document_id == payload.document_id]
 
     # 3b. Resilient Database Fallback:
     # If external vector store and in-memory BM25 are empty, retrieve directly from indexed chunks in DB
@@ -108,6 +110,8 @@ async def chat_rag(
         )
         if target_org_id:
             chunk_stmt = chunk_stmt.where(Document.organization_id == target_org_id)
+        if payload.document_id:
+            chunk_stmt = chunk_stmt.where(Document.id == payload.document_id)
 
         db_chunk_res = await db.execute(chunk_stmt)
         all_db_chunks = db_chunk_res.all()
@@ -117,7 +121,14 @@ async def chat_rag(
             scored = []
             for chunk_row, doc_id in all_db_chunks:
                 text_lower = chunk_row.raw_text.lower()
-                matches = sum(1 for w in q_words if w in text_lower)
+                matches = 0
+                for w in q_words:
+                    if w in text_lower:
+                        matches += 1
+                    else:
+                        stem = re.sub(r"(ship|ing|ed|ers|er|es|s)$", "", w)
+                        if len(stem) >= 3 and stem in text_lower:
+                            matches += 1
                 score = matches / (len(q_words) or 1)
                 scored.append((score, chunk_row, doc_id))
 
@@ -131,6 +142,7 @@ async def chat_rag(
                     chunk_id=c.id,
                     score=max(0.65, sc),
                     document_id=did,
+                    tenant_id=tenant_id,
                     raw_text=c.raw_text,
                     page_number=c.page_number,
                     section_heading=c.section_heading,
@@ -172,7 +184,7 @@ async def chat_rag(
             authorized_chunks.append(chunk)
 
     # 6. Evidence-Grounded Answer Generation
-    llm = get_llm_provider()
+    llm = get_llm_provider(payload.model_provider)
     grounded_ans = await llm.generate_grounded_answer(
         query=payload.query,
         context_chunks=authorized_chunks,

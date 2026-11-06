@@ -29,7 +29,8 @@ class CitationValidator:
         retrieved_chunks: list[ScoredChunk],
     ) -> VerificationReport:
         # Extract all citation tags: [chunk_id]
-        cited_tags = re.findall(r"\[([a-zA-Z0-9_-]+)\]", answer_text)
+        normalized_text = answer_text.replace("【", "[").replace("】", "]")
+        cited_tags = re.findall(r"\[([a-zA-Z0-9_-]+)\]", normalized_text)
         retrieved_map = {c.chunk_id: c for c in retrieved_chunks}
 
         valid_citations: list[dict[str, Any]] = []

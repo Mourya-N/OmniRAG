@@ -64,9 +64,13 @@ class BM25Retriever:
         # Pair with chunks and sort descending
         scored_pairs = []
         for chunk, score in zip(corpus, scores, strict=False):
-            # Check if any query token is present in chunk text to guarantee match on small corpora
+            # Check if any query token is present in chunk text (including root/stem matches)
             chunk_tokens = set(tokenize_text(chunk["raw_text"]))
-            has_matching_token = any(qt in chunk_tokens for qt in query_tokens)
+            has_matching_token = any(
+                qt == ct or (len(qt) >= 4 and len(ct) >= 4 and (qt in ct or ct in qt))
+                for qt in query_tokens
+                for ct in chunk_tokens
+            )
             if not has_matching_token:
                 continue
 

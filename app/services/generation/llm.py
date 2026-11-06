@@ -6,7 +6,7 @@ from typing import Any
 
 import httpx
 
-from app.core.config import settings
+from app.core.config import EnvironmentType, settings
 from app.core.exceptions import OmniRAGError
 from app.services.generation.base import LLMProvider
 from app.services.generation.prompt import SYSTEM_PROMPT, build_grounded_prompt
@@ -109,6 +109,7 @@ class OpenAILLMProvider(LLMProvider):
 
             data = resp.json()
             raw_text = data["choices"][0]["message"]["content"]
+            raw_text = raw_text.replace("【", "[").replace("】", "]")
             usage = data.get("usage", {})
 
             # Extract cited IDs: [chunk_id]
@@ -183,6 +184,7 @@ class GeminiLLMProvider(LLMProvider):
 
             data = resp.json()
             raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+            raw_text = raw_text.replace("【", "[").replace("】", "]")
 
             cited_ids = set(re.findall(r"\[([a-zA-Z0-9_-]+)\]", raw_text))
             chunk_lookup = {c.chunk_id: c for c in context_chunks}
@@ -262,6 +264,7 @@ class GroqLLMProvider(LLMProvider):
 
             data = resp.json()
             raw_text = data["choices"][0]["message"]["content"]
+            raw_text = raw_text.replace("【", "[").replace("】", "]")
             usage = data.get("usage", {})
 
             cited_ids = set(re.findall(r"\[([a-zA-Z0-9_-]+)\]", raw_text))
@@ -295,20 +298,33 @@ class GroqLLMProvider(LLMProvider):
             )
 
 
-_llm_instance: LLMProvider | None = None
+_providers: dict[str, LLMProvider] = {}
 
 
-def get_llm_provider() -> LLMProvider:
-    """Return configured LLM provider instance."""
-    global _llm_instance
-    if _llm_instance is None:
-        if settings.GROQ_API_KEY:
-            _llm_instance = GroqLLMProvider()
+def get_llm_provider(provider_name: str | None = None) -> LLMProvider:
+    """Return configured LLM provider instance matching provider_name or system defaults."""
+    if settings.ENVIRONMENT == EnvironmentType.TESTING and (not provider_name or provider_name.lower() == "mock"):
+        return MockLLMProvider()
+
+    selected = (provider_name or settings.DEFAULT_LLM_PROVIDER or "groq").lower()
+
+    if selected not in _providers:
+        if selected == "groq" and settings.GROQ_API_KEY:
+            _providers[selected] = GroqLLMProvider()
+        elif selected in ("openai", "gpt-4o") and settings.OPENAI_API_KEY:
+            _providers[selected] = OpenAILLMProvider()
+        elif selected in ("gemini", "google") and settings.GEMINI_API_KEY:
+            _providers[selected] = GeminiLLMProvider()
+        elif selected == "mock":
+            _providers[selected] = MockLLMProvider()
+        elif settings.GROQ_API_KEY:
+            _providers[selected] = GroqLLMProvider()
         elif settings.OPENAI_API_KEY:
-            _llm_instance = OpenAILLMProvider()
+            _providers[selected] = OpenAILLMProvider()
         elif settings.GEMINI_API_KEY:
-            _llm_instance = GeminiLLMProvider()
+            _providers[selected] = GeminiLLMProvider()
         else:
-            _llm_instance = MockLLMProvider()
-    return _llm_instance
+            _providers[selected] = MockLLMProvider()
+
+    return _providers[selected]
 

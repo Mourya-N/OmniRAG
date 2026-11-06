@@ -13,6 +13,8 @@ class RAGChatRequest(BaseModel):
     query: str = Field(min_length=2, max_length=2000, description="User question")
     conversation_id: str | None = None
     organization_id: str | None = None
+    document_id: str | None = None
+    model_provider: str | None = None
     top_k: int = Field(default=5, ge=1, le=20)
     enable_reranking: bool = True
     abstain_on_insufficient_evidence: bool = True

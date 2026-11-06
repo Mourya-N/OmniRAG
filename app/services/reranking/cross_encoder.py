@@ -39,7 +39,14 @@ class CrossEncoderReranker(Reranker):
         if not t_tokens:
             return 0.0
 
-        matches = sum(1 for q in q_tokens if q in t_text)
+        matches = 0
+        for q in q_tokens:
+            if q in t_text:
+                matches += 1
+            else:
+                stem = re.sub(r"(ship|ing|ed|ers|er|es|s)$", "", q)
+                if len(stem) >= 3 and stem in t_text:
+                    matches += 1
         coverage_ratio = matches / len(q_tokens)
 
         # Check exact phrase matches
@@ -77,7 +84,7 @@ class CrossEncoderReranker(Reranker):
         # Fallback to top scored candidates if threshold was too strict for multi-clause queries
         if not scored_candidates and all_scored:
             all_scored.sort(key=lambda x: x[1], reverse=True)
-            scored_candidates = [pair for pair in all_scored[:top_k] if pair[1] > 0.15]
+            scored_candidates = [pair for pair in all_scored[:top_k] if pair[1] > 0.05] or all_scored[:top_k]
 
         # Sort descending by cross-encoder score
         scored_candidates.sort(key=lambda x: x[1], reverse=True)
