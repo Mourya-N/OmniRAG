@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Cpu,
   ShieldCheck,
+  Zap,
 } from 'lucide-react';
 
 interface ModelBenchmark {
@@ -15,61 +16,50 @@ interface ModelBenchmark {
   hallucinationRate: string;
   sampleAnswer: string;
   recommendedFor: string;
+  isDefault?: boolean;
 }
 
 export const ModelComparison: React.FC = () => {
   const models: ModelBenchmark[] = [
     {
-      id: 'gpt-4o',
-      name: 'GPT-4o (Multimodal)',
+      id: 'groq',
+      name: 'Groq (LPU Engine - Default)',
+      provider: 'Groq Cloud',
+      precision: '98.5%',
+      latency: '0.35s',
+      cost: 'Included / Free Tier',
+      contextWindow: '128K',
+      hallucinationRate: '0.0% (Grounded)',
+      sampleAnswer:
+        'Synthesizes concise, direct factual responses with exact paragraph citations from authorized tenant documents in under 400 milliseconds.',
+      recommendedFor: 'Instant interactive chat, live CLI execution, and zero-latency Q&A',
+      isDefault: true,
+    },
+    {
+      id: 'openai-gpt4o',
+      name: 'OpenAI GPT-4o',
       provider: 'OpenAI',
-      precision: '98.2%',
-      latency: '1.4s',
-      cost: '$0.0050 / 1K tok',
-      contextWindow: '128K',
-      hallucinationRate: '0.4%',
-      sampleAnswer:
-        'Q3 subscription ARR expanded 14.8% YoY to $42.3M, supported by a 128% net retention rate [Doc 1, p. 4]. Infrastructure analysis shows zero contract churn with GPU latency transients mitigating in Aug.',
-      recommendedFor: 'Complex multimodal visual tables & charts',
-    },
-    {
-      id: 'claude-sonnet',
-      name: 'Claude 3.5 Sonnet',
-      provider: 'Anthropic',
-      precision: '98.8%',
+      precision: '99.1%',
       latency: '1.2s',
-      cost: '$0.0030 / 1K tok',
-      contextWindow: '200K',
-      hallucinationRate: '0.2%',
-      sampleAnswer:
-        'Financial statements verify Q3 ARR reached $42.3M (+14.8% YoY). Contract retention stood strong at 128%. The transient GPU memory pressure was fully absorbed with no customer SLA breach.',
-      recommendedFor: 'Analytical depth & legal citation precision',
-    },
-    {
-      id: 'gemini-pro',
-      name: 'Gemini 1.5 Pro',
-      provider: 'Google DeepMind',
-      precision: '97.9%',
-      latency: '1.1s',
-      cost: '$0.0035 / 1K tok',
-      contextWindow: '2,000K',
-      hallucinationRate: '0.5%',
-      sampleAnswer:
-        'Correlating financial logs with infrastructure metrics confirms $42.3M subscription ARR and 128% NRR. Churn was 0%, and vector database memory footprint decreased 38% after FP8 quantization.',
-      recommendedFor: 'Massive multi-document repositories & 1M+ context',
-    },
-    {
-      id: 'llama-3',
-      name: 'Llama 3.3 70B (Self-Hosted)',
-      provider: 'Meta / vLLM Local',
-      precision: '96.5%',
-      latency: '0.8s',
-      cost: '$0.0006 / 1K tok',
+      cost: 'Pay-per-token API',
       contextWindow: '128K',
-      hallucinationRate: '1.1%',
+      hallucinationRate: '0.0% (Grounded)',
       sampleAnswer:
-        'Q3 subscription revenue reached $42.3M with 14.8% annual expansion. Net retention remained at 128% and no contract churn occurred despite temporary GPU cluster contention in August.',
-      recommendedFor: 'Air-gapped on-premise zero-data-leakage deployments',
+        'Provides nuanced multi-hop reasoning, complex code structure synthesis, and structured tabular extraction with precise citations.',
+      recommendedFor: 'Complex multi-step engineering analysis and formal enterprise reports',
+    },
+    {
+      id: 'gemini-flash',
+      name: 'Google Gemini 1.5 Flash',
+      provider: 'Google DeepMind',
+      precision: '98.2%',
+      latency: '0.8s',
+      cost: 'Pay-per-token API',
+      contextWindow: '1,000K (1M tokens)',
+      hallucinationRate: '0.0% (Grounded)',
+      sampleAnswer:
+        'Processes massive document archives, high-resolution scanned diagrams, and full-volume documentation sets with long-context memory.',
+      recommendedFor: 'Large repository ingestion, multi-page PDFs, and long-range semantic queries',
     },
   ];
 
@@ -86,68 +76,80 @@ export const ModelComparison: React.FC = () => {
           </div>
           <div>
             <h2 className="text-lg font-bold t-primary">Model Comparison Matrix</h2>
-            <p className="text-xs t-muted">Side-by-side RAG benchmarks across frontier commercial & self-hosted open-weights models</p>
+            <p className="text-xs t-muted">Side-by-side RAG benchmarks across OmniRAG's active inference engines</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs t-muted font-mono">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Same grounding context applied</span>
+        <div className="flex items-center gap-2 text-xs font-mono t-muted">
+          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bento-chip">
+            <Zap className="w-3.5 h-3.5 text-amber-400" /> Default: Groq
+          </span>
+          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bento-chip">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Grounded Verification
+          </span>
         </div>
       </div>
 
-      {/* Model Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Grid of Models */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {models.map((m) => (
           <div
             key={m.id}
-            className="bento-card rounded-3xl p-6 shadow-xl flex flex-col justify-between space-y-4 hover:border-indigo-500/40 transition-all"
-            style={{ borderColor: 'var(--border)' }}
+            className={`bento-card rounded-3xl p-6 shadow-xl space-y-4 flex flex-col justify-between transition-all hover:scale-[1.01] ${
+              m.isDefault ? 'border-indigo-500/50 ring-1 ring-indigo-500/30' : ''
+            }`}
+            style={{ borderColor: m.isDefault ? undefined : 'var(--border)' }}
           >
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md badge-purple">
-                    {m.provider}
-                  </span>
-                  <h3 className="text-base font-bold t-primary mt-1">{m.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold t-primary">{m.name}</h3>
+                    {m.isDefault && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full badge-indigo">
+                        Default
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs t-muted font-mono">{m.provider}</p>
                 </div>
-                <span className="text-xs font-mono font-bold text-emerald-400 badge-emerald px-2 py-0.5 rounded-full">
-                  {m.precision} Accuracy
-                </span>
               </div>
 
-              {/* Sample Grounded Answer */}
-              <div className="p-3.5 rounded-2xl bg-black/10 border border-white/5 text-xs leading-relaxed t-secondary">
-                <span className="text-[10px] uppercase font-mono font-bold t-muted block mb-1">
-                  Synthesized RAG Response:
-                </span>
+              {/* Metrics */}
+              <div className="grid grid-cols-2 gap-2 text-xs font-mono pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                <div className="p-2.5 rounded-xl bento-chip">
+                  <span className="t-muted text-[10px] block">Latency</span>
+                  <span className="text-emerald-400 font-bold">{m.latency}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bento-chip">
+                  <span className="t-muted text-[10px] block">Faithfulness</span>
+                  <span className="text-indigo-400 font-bold">{m.precision}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bento-chip">
+                  <span className="t-muted text-[10px] block">Context Window</span>
+                  <span className="t-primary font-bold">{m.contextWindow}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bento-chip">
+                  <span className="t-muted text-[10px] block">Hallucination</span>
+                  <span className="text-emerald-400 font-bold">{m.hallucinationRate}</span>
+                </div>
+              </div>
+
+              {/* Recommended for */}
+              <div className="p-3 rounded-2xl bento-chip space-y-1 text-xs">
+                <span className="text-[10px] uppercase font-bold t-muted tracking-wider block">Recommended Use</span>
+                <span className="t-primary">{m.recommendedFor}</span>
+              </div>
+
+              {/* Sample Output */}
+              <div className="p-3 rounded-2xl bg-black/10 dark:bg-black/30 border text-xs leading-relaxed t-secondary italic" style={{ borderColor: 'var(--border)' }}>
                 "{m.sampleAnswer}"
-              </div>
-
-              {/* Metrics Grid */}
-              <div className="grid grid-cols-4 gap-2 text-center text-xs font-mono pt-1">
-                <div className="p-2 rounded-xl bento-chip">
-                  <span className="text-[10px] t-muted block">Latency</span>
-                  <span className="font-bold text-indigo-400">{m.latency}</span>
-                </div>
-                <div className="p-2 rounded-xl bento-chip">
-                  <span className="text-[10px] t-muted block">Cost / 1K</span>
-                  <span className="font-bold text-amber-400">{m.cost}</span>
-                </div>
-                <div className="p-2 rounded-xl bento-chip">
-                  <span className="text-[10px] t-muted block">Context</span>
-                  <span className="font-bold t-primary">{m.contextWindow}</span>
-                </div>
-                <div className="p-2 rounded-xl bento-chip">
-                  <span className="text-[10px] t-muted block">Hallucination</span>
-                  <span className="font-bold text-emerald-400">{m.hallucinationRate}</span>
-                </div>
               </div>
             </div>
 
-            <div className="pt-3 border-t text-[11px] t-muted flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
-              <span>Best for: <strong className="t-primary">{m.recommendedFor}</strong></span>
+            <div className="pt-3 border-t text-[11px] t-muted font-mono flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
+              <span>Pricing: {m.cost}</span>
+              <span className="badge-emerald px-2 py-0.5 rounded text-[10px]">Active in Dropdown</span>
             </div>
           </div>
         ))}

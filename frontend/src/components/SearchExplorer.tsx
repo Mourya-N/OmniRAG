@@ -3,38 +3,43 @@ import { Search } from 'lucide-react';
 import { ApiService } from '../services/api';
 import { SearchHit } from '../types';
 
-export const SearchExplorer: React.FC = () => {
-  const [query, setQuery] = useState('');
+interface SearchExplorerProps {
+  initialQuery?: string;
+}
+
+export const SearchExplorer: React.FC<SearchExplorerProps> = ({ initialQuery = '' }) => {
+  const [query, setQuery] = useState(initialQuery);
   const [strategy, setStrategy] = useState<'hybrid' | 'dense' | 'bm25'>('hybrid');
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (initialQuery && initialQuery.trim()) {
+      setQuery(initialQuery);
+      performSearch(initialQuery.trim(), strategy);
+    }
+  }, [initialQuery]);
+
+  const performSearch = async (searchQuery: string, strat: 'hybrid' | 'dense' | 'bm25') => {
+    if (!searchQuery.trim()) return;
+    setLoading(true);
+    setErrorMessage(null);
+    try {
+      const res = await ApiService.executeSearch(searchQuery.trim(), strat);
+      setHits(res.hits || []);
+    } catch (err: any) {
+      setHits([]);
+      setErrorMessage(err?.message || 'Search execution failed across vector and sparse indexes.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim() || loading) return;
-
-    setLoading(true);
-    try {
-      const res = await ApiService.executeSearch(query.trim(), strategy);
-      setHits(res.hits || []);
-    } catch {
-      // Fallback preview data
-      setHits([
-        {
-          chunk_id: 'chunk-demo-1',
-          document_id: 'architecture.pdf',
-          tenant_id: 'tenant-1',
-          score: 0.94,
-          raw_text: 'Hybrid retrieval combines dense vector embeddings with sparse BM25 scores via Reciprocal Rank Fusion.',
-          page_number: 1,
-          section_heading: 'Retrieval Engine',
-          content_type: 'text',
-          retrieval_source: 'hybrid_rrf_neural_reranked',
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
+    performSearch(query.trim(), strategy);
   };
 
   return (
@@ -89,9 +94,20 @@ export const SearchExplorer: React.FC = () => {
           </span>
         </div>
 
-        {hits.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-12 t-muted text-sm flex items-center justify-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
+            <span>Executing dense vector & BM25 sparse hybrid retrieval...</span>
+          </div>
+        ) : errorMessage ? (
+          <div className="text-center py-10 text-rose-400 text-xs font-mono p-4 rounded-2xl bento-chip">
+            {errorMessage}
+          </div>
+        ) : hits.length === 0 ? (
           <div className="text-center py-12 t-muted text-sm">
-            Enter a search query to inspect hybrid ranking and diagnostics.
+            {query.trim()
+              ? 'No matching passages found for this query in the indexed documents.'
+              : 'Enter a search query to inspect hybrid ranking and diagnostics.'}
           </div>
         ) : (
           <div className="space-y-3">

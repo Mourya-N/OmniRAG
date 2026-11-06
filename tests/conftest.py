@@ -6,3 +6,4 @@ from app.core.config import settings, EnvironmentType
 def configure_test_environment(monkeypatch):
     """Ensure testing environment is set during pytest executions."""
     monkeypatch.setattr(settings, "ENVIRONMENT", EnvironmentType.TESTING)
+

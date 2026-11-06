@@ -62,6 +62,7 @@ export const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>(getInitialPage);
   const [currentLayer, setCurrentLayer] = useState<'workspace' | 'admin'>('workspace');
   const [activeTab, setActiveTab] = useState<DashTab>('home');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isUpgradePlanOpen, setIsUpgradePlanOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -206,7 +207,10 @@ export const App: React.FC = () => {
         activeTab={activeTab}
         setActiveTab={(t) => setActiveTab(t as DashTab)}
         onOpenUpload={() => setIsUploadModalOpen(true)}
-        onQuickSearch={(_q) => setActiveTab('search')}
+        onQuickSearch={(q) => {
+          setSearchQuery(q);
+          setActiveTab('search');
+        }}
         onNavigateAuth={() => navigate('login')}
         onNavigateLanding={() => navigate('landing')}
         currentUser={currentUser}
@@ -244,7 +248,7 @@ export const App: React.FC = () => {
               )}
               {activeTab === 'chat' && <ChatExplorer />}
               {activeTab === 'agentic-search' && <AgenticSearch />}
-              {activeTab === 'search' && <SearchExplorer />}
+              {activeTab === 'search' && <SearchExplorer initialQuery={searchQuery} />}
               {activeTab === 'graph' && <KnowledgeGraph />}
               {activeTab === 'saved-queries' && (
                 <SavedQueries

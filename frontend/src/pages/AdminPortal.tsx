@@ -354,12 +354,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             <div className="bento-card p-5 rounded-3xl space-y-2">
               <div className="flex items-center justify-between text-xs t-muted">
                 <span>Background Workers</span>
-                <Activity className="w-4 h-4 text-pink-400" />
+                <Activity className="w-4 h-4 text-emerald-400" />
               </div>
-              <div className="text-2xl font-black t-primary font-mono">
-                12 / 12 Online
+              <div className="text-2xl font-black text-emerald-400 font-mono">
+                Active & Healthy
               </div>
-              <p className="text-[10px] text-pink-300">Distributed Celery Cluster</p>
+              <p className="text-[10px] t-muted">Async Ingestion & Indexing Engine</p>
             </div>
           </div>
 

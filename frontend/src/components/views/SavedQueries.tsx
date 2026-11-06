@@ -248,7 +248,7 @@ export const SavedQueries: React.FC<SavedQueriesProps> = ({ onRunQuery }) => {
                   required
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="e.g. Q3 ARR Growth Comparison"
+                  placeholder="e.g. Technical Skills & Architecture Summary"
                   className="w-full px-3 py-2 rounded-xl glass-input text-xs"
                 />
               </div>

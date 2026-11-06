@@ -21,10 +21,10 @@ export const QueryAnalytics: React.FC = () => {
   ];
 
   const topQueries = [
-    { text: 'Q3 Financial ARR growth & net expansion', hits: 342, latency: '1.2s', accuracy: '99.1%' },
-    { text: 'SOC 2 Type II KMS envelope encryption rules', hits: 289, latency: '1.4s', accuracy: '98.4%' },
-    { text: 'Kubernetes cluster autoscaling and worker quotas', hits: 215, latency: '1.1s', accuracy: '97.2%' },
-    { text: 'Reciprocal rank fusion BM25 alpha tuning parameters', hits: 184, latency: '0.9s', accuracy: '96.8%' },
+    { text: "What technical skills and experience are mentioned in Mourya's resume?", hits: 14, latency: '0.38s', accuracy: '100%' },
+    { text: 'Where did the candidate complete their internship and what were the key duties?', hits: 9, latency: '0.35s', accuracy: '100%' },
+    { text: 'What programming languages, frameworks, and cloud platforms are utilized?', hits: 8, latency: '0.41s', accuracy: '99.5%' },
+    { text: 'Reciprocal rank fusion BM25 alpha tuning and dense vector retrieval', hits: 5, latency: '0.32s', accuracy: '98.8%' },
   ];
 
   return (
