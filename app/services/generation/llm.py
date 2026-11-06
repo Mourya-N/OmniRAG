@@ -214,9 +214,9 @@ class GeminiLLMProvider(LLMProvider):
 
 
 class GroqLLMProvider(LLMProvider):
-    """Groq ultra-fast Llama-3 / Mixtral provider (OpenAI API format)."""
+    """Groq ultra-fast generation provider (OpenAI API format)."""
 
-    def __init__(self, api_key: str | None = None, model: str = "llama-3.3-70b-versatile") -> None:
+    def __init__(self, api_key: str | None = None, model: str = "openai/gpt-oss-120b") -> None:
         self.api_key = api_key or settings.GROQ_API_KEY
         self.model = model
 
@@ -251,7 +251,10 @@ class GroqLLMProvider(LLMProvider):
                     "messages": messages,
                     "temperature": 0.1,
                 },
-                headers={"Authorization": f"Bearer {self.api_key}"},
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "User-Agent": "OmniRAG-Client/1.0",
+                },
                 timeout=60.0,
             )
             if resp.status_code != 200:
@@ -299,12 +302,12 @@ def get_llm_provider() -> LLMProvider:
     """Return configured LLM provider instance."""
     global _llm_instance
     if _llm_instance is None:
-        if settings.GEMINI_API_KEY:
-            _llm_instance = GeminiLLMProvider()
-        elif settings.GROQ_API_KEY:
+        if settings.GROQ_API_KEY:
             _llm_instance = GroqLLMProvider()
         elif settings.OPENAI_API_KEY:
             _llm_instance = OpenAILLMProvider()
+        elif settings.GEMINI_API_KEY:
+            _llm_instance = GeminiLLMProvider()
         else:
             _llm_instance = MockLLMProvider()
     return _llm_instance
